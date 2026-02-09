@@ -10,6 +10,7 @@ export function AddProduct() {
 
     const [form, setForm] = useState({
         name: '',
+        code: '',
         price: '',
         stock: '10',
         category: 'Terços',
@@ -33,6 +34,7 @@ export function AddProduct() {
 
         await createProduct({
             name: form.name,
+            code: form.code,
             price: parseFloat(form.price) || 0,
             stock: parseInt(form.stock) || 0,
             category: form.category,
@@ -111,6 +113,16 @@ export function AddProduct() {
                                 placeholder="Ex: Terço de São Bento"
                                 value={form.name}
                                 onChange={e => setForm({ ...form, name: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Código (SKU)</label>
+                            <input
+                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
+                                placeholder="Ex: 007066GR"
+                                value={form.code}
+                                onChange={e => setForm({ ...form, code: e.target.value })}
                             />
                         </div>
 

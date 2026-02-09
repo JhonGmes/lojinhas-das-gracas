@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { geminiService } from '../services/gemini';
-import { Sparkles, ShoppingCart, ArrowLeft, Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ShoppingCart, ArrowLeft, Wand2, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 
 export function ProductDetail() {
@@ -18,10 +18,12 @@ export function ProductDetail() {
     const [editedImage, setEditedImage] = useState<string | null>(null);
     const [editPrompt, setEditPrompt] = useState('Em um altar iluminado');
     const [editing, setEditing] = useState(false);
-    const [quantity, setQuantity] = useState(1);
+    const quantity = 1;
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isZooming, setIsZooming] = useState(false);
+    const [cep, setCep] = useState('');
+    const [shippingCost, setShippingCost] = useState<number | null>(null);
 
     useEffect(() => {
         if (id) {
@@ -222,24 +224,99 @@ export function ProductDetail() {
             <div className="space-y-8 md:pt-14">
                 <div>
                     <span className="bg-brand-gold/10 text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full">{product.category}</span>
-                    <h1 className="text-4xl lg:text-6xl font-display font-bold text-brand-wood dark:text-stone-100 mt-4 leading-tight">{product.name}</h1>
-                </div>
-
-                <div className="flex items-baseline gap-4">
-                    <span className="text-5xl font-bold text-brand-brown dark:text-amber-500 font-display">{formatCurrency(currentPrice)}</span>
-                    {product.promotionalPrice && (
-                        <span className="text-2xl text-stone-300 line-through font-light italic">{formatCurrency(product.price)}</span>
+                    <h1 className="text-4xl lg:text-5xl font-display font-bold text-brand-wood dark:text-stone-100 mt-4 leading-tight">{product.name}</h1>
+                    {product.code && (
+                        <p className="text-xs text-stone-400 font-bold uppercase tracking-widest mt-2">Cód: {product.code}</p>
                     )}
                 </div>
 
-                <div className="prose dark:prose-invert text-stone-500 dark:text-stone-400 text-lg leading-relaxed">
-                    <p className="first-letter:text-4xl first-letter:font-bold first-letter:text-brand-gold first-letter:mr-1">{product.description}</p>
+                <div className="flex items-baseline gap-4 border-b border-stone-100 dark:border-stone-800 pb-6">
+                    <span className="text-5xl font-bold text-brand-brown dark:text-amber-500 font-display">{formatCurrency(currentPrice)}</span>
+                    {product.promotionalPrice && (
+                        <span className="text-xl text-stone-300 line-through font-light italic">{formatCurrency(product.price)}</span>
+                    )}
+                </div>
+
+                {/* Purchase Button - Moved Up */}
+                <div className="space-y-4">
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={product.stock <= 0}
+                        className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm uppercase tracking-widest rounded-xl shadow-xl hover:shadow-emerald-600/20 transition-all disabled:bg-stone-300 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-[0.98]"
+                    >
+                        <ShoppingCart size={22} />
+                        {product.stock > 0 ? 'Comprar Agora' : 'Item Esgotado'}
+                    </button>
+
+                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-stone-500">
+                        <span className="flex items-center gap-2">
+                            Estoque:
+                            {product.stock > 0 ? (
+                                <span className="text-emerald-600 flex items-center gap-1"><Check size={14} /> Disponível</span>
+                            ) : (
+                                <span className="text-red-500">Indisponível</span>
+                            )}
+                        </span>
+                        {product.stock <= 5 && product.stock > 0 && (
+                            <span className="text-red-500 animate-pulse">Restam {product.stock} un.</span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Payment Methods */}
+                <div className="bg-stone-50 dark:bg-stone-900/50 p-4 rounded-xl border border-stone-100 dark:border-stone-800 space-y-3">
+                    <div className="flex items-center gap-3 text-sm font-bold text-stone-600 dark:text-stone-300">
+                        <Banknote size={18} className="text-brand-gold" />
+                        <span>Pagamento via Pix</span>
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-auto">-5% OFF</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-stone-600 dark:text-stone-300">
+                        <CreditCard size={18} className="text-brand-gold" />
+                        <span>Cartão de Crédito</span>
+                        <span className="text-xs text-stone-400 font-normal ml-auto">até 3x sem juros</span>
+                    </div>
+                </div>
+
+                {/* Shipping Calculator */}
+                <div className="space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-widest text-stone-400 flex items-center gap-2">
+                        <Truck size={14} /> Calcular Frete
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            value={cep}
+                            onChange={(e) => setCep(e.target.value)}
+                            placeholder="00000-000"
+                            className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-2 text-sm w-36 focus:ring-2 ring-brand-gold outline-none"
+                            maxLength={9}
+                        />
+                        <button
+                            onClick={() => setShippingCost(25.90)} // Mock calculation
+                            className="bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-4 py-2 rounded-lg text-xs font-bold uppercase hover:bg-stone-300 transition-colors"
+                        >
+                            Calcular
+                        </button>
+                    </div>
+                    {shippingCost !== null && (
+                        <div className="text-sm text-stone-600 dark:text-stone-300 flex justify-between items-center bg-stone-50 dark:bg-stone-900 p-3 rounded-lg border border-stone-100">
+                            <span>Frete Fixo (Simulação)</span>
+                            <span className="font-bold text-brand-brown">{formatCurrency(shippingCost)}</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Description moved down */}
+                <div className="pt-6 border-t border-stone-100 dark:border-stone-800">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-stone-400 mb-4">Descrição do Produto</h3>
+                    <div className="prose dark:prose-invert text-stone-500 dark:text-stone-400 text-base leading-relaxed">
+                        <p>{product.description}</p>
+                    </div>
                 </div>
 
                 {/* AI Analysis */}
-                <div className="bg-[#FDFBF7] dark:bg-stone-900/50 p-8 rounded-[2rem] border border-stone-100 dark:border-stone-800 shadow-inner relative group">
+                <div className="bg-[#FDFBF7] dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-inner relative group mt-8">
                     <div className="absolute -top-3 -left-3 bg-brand-gold text-white p-2 rounded-xl shadow-lg group-hover:rotate-12 transition-transform">
-                        <Sparkles size={20} />
+                        <Sparkles size={16} />
                     </div>
                     <button
                         onClick={handleAnalyze}
@@ -249,38 +326,11 @@ export function ProductDetail() {
                         {analyzing ? 'Consultando Sabedoria...' : 'Significado Espiritual'}
                     </button>
                     {analysis ? (
-                        <div className="text-stone-600 dark:text-stone-300 italic text-lg leading-relaxed animate-fade-in pl-2 border-l-2 border-brand-gold/30">
+                        <div className="text-stone-600 dark:text-stone-300 italic text-sm leading-relaxed animate-fade-in pl-2 border-l-2 border-brand-gold/30">
                             "{analysis}"
                         </div>
                     ) : (
-                        <div className="text-stone-400 text-sm italic">Clique acima para ver a análise espiritual deste produto.</div>
-                    )}
-                </div>
-
-                {/* Purchase Area */}
-                <div className="pt-8 border-t border-stone-100 dark:border-stone-800 space-y-6">
-                    <div className="flex flex-col sm:flex-row items-center gap-6">
-                        <div className="flex items-center bg-stone-100 dark:bg-stone-900 rounded-full p-1 h-16 shadow-inner w-full sm:w-auto">
-                            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-14 h-full flex items-center justify-center hover:bg-white dark:hover:bg-stone-800 rounded-full transition-all text-2xl font-light text-stone-400">-</button>
-                            <span className="w-16 text-center font-bold text-xl font-display">{quantity}</span>
-                            <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="w-14 h-full flex items-center justify-center hover:bg-white dark:hover:bg-stone-800 rounded-full transition-all text-2xl font-light text-stone-400">+</button>
-                        </div>
-
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={product.stock <= 0}
-                            className="w-full h-16 bg-brand-wood hover:bg-brand-brown text-white font-bold text-sm uppercase tracking-widest rounded-full shadow-2xl hover:shadow-brand-gold/20 transition-all disabled:bg-stone-300 disabled:cursor-not-allowed flex items-center justify-center gap-4 active:scale-[0.98]"
-                        >
-                            <ShoppingCart size={22} />
-                            {product.stock > 0 ? 'Adicionar ao Carrinho' : 'Item Esgotado'}
-                        </button>
-                    </div>
-
-                    {product.stock <= 5 && product.stock > 0 && (
-                        <p className="text-red-500 font-bold text-xs uppercase tracking-widest flex items-center gap-2 justify-center sm:justify-start">
-                            <span className="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                            Apenas {product.stock} unidades restantes!
-                        </p>
+                        <div className="text-stone-400 text-xs italic">Clique acima para ver a análise espiritual.</div>
                     )}
                 </div>
             </div>

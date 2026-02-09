@@ -34,7 +34,8 @@ export const api = {
                         ...p,
                         promotionalPrice: p.promotional_price,
                         isFeatured: p.is_featured,
-                        createdAt: p.created_at
+                        createdAt: p.created_at,
+                        code: p.code
                     }))
                 }
             } catch (err) {
@@ -60,7 +61,8 @@ export const api = {
                     image: product.image,
                     images: product.images || [],
                     promotional_price: product.promotionalPrice ?? null,
-                    is_featured: product.isFeatured ?? false
+                    is_featured: product.isFeatured ?? false,
+                    code: product.code
                 }
                 const { error } = await supabase
                     .from('products')
@@ -109,7 +111,8 @@ export const api = {
                     category: product.category,
                     image: product.image,
                     images: product.images || [],
-                    is_featured: product.isFeatured ?? false
+                    is_featured: product.isFeatured ?? false,
+                    code: product.code
                 }
 
                 if (product.promotionalPrice) {

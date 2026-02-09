@@ -59,7 +59,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return acc + (price * item.quantity);
     }, 0);
 
-    const checkout = async (customerName: string, notes?: string) => {
+    const checkout = async (customerName: string, notes?: string, paymentMethod: 'pix' | 'card' = 'card') => {
         // 1. Validate Stock
         const freshProducts = await api.products.list();
 
@@ -73,6 +73,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
         }
 
+        const discount = paymentMethod === 'pix' ? total * 0.05 : 0;
+        const finalTotal = total - discount;
+
         // 2. Deduct Stock
         for (const item of items) {
             const productInStock = freshProducts.find(p => p.id === item.id)!;
@@ -84,10 +87,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
             id: crypto.randomUUID().slice(0, 8),
             customerName,
             items: [...items],
-            total,
+            total: finalTotal,
             status: 'pending',
             createdAt: new Date().toISOString(),
-            notes
+            notes: `${notes || ''} | Pagamento: ${paymentMethod}`
         };
 
         const createdOrder = await api.orders.create(order);
@@ -104,7 +107,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             message += `${item.quantity}x ${item.name} - R$ ${(price * item.quantity).toFixed(2)}\n`;
         });
         message += `----------------\n`;
-        message += `*Total: R$ ${total.toFixed(2)}*\n`;
+        if (discount > 0) {
+            message += `Subtotal: R$ ${total.toFixed(2)}\n`;
+            message += `Desconto Pix (5%): -R$ ${discount.toFixed(2)}\n`;
+        }
+        message += `*Total Final: R$ ${finalTotal.toFixed(2)}*\n`;
+        message += `Forma de Pagamento: ${paymentMethod === 'pix' ? 'PIX' : 'Cartão'}\n`;
         message += `Cliente: ${customerName}\n`;
         if (notes) message += `Obs: ${notes}`;
 

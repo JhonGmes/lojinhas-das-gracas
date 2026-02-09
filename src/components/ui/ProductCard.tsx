@@ -90,6 +90,9 @@ export function ProductCard({ product }: { product: Product }) {
                         <div className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg uppercase tracking-widest animate-pulse">
                             Oferta
                         </div>
+                        <div className="bg-white/90 backdrop-blur-sm text-amber-600 text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm border border-amber-100">
+                            {Math.round(((product.price - product.promotionalPrice) / product.price) * 100)}% OFF
+                        </div>
                     </div>
                 )}
             </Link>

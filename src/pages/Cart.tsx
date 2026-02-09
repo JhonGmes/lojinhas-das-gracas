@@ -13,13 +13,16 @@ export function Cart() {
     const [notes, setNotes] = useState('');
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card'>('pix');
+    const discount = paymentMethod === 'pix' ? total * 0.05 : 0;
+    const finalTotal = total - discount;
 
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
         setProcessing(true);
         setError('');
         try {
-            const result = await checkout(name, notes);
+            const result = await checkout(name, notes, paymentMethod);
             if (result.success && result.whatsappUrl) {
                 window.open(result.whatsappUrl, '_blank');
             } else {
@@ -98,13 +101,49 @@ export function Cart() {
                             <span>Frete</span>
                             <span className="text-green-600 dark:text-green-400">A combinar no WhatsApp</span>
                         </div>
-                        <div className="border-t border-stone-200 dark:border-stone-700 pt-4 flex justify-between font-bold text-2xl text-brand-brown dark:text-amber-500">
-                            <span>Total</span>
-                            <span>{formatCurrency(total)}</span>
+                        <div className="border-t border-stone-200 dark:border-stone-700 pt-4 flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                                <span className="font-bold">Total</span>
+                                <span className={`text-xl ${discount > 0 ? 'line-through text-stone-400 text-base' : 'text-brand-brown dark:text-amber-500'}`}>{formatCurrency(total)}</span>
+                            </div>
+                            {discount > 0 && (
+                                <div className="flex justify-between items-center text-green-600 dark:text-green-400 font-bold">
+                                    <span>Desconto Pix (5%)</span>
+                                    <span>- {formatCurrency(discount)}</span>
+                                </div>
+                            )}
+                            {discount > 0 && (
+                                <div className="flex justify-between items-center text-2xl font-bold text-brand-brown dark:text-amber-500">
+                                    <span>Total Final</span>
+                                    <span>{formatCurrency(finalTotal)}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <form onSubmit={handleCheckout} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold mb-3 text-stone-600 dark:text-stone-300">Forma de Pagamento</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('pix')}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${paymentMethod === 'pix' ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700' : 'border-stone-200 dark:border-stone-700 hover:border-brand-gold/50'}`}
+                                >
+                                    <span className="font-bold text-sm">PIX</span>
+                                    <span className="text-[10px] bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-bold">5% OFF</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('card')}
+                                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${paymentMethod === 'card' ? 'border-brand-gold bg-brand-light/30' : 'border-stone-200 dark:border-stone-700 hover:border-brand-gold/50'}`}
+                                >
+                                    <span className="font-bold text-sm">Cartão</span>
+                                    <span className="text-[10px] text-stone-400">Até 3x</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-bold mb-1 text-stone-600 dark:text-stone-300">Seu Nome *</label>
                             <input

@@ -8,6 +8,7 @@ export interface Product {
     images?: string[]; // Galeria de fotos extras
     category: string;
     stock: number;
+    code?: string;
     isFeatured?: boolean;
 }
 
