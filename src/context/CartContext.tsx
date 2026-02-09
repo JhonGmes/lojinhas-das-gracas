@@ -10,7 +10,7 @@ interface CartContextType {
     clearCart: () => void;
     updateQuantity: (productId: string, quantity: number) => void;
     total: number;
-    checkout: (customerName: string, notes?: string) => Promise<{ success: boolean; message?: string; whatsappUrl?: string }>;
+    checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'card') => Promise<{ success: boolean; message?: string; whatsappUrl?: string }>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
