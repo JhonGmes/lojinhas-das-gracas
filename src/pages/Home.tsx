@@ -42,7 +42,7 @@ export function Home() {
             {!isFiltered && (
                 <>
                     {/* Hero - Full Width */}
-                    <section className="relative h-[450px] md:h-[650px] overflow-hidden group w-full">
+                    <section className="relative h-[350px] md:h-[650px] overflow-hidden group w-full">
                         <div className="absolute inset-0 bg-stone-900 animate-pulse" />
                         <img
                             src={settings.hero_image_url || "https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000"}
@@ -52,15 +52,15 @@ export function Home() {
                         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent flex items-center">
                             <div className="container mx-auto px-4 md:px-8">
                                 <div className="max-w-2xl text-white space-y-8 animate-fade-in-up">
-                                    <h1 className="text-5xl md:text-8xl font-display font-medium leading-tight drop-shadow-2xl">
+                                    <h1 className="text-3xl md:text-8xl font-display font-medium leading-tight drop-shadow-2xl">
                                         {settings.hero_title || 'Encontre Paz e Devoção'}
                                     </h1>
-                                    <p className="text-xl md:text-2xl opacity-90 drop-shadow-lg font-light max-w-lg">
+                                    <p className="text-sm md:text-2xl opacity-90 drop-shadow-lg font-light max-w-lg">
                                         {settings.hero_subtitle || 'Artigos religiosos selecionados com amor para fortalecer sua fé.'}
                                     </p>
                                     <button
                                         onClick={scrollToOffers}
-                                        className="bg-brand-gold text-brand-wood font-black py-4 px-12 rounded-full shadow-2xl hover:bg-white hover:text-brand-gold transition-all transform hover:-translate-y-1 active:scale-95"
+                                        className="bg-brand-gold text-brand-wood font-black py-3 px-8 md:py-4 md:px-12 rounded-full shadow-2xl hover:bg-white hover:text-brand-gold transition-all transform hover:-translate-y-1 active:scale-95 text-sm md:text-base"
                                     >
                                         {settings.hero_button_text || 'Ver Ofertas'}
                                     </button>

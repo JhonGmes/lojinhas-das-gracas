@@ -62,12 +62,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     {/* Brand Section: Logo + Name Side-by-Side */}
                     <Link to="/" className="flex items-center gap-4 shrink-0 hover:opacity-95 transition-all group">
                         {settings.logo_url ? (
-                            <img src={settings.logo_url} className="h-16 md:h-32 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
+                            <img src={settings.logo_url} className="h-12 md:h-32 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
                         ) : (
                             <div className="h-14 w-14 md:h-24 md:w-24 bg-brand-gold/10 rounded-full flex items-center justify-center text-4xl shadow-inner">🕊️</div>
                         )}
                         <div className="flex flex-col text-center -gap-1">
-                            <h1 className="font-script text-3xl md:text-5xl text-brand-gold leading-[0.7] text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
+                            <h1 className="font-script text-xl md:text-5xl text-brand-gold leading-[0.7] text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
                                 {settings.store_name}
                             </h1>
                             <p className="font-display text-[10px] md:text-sm text-brand-gold/80 -mt-2 md:-mt-3 font-medium tracking-widest uppercase">
@@ -188,9 +188,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </ul>
 
                         {/* MOBILE BRAND TEXT (When centered nav is hidden) */}
-                        <div className="md:hidden flex-1 text-center">
-                            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{settings.store_name}</p>
-                        </div>
+
                     </div>
 
                     {/* Mobile Menu Dropdown */}
