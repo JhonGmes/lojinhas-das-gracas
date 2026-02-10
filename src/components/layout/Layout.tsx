@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, Sun, Moon, User, LogOut, LayoutDashboard, Search, Mail, Send, Instagram, Facebook } from 'lucide-react';
+import { ShoppingCart, Sun, Moon, User, LogOut, LayoutDashboard, Search, Mail, Send, Instagram, Facebook, Menu, X as CloseIcon } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
@@ -56,22 +56,63 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen flex flex-col transition-colors duration-400 dark:bg-stone-950 dark:text-stone-100 bg-brand-cotton">
+            {/* Mobile Sidebar Menu */}
+            <div className={`fixed inset-0 z-[100] transition-all duration-500 ${menuOpen ? 'visible' : 'invisible'}`}>
+                <div
+                    className={`absolute inset-0 bg-stone-950/40 backdrop-blur-sm transition-opacity duration-500 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setMenuOpen(false)}
+                />
+                <div className={`absolute left-0 top-0 bottom-0 w-[280px] bg-white dark:bg-stone-900 shadow-2xl transition-transform duration-500 ease-out border-r border-stone-100 dark:border-stone-800 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className="p-6 border-b border-stone-50 dark:border-stone-800 flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <h2 className="font-script text-2xl text-brand-gold" style={{ fontFamily: "'Cookie', cursive" }}>{settings.store_name}</h2>
+                            <p className="text-[8px] font-bold uppercase tracking-widest text-stone-400">Coleções de Fé</p>
+                        </div>
+                        <button onClick={() => setMenuOpen(false)} className="p-2 text-stone-400 hover:text-brand-gold">
+                            <CloseIcon size={24} />
+                        </button>
+                    </div>
+                    <nav className="p-4">
+                        <ul className="space-y-1">
+                            {categories.map((cat) => (
+                                <li key={cat}>
+                                    <Link
+                                        to={`/?cat=${cat}`}
+                                        onClick={() => setMenuOpen(false)}
+                                        className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest"
+                                    >
+                                        {cat}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
             <header className="sticky top-0 z-50 bg-white/95 dark:bg-stone-900 shadow-soft transition-all duration-400 backdrop-blur-md border-b border-brand-cotton-dark/50">
                 {/* Top Row: Logo, Search, Actions - Widened container */}
-                <div className="max-w-[1600px] mx-auto px-4 md:px-10 py-4 flex items-center justify-between gap-2 md:gap-8">
+                <div className="max-w-[1600px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between gap-4 md:gap-8">
+                    {/* Mobile Menu Trigger */}
+                    <button
+                        className="lg:hidden p-2 text-stone-600 dark:text-stone-300 hover:text-brand-gold transition-colors"
+                        onClick={() => setMenuOpen(true)}
+                    >
+                        <Menu size={24} />
+                    </button>
 
                     {/* Brand Section: Logo + Name Side-by-Side */}
-                    <Link to="/" className="flex items-center gap-2 md:gap-4 shrink-0 hover:opacity-95 transition-all group">
+                    <Link to="/" className="flex items-center gap-2 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0">
                         {settings.logo_url ? (
-                            <img src={settings.logo_url} className="h-10 md:h-32 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
+                            <img src={settings.logo_url} className="h-10 md:h-20 lg:h-24 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
                         ) : (
-                            <div className="h-10 w-10 md:h-24 md:w-24 bg-brand-gold/10 rounded-full flex items-center justify-center text-xl md:text-4xl shadow-inner">🕊️</div>
+                            <div className="h-10 w-10 md:h-16 md:w-16 bg-brand-gold/10 rounded-full flex items-center justify-center text-xl md:text-3xl shadow-inner">🕊️</div>
                         )}
                         <div className="flex flex-col -gap-1">
-                            <h1 className="font-script text-lg md:text-5xl text-brand-gold leading-none md:leading-[0.7] text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
+                            <h1 className="font-script text-lg md:text-3xl lg:text-4xl text-brand-gold leading-tight text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
                                 {settings.store_name}
                             </h1>
-                            <p className="font-display text-[8px] md:text-sm text-brand-gold/80 -mt-0.5 md:-mt-3 font-medium tracking-widest uppercase truncate max-w-[80px] md:max-w-none">
+                            <p className="font-display text-[8px] md:text-[10px] text-brand-gold/80 -mt-0.5 md:-mt-1 font-medium tracking-widest uppercase truncate max-w-[80px] md:max-w-none">
                                 Artigos Religiosos
                             </p>
                         </div>
@@ -158,15 +199,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                 </div>
 
-                {/* Bottom Row: Navigation */}
-                <nav className="border-t border-stone-100 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 relative overflow-x-auto no-scrollbar scroll-smooth">
-                    <div className="max-w-[1600px] mx-auto px-4 md:px-10 flex items-center h-12 md:h-16">
-                        <ul className="flex items-center gap-6 md:gap-12 min-w-max">
+                {/* Bottom Row: Navigation (Desktop only) */}
+                <nav className="hidden lg:block border-t border-stone-100 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 relative overflow-x-auto no-scrollbar scroll-smooth">
+                    <div className="max-w-[1600px] mx-auto px-4 md:px-10 flex items-center justify-center h-16">
+                        <ul className="flex items-center gap-6 md:gap-10 min-w-max">
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
                                         to={`/?cat=${cat}`}
-                                        className="font-display text-sm md:text-xl text-stone-700 dark:text-stone-300 hover:text-brand-gold transition-all relative group py-2 uppercase tracking-widest md:tracking-normal"
+                                        className="font-display text-base text-stone-700 dark:text-stone-300 hover:text-brand-gold transition-all relative group py-2 uppercase tracking-widest"
                                     >
                                         {cat}
                                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-gold scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
@@ -261,6 +302,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
             </footer>
             <WhatsAppWidget />
-        </div>
+        </div >
     );
 }

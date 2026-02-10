@@ -27,8 +27,8 @@ export function WhatsAppWidget() {
                 {/* Animação de Pulsar */}
                 <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20 group-hover:opacity-40"></div>
 
-                <div className="relative bg-[#25D366] hover:bg-[#128C7E] text-white p-3.5 md:p-4 rounded-full shadow-2xl transition-all transform group-hover:scale-110 active:scale-95 flex items-center justify-center">
-                    <MessageCircle size={24} className="md:size-28" fill="currentColor" />
+                <div className="relative bg-[#25D366] hover:bg-[#128C7E] text-white p-3.5 md:p-3 rounded-full shadow-2xl transition-all transform group-hover:scale-110 active:scale-95 flex items-center justify-center">
+                    <MessageCircle size={24} fill="currentColor" />
                 </div>
             </div>
         </a>
