@@ -17,9 +17,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [menuOpen, setMenuOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [search, setSearch] = useState('');
-    const menuRef = useRef<HTMLDivElement>(null);
+    const userMenuRef = useRef<HTMLDivElement>(null);
 
     // Sync search input with URL if needed
     useEffect(() => {
@@ -30,8 +31,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setMenuOpen(false);
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -40,7 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
     const handleLogout = async () => {
         await logout();
-        setMenuOpen(false);
+        setIsUserMenuOpen(false);
         navigate('/');
     };
 
@@ -57,18 +58,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen flex flex-col transition-colors duration-400 dark:bg-stone-950 dark:text-stone-100 bg-brand-cotton">
             {/* Mobile Sidebar Menu */}
-            <div className={`fixed inset-0 z-[100] transition-all duration-500 ${menuOpen ? 'visible' : 'invisible'}`}>
+            <div className={`fixed inset-0 z-[100] transition-all duration-500 ${isSidebarOpen ? 'visible' : 'invisible'}`}>
                 <div
-                    className={`absolute inset-0 bg-stone-950/40 backdrop-blur-sm transition-opacity duration-500 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
-                    onClick={() => setMenuOpen(false)}
+                    className={`absolute inset-0 bg-stone-950/40 backdrop-blur-sm transition-opacity duration-500 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setIsSidebarOpen(false)}
                 />
-                <div className={`absolute left-0 top-0 bottom-0 w-[280px] bg-white dark:bg-stone-900 shadow-2xl transition-transform duration-500 ease-out border-r border-stone-100 dark:border-stone-800 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className={`absolute left-0 top-0 bottom-0 w-[280px] bg-white dark:bg-stone-900 shadow-2xl transition-transform duration-500 ease-out border-r border-stone-100 dark:border-stone-800 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                     <div className="p-6 border-b border-stone-50 dark:border-stone-800 flex items-center justify-between">
                         <div className="flex flex-col">
                             <h2 className="font-script text-2xl text-brand-gold" style={{ fontFamily: "'Cookie', cursive" }}>{settings.store_name}</h2>
                             <p className="text-[8px] font-bold uppercase tracking-widest text-stone-400">Coleções de Fé</p>
                         </div>
-                        <button onClick={() => setMenuOpen(false)} className="p-2 text-stone-400 hover:text-brand-gold">
+                        <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-stone-400 hover:text-brand-gold">
                             <CloseIcon size={24} />
                         </button>
                     </div>
@@ -78,7 +79,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                 <li key={cat}>
                                     <Link
                                         to={`/?cat=${cat}`}
-                                        onClick={() => setMenuOpen(false)}
+                                        onClick={() => setIsSidebarOpen(false)}
                                         className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest"
                                     >
                                         {cat}
@@ -96,7 +97,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     {/* Mobile Menu Trigger */}
                     <button
                         className="lg:hidden p-2 text-stone-600 dark:text-stone-300 hover:text-brand-gold transition-colors"
-                        onClick={() => setMenuOpen(true)}
+                        onClick={() => setIsSidebarOpen(true)}
                     >
                         <Menu size={24} />
                     </button>
@@ -143,10 +144,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             {theme === 'light' ? <Moon size={22} className="text-brand-gold/60" /> : <Sun size={22} className="text-brand-gold" />}
                         </button>
 
-                        <div className="relative" ref={menuRef}>
+                        <div className="relative" ref={userMenuRef}>
                             {user ? (
                                 <button
-                                    onClick={() => setMenuOpen(!menuOpen)}
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                     className="flex items-center gap-1.5 md:gap-2 group p-1 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-sm transition-all duration-400"
                                 >
                                     <div className="w-7 h-7 md:w-8 md:h-8 rounded-sm bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold font-bold text-[10px] md:text-xs">
@@ -163,7 +164,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                 </Link>
                             )}
 
-                            {menuOpen && user && (
+                            {isUserMenuOpen && user && (
                                 <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-stone-800 rounded-sm shadow-soft-lg border border-brand-cotton-dark dark:border-stone-700 p-2 z-[100] animate-fade-in-up">
                                     <div className="p-4 border-b border-stone-50 dark:border-stone-700 mb-2">
                                         <p className="text-sm font-bold text-stone-800 dark:text-stone-100 truncate">{user.email}</p>
@@ -173,7 +174,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                     </div>
                                     <div className="space-y-1">
                                         {user.role === 'admin' && (
-                                            <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 w-full px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-gold hover:bg-brand-gold/5 rounded-xl transition-colors">
+                                            <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 w-full px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-brand-gold hover:bg-brand-gold/5 rounded-xl transition-colors">
                                                 <LayoutDashboard size={14} /> Painel Administrativo
                                             </Link>
                                         )}
