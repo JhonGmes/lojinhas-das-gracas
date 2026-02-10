@@ -1,0 +1,254 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "Lojinha das Graças Lojinha das Graças Artigos Religiosos" [ref=e6]:
+          - /url: /
+          - img "Lojinha das Graças" [ref=e7]
+          - generic [ref=e8]:
+            - heading "Lojinha das Graças" [level=1] [ref=e9]
+            - paragraph [ref=e10]: Artigos Religiosos
+        - generic [ref=e12]:
+          - textbox "O que sua Fé procura hoje?" [ref=e13]
+          - button [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+        - generic [ref=e18]:
+          - button [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+          - link "Entrar" [ref=e23]:
+            - /url: /login
+            - img [ref=e24]
+            - generic [ref=e27]: Entrar
+          - link "Carrinho" [ref=e28]:
+            - /url: /cart
+            - img [ref=e30]
+            - generic [ref=e34]: Carrinho
+      - navigation [ref=e35]:
+        - generic [ref=e36]:
+          - button [ref=e37] [cursor=pointer]
+          - list [ref=e42]:
+            - listitem [ref=e43]:
+              - link "Adorno" [ref=e44]:
+                - /url: /?cat=Adorno
+                - text: Adorno
+            - listitem [ref=e45]:
+              - link "Camisa" [ref=e46]:
+                - /url: /?cat=Camisa
+                - text: Camisa
+            - listitem [ref=e47]:
+              - link "Caneca" [ref=e48]:
+                - /url: /?cat=Caneca
+                - text: Caneca
+            - listitem [ref=e49]:
+              - link "Crucifixo" [ref=e50]:
+                - /url: /?cat=Crucifixo
+                - text: Crucifixo
+            - listitem [ref=e51]:
+              - link "Imagem" [ref=e52]:
+                - /url: /?cat=Imagem
+                - text: Imagem
+            - listitem [ref=e53]:
+              - link "Quadro" [ref=e54]:
+                - /url: /?cat=Quadro
+                - text: Quadro
+            - listitem [ref=e55]:
+              - link "Terço" [ref=e56]:
+                - /url: /?cat=Terço
+                - text: Terço
+    - main [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - img "Hero" [ref=e61]
+          - generic [ref=e64]:
+            - heading "Paz e Devoção" [level=1] [ref=e65]
+            - paragraph [ref=e66]: aqui voce encontra fe e devoção
+            - button "Ver Ofertas" [ref=e67] [cursor=pointer]
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - img [ref=e73]
+              - generic [ref=e75]:
+                - heading "Destaques da Vitrine" [level=2] [ref=e76]
+                - paragraph [ref=e77]: Curadoria Especial
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e81]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - img "Caneca A Cruz Sagrada" [ref=e83]
+                  - generic [ref=e84]:
+                    - generic [ref=e85]: Oferta
+                    - generic [ref=e86]: 10% OFF
+                - generic [ref=e87]:
+                  - generic [ref=e88]: Caneca
+                  - link "Caneca A Cruz Sagrada" [ref=e89]:
+                    - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                    - heading "Caneca A Cruz Sagrada" [level=3] [ref=e90]
+                  - generic [ref=e91]:
+                    - generic [ref=e92]:
+                      - generic [ref=e93]: R$ 39,99
+                      - generic [ref=e94]: R$ 35,99
+                    - button "Adicionar ao carrinho" [ref=e95] [cursor=pointer]:
+                      - img [ref=e96]
+              - generic [ref=e100]:
+                - link "Pulseira de Nossa Senhora de Fatima" [ref=e101]:
+                  - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                  - img "Pulseira de Nossa Senhora de Fatima" [ref=e103]
+                - generic [ref=e104]:
+                  - generic [ref=e105]: Pulseira
+                  - link "Pulseira de Nossa Senhora de Fatima" [ref=e106]:
+                    - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                    - heading "Pulseira de Nossa Senhora de Fatima" [level=3] [ref=e107]
+                  - generic [ref=e108]:
+                    - generic [ref=e110]: R$ 29,99
+                    - button "Adicionar ao carrinho" [ref=e111] [cursor=pointer]:
+                      - img [ref=e112]
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - img [ref=e119]
+              - generic [ref=e122]:
+                - heading "Ofertas de Fé" [level=2] [ref=e123]
+                - paragraph [ref=e124]: Oportunidades Únicas
+            - generic [ref=e127]:
+              - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e128]:
+                - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                - img "Caneca A Cruz Sagrada" [ref=e130]
+                - generic [ref=e131]:
+                  - generic [ref=e132]: Oferta
+                  - generic [ref=e133]: 10% OFF
+              - generic [ref=e134]:
+                - generic [ref=e135]: Caneca
+                - link "Caneca A Cruz Sagrada" [ref=e136]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - heading "Caneca A Cruz Sagrada" [level=3] [ref=e137]
+                - generic [ref=e138]:
+                  - generic [ref=e139]:
+                    - generic [ref=e140]: R$ 39,99
+                    - generic [ref=e141]: R$ 35,99
+                  - button "Adicionar ao carrinho" [ref=e142] [cursor=pointer]:
+                    - img [ref=e143]
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e150]:
+              - img [ref=e152]
+              - generic [ref=e155]:
+                - heading "Catálogo Completo" [level=2] [ref=e156]
+                - paragraph [ref=e157]: Navegue em nossa Seleção Divina
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - link "Busto Sagrada Família Esgotado" [ref=e160]:
+                  - /url: /product/f8e3ad9e-9c0c-4710-9f45-78811a944eec
+                  - img "Busto Sagrada Família" [ref=e162]
+                  - generic [ref=e164]: Esgotado
+                - generic [ref=e165]:
+                  - generic [ref=e166]: Imagem Sacra
+                  - link "Busto Sagrada Família" [ref=e167]:
+                    - /url: /product/f8e3ad9e-9c0c-4710-9f45-78811a944eec
+                    - heading "Busto Sagrada Família" [level=3] [ref=e168]
+                  - generic [ref=e169]:
+                    - generic [ref=e170]:
+                      - generic [ref=e171]: R$ 129,99
+                      - generic [ref=e172]: R$ 90,99
+                    - button "Adicionar ao carrinho" [disabled] [ref=e173]:
+                      - img [ref=e174]
+              - generic [ref=e178]:
+                - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e179]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - img "Caneca A Cruz Sagrada" [ref=e181]
+                  - generic [ref=e182]:
+                    - generic [ref=e183]: Oferta
+                    - generic [ref=e184]: 10% OFF
+                - generic [ref=e185]:
+                  - generic [ref=e186]: Caneca
+                  - link "Caneca A Cruz Sagrada" [ref=e187]:
+                    - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                    - heading "Caneca A Cruz Sagrada" [level=3] [ref=e188]
+                  - generic [ref=e189]:
+                    - generic [ref=e190]:
+                      - generic [ref=e191]: R$ 39,99
+                      - generic [ref=e192]: R$ 35,99
+                    - button "Adicionar ao carrinho" [ref=e193] [cursor=pointer]:
+                      - img [ref=e194]
+              - generic [ref=e198]:
+                - link "Pulseira de Nossa Senhora de Fatima" [ref=e199]:
+                  - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                  - img "Pulseira de Nossa Senhora de Fatima" [ref=e201]
+                - generic [ref=e202]:
+                  - generic [ref=e203]: Pulseira
+                  - link "Pulseira de Nossa Senhora de Fatima" [ref=e204]:
+                    - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                    - heading "Pulseira de Nossa Senhora de Fatima" [level=3] [ref=e205]
+                  - generic [ref=e206]:
+                    - generic [ref=e208]: R$ 29,99
+                    - button "Adicionar ao carrinho" [ref=e209] [cursor=pointer]:
+                      - img [ref=e210]
+          - generic [ref=e215]:
+            - generic [ref=e216]:
+              - img [ref=e218]
+              - generic [ref=e220]:
+                - heading "Blog de Fé" [level=2] [ref=e221]
+                - paragraph [ref=e222]: Mensagens e Orações Diárias
+            - link "Ver Tudo" [ref=e223]:
+              - /url: /blog
+              - text: Ver Tudo
+              - img [ref=e224]
+    - contentinfo [ref=e226]:
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - img [ref=e232]
+          - generic [ref=e235]:
+            - heading "Bênção Diária" [level=3] [ref=e236]
+            - paragraph [ref=e237]: Receba orações e novidades em seu e-mail
+        - generic [ref=e238]:
+          - textbox "Seu melhor e-mail" [ref=e239]
+          - button [ref=e240] [cursor=pointer]:
+            - img [ref=e241]
+      - generic [ref=e244]:
+        - generic [ref=e245]:
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - heading "Lojinha das Graças" [level=2] [ref=e248]
+              - paragraph [ref=e249]: Artigos Religiosos
+            - paragraph [ref=e250]: Levando fé, esperança e devoção para o seu lar através de artigos selecionados com amor e respeito à tradição.
+            - generic [ref=e251]:
+              - link [ref=e252]:
+                - /url: "#"
+                - img [ref=e253]
+              - link [ref=e256]:
+                - /url: "#"
+                - img [ref=e257]
+              - link [ref=e259]:
+                - /url: "#"
+                - img [ref=e260]
+          - generic [ref=e263]:
+            - heading "Institucional" [level=4] [ref=e264]
+            - list [ref=e265]:
+              - listitem [ref=e266]:
+                - link "Quem Somos" [ref=e267]:
+                  - /url: "#"
+              - listitem [ref=e268]:
+                - link "Fale Conosco" [ref=e269]:
+                  - /url: /contact
+              - listitem [ref=e270]:
+                - link "Termos de Uso" [ref=e271]:
+                  - /url: "#"
+              - listitem [ref=e272]:
+                - link "Política de Privacidade" [ref=e273]:
+                  - /url: "#"
+          - generic [ref=e274]:
+            - heading "Inspiração" [level=4] [ref=e275]
+            - generic [ref=e276]:
+              - text: "\"Tudo posso naquele que me fortalece. A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos.\""
+              - generic [ref=e277]: “
+            - link "Área do Lojista" [ref=e278]:
+              - /url: /admin
+        - paragraph [ref=e280]: © 2026 Lojinha das Graças • Todos os direitos reservados
+    - link "Dúvidas? Fale conosco!" [ref=e281]:
+      - /url: https://wa.me/5598984095956?text=Ol%C3%A1!%20Estou%20visitando%20a%20Lojinha%20das%20Gra%C3%A7as%20e%20gostaria%20de%20tirar%20uma%20d%C3%BAvida.
+      - generic: Dúvidas? Fale conosco!
+      - img [ref=e285]
+  - button [ref=e287] [cursor=pointer]:
+    - img [ref=e288]
+```

@@ -1,0 +1,135 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "React 19",
+        "Vite 7",
+        "Tailwind CSS 3",
+        "Supabase (PostgreSQL)",
+        "React Router DOM 7",
+        "Lucide React (Icons)",
+        "Google Gemini AI"
+    ],
+    "features": [
+        {
+            "name": "Product Catalog",
+            "description": "E-commerce product listing with filtering, search, categories, and detailed product pages. Includes image gallery with hover preview and mobile swipe.",
+            "files": [
+                "src/pages/Home.tsx",
+                "src/pages/ProductDetail.tsx",
+                "src/components/ui/ProductCard.tsx",
+                "src/context/ProductContext.tsx",
+                "src/services/api.ts"
+            ]
+        },
+        {
+            "name": "Shopping Cart",
+            "description": "Cart management with add/remove products, quantity adjustment, total calculation, and WhatsApp checkout integration. Includes payment method selection (Pix/Card) with 5% Pix discount.",
+            "files": [
+                "src/pages/Cart.tsx",
+                "src/context/CartContext.tsx",
+                "src/components/ui/WhatsAppWidget.tsx"
+            ]
+        },
+        {
+            "name": "Admin Dashboard",
+            "description": "Administrative panel for managing products, orders, blog posts, and store settings. Includes authentication, product CRUD, inventory management, and order tracking.",
+            "files": [
+                "src/pages/admin/Dashboard.tsx",
+                "src/pages/admin/AdminLayout.tsx",
+                "src/pages/admin/Inventory.tsx",
+                "src/pages/admin/AddProduct.tsx",
+                "src/pages/admin/EditProduct.tsx",
+                "src/pages/admin/Orders.tsx",
+                "src/pages/admin/Settings.tsx",
+                "src/pages/admin/BlogAdmin.tsx",
+                "src/pages/admin/Categories.tsx"
+            ]
+        },
+        {
+            "name": "Authentication System",
+            "description": "User authentication with Supabase Auth. Login flow with role-based access (admin). Persistent session management.",
+            "files": [
+                "src/context/AuthContext.tsx",
+                "src/pages/Login.tsx",
+                "src/pages/Identification.tsx",
+                "src/lib/supabase.ts"
+            ]
+        },
+        {
+            "name": "Blog System",
+            "description": "Content management system for blog posts with featured posts, categories, publish/draft status, and detail pages.",
+            "files": [
+                "src/pages/BlogList.tsx",
+                "src/pages/BlogDetail.tsx",
+                "src/context/BlogContext.tsx",
+                "src/components/ui/BlogCard.tsx"
+            ]
+        },
+        {
+            "name": "Theme System",
+            "description": "Dark/Light mode toggle with persistent theme preference using localStorage.",
+            "files": [
+                "src/context/ThemeContext.tsx",
+                "src/components/layout/Layout.tsx"
+            ]
+        },
+        {
+            "name": "Store Configuration",
+            "description": "Global store settings management including store name, logo, WhatsApp number, and hero section customization.",
+            "files": [
+                "src/context/StoreContext.tsx",
+                "src/pages/admin/Settings.tsx",
+                "src/services/api.ts"
+            ]
+        },
+        {
+            "name": "Supabase API Layer",
+            "description": "Backend integration with Supabase for products, orders, blog posts, and settings. Includes localStorage fallback for offline development.",
+            "files": [
+                "src/services/api.ts",
+                "src/lib/supabase.ts",
+                "src/types/index.ts"
+            ]
+        },
+        {
+            "name": "AI Integration (Gemini)",
+            "description": "Google Gemini AI integration for product descriptions and content generation (admin feature).",
+            "files": [
+                "src/services/gemini.ts",
+                "src/services/constants.ts"
+            ]
+        },
+        {
+            "name": "Layout & Navigation",
+            "description": "Main layout component with responsive header, navigation menu, footer, user menu, shopping cart indicator, and search functionality.",
+            "files": [
+                "src/components/layout/Layout.tsx",
+                "src/App.tsx",
+                "src/main.tsx"
+            ]
+        },
+        {
+            "name": "Payment Integration",
+            "description": "Payment method selection (Pix/Credit Card) with automatic Pix discount calculation. WhatsApp-based checkout flow.",
+            "files": [
+                "src/pages/Cart.tsx",
+                "src/context/CartContext.tsx"
+            ]
+        },
+        {
+            "name": "Product Image Gallery",
+            "description": "Multi-image product gallery with desktop hover carousel and mobile swipe navigation.",
+            "files": [
+                "src/components/ui/ProductCard.tsx",
+                "src/pages/ProductDetail.tsx"
+            ]
+        },
+        {
+            "name": "Utility Functions",
+            "description": "Helper functions for className merging (cn) and other utilities.",
+            "files": [
+                "src/lib/utils.ts"
+            ]
+        }
+    ]
+}

@@ -310,7 +310,14 @@ export const api = {
                     .order('date', { ascending: false });
 
                 if (error) throw error;
-                return data || [];
+                if (data) {
+                    return data.map(p => ({
+                        ...p,
+                        isFeatured: p.is_featured,
+                        isPublished: p.is_published
+                    }));
+                }
+                return [];
             } catch (err) {
                 console.warn('⚠️ Supabase blog offline → usando localStorage');
                 const stored = localStorage.getItem('ljg_blog');
@@ -319,9 +326,18 @@ export const api = {
         },
         create: async (post: Omit<BlogPost, 'id'>): Promise<void> => {
             try {
-                const { error } = await supabase.from('blog_posts').insert([{ ...post }]);
+                const mapped = {
+                    ...post,
+                    is_featured: post.isFeatured,
+                    is_published: post.isPublished
+                };
+                delete (mapped as any).isFeatured;
+                delete (mapped as any).isPublished;
+
+                const { error } = await supabase.from('blog_posts').insert([mapped]);
                 if (error) throw error;
             } catch (err) {
+                console.error('Erro ao Criar Blog:', err);
                 const posts = JSON.parse(localStorage.getItem('ljg_blog') || '[]');
                 posts.push({ ...post, id: crypto.randomUUID() });
                 localStorage.setItem('ljg_blog', JSON.stringify(posts));
@@ -329,9 +345,18 @@ export const api = {
         },
         update: async (post: BlogPost): Promise<void> => {
             try {
-                const { error } = await supabase.from('blog_posts').update(post).eq('id', post.id);
+                const mapped = {
+                    ...post,
+                    is_featured: post.isFeatured,
+                    is_published: post.isPublished
+                };
+                delete (mapped as any).isFeatured;
+                delete (mapped as any).isPublished;
+
+                const { error } = await supabase.from('blog_posts').update(mapped).eq('id', post.id);
                 if (error) throw error;
             } catch (err) {
+                console.error('Erro ao Atualizar Blog:', err);
                 const posts = JSON.parse(localStorage.getItem('ljg_blog') || '[]');
                 const idx = posts.findIndex((p: any) => p.id === post.id);
                 if (idx !== -1) {

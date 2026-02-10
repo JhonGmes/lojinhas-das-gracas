@@ -9,5 +9,5 @@ export function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',
-    }).format(value);
+    }).format(value).replace(/\u00A0/g, ' ');
 }

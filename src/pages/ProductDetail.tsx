@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { geminiService } from '../services/gemini';
 import { Sparkles, ShoppingCart, ArrowLeft, Wand2, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
+import { Helmet } from 'react-helmet-async';
 
 export function ProductDetail() {
     const { id } = useParams();
@@ -93,6 +94,36 @@ export function ProductDetail() {
 
     return (
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 animate-fade-in-up pb-20">
+            {product && (
+                <Helmet>
+                    <title>{product.name} - Lojinha das Graças</title>
+                    <meta name="description" content={product.description || `Confira este(a) ${product.name} na Lojinha das Graças.`} />
+                    <meta property="og:title" content={`${product.name} - Artigos Religiosos`} />
+                    <meta property="og:description" content={product.description} />
+                    <meta property="og:image" content={product.image} />
+                    <script type="application/ld+json">
+                        {JSON.stringify({
+                            "@context": "https://schema.org/",
+                            "@type": "Product",
+                            "name": product.name,
+                            "image": [product.image, ...(product.images || [])],
+                            "description": product.description,
+                            "sku": product.code || product.id,
+                            "offers": {
+                                "@type": "Offer",
+                                "url": window.location.href,
+                                "priceCurrency": "BRL",
+                                "price": product.promotionalPrice || product.price,
+                                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                                "seller": {
+                                    "@type": "Organization",
+                                    "name": "Lojinha das Graças"
+                                }
+                            }
+                        })}
+                    </script>
+                </Helmet>
+            )}
             {/* Left Column - Image & Gallery */}
             <div className="space-y-6">
                 <button onClick={() => navigate(-1)} className="flex items-center text-stone-500 hover:text-brand-wood mb-4 transition-colors font-bold uppercase text-xs tracking-widest">
@@ -142,12 +173,6 @@ export function ProductDetail() {
                         </>
                     )}
 
-                    {editedImage && (
-                        <div className="absolute top-6 right-6 bg-brand-gold text-white text-[10px] px-3 py-1.5 rounded-full shadow-lg font-bold uppercase tracking-widest animate-fade-in">
-                            ✨ Cenario IA
-                            <button onClick={() => setEditedImage(null)} className="ml-2 hover:text-stone-200">✕</button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Mobile Swipe Gallery */}
@@ -197,27 +222,7 @@ export function ProductDetail() {
                     </div>
                 )}
 
-                {/* AI Tools */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-3xl shadow-sm border border-stone-100 dark:border-stone-700">
-                    <h3 className="font-bold text-xs mb-4 flex items-center gap-2 text-stone-400 uppercase tracking-widest">
-                        <Wand2 size={16} className="text-brand-gold" /> Criar Cenário com IA
-                    </h3>
-                    <div className="flex gap-3">
-                        <input
-                            value={editPrompt}
-                            onChange={e => setEditPrompt(e.target.value)}
-                            className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-100 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand-gold transition-all outline-none"
-                            placeholder="Ex: Em um altar iluminado por velas"
-                        />
-                        <button
-                            onClick={handleEditImage}
-                            disabled={editing}
-                            className="bg-brand-wood text-white px-6 rounded-xl text-xs font-bold uppercase tracking-widest shadow-md hover:bg-brand-brown disabled:opacity-50 transition-all active:scale-95"
-                        >
-                            {editing ? '...' : 'Gerar'}
-                        </button>
-                    </div>
-                </div>
+
             </div>
 
             {/* Right Column - Info */}
@@ -313,26 +318,7 @@ export function ProductDetail() {
                     </div>
                 </div>
 
-                {/* AI Analysis */}
-                <div className="bg-[#FDFBF7] dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-inner relative group mt-8">
-                    <div className="absolute -top-3 -left-3 bg-brand-gold text-white p-2 rounded-xl shadow-lg group-hover:rotate-12 transition-transform">
-                        <Sparkles size={16} />
-                    </div>
-                    <button
-                        onClick={handleAnalyze}
-                        disabled={analyzing}
-                        className="flex items-center gap-3 text-brand-wood dark:text-stone-200 font-bold mb-4 hover:text-brand-gold disabled:opacity-50 transition-colors uppercase text-xs tracking-[0.15em]"
-                    >
-                        {analyzing ? 'Consultando Sabedoria...' : 'Significado Espiritual'}
-                    </button>
-                    {analysis ? (
-                        <div className="text-stone-600 dark:text-stone-300 italic text-sm leading-relaxed animate-fade-in pl-2 border-l-2 border-brand-gold/30">
-                            "{analysis}"
-                        </div>
-                    ) : (
-                        <div className="text-stone-400 text-xs italic">Clique acima para ver a análise espiritual.</div>
-                    )}
-                </div>
+
             </div>
         </div>
     );

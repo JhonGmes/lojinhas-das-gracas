@@ -2,6 +2,7 @@ import { useBlog } from '../context/BlogContext';
 import { BlogCard } from '../components/ui/BlogCard';
 import { BookOpen, Search } from 'lucide-react';
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 export function BlogList() {
     const { posts, loading } = useBlog();
@@ -15,17 +16,21 @@ export function BlogList() {
 
     return (
         <div className="pb-24">
+            <Helmet>
+                <title>Blog de Fé - Lojinha das Graças</title>
+                <meta name="description" content="Leia mensagens de fé, orações e reflita com nossa sabedoria diária na Lojinha das Graças." />
+            </Helmet>
             {/* Header */}
             <header className="bg-brand-wood py-24 text-center">
                 <div className="container mx-auto px-4">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-gold rounded-[2rem] text-brand-wood shadow-2xl mb-8 rotate-3">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-gold rounded-sm text-brand-wood shadow-soft mb-8 rotate-3">
                         <BookOpen size={40} />
                     </div>
-                    <h1 className="font-display text-5xl md:text-7xl font-bold text-white mb-6 uppercase tracking-tighter">
+                    <h1 className="font-display text-5xl md:text-7xl font-medium text-white mb-6 uppercase tracking-widest">
                         Blog de Fé
                     </h1>
-                    <p className="text-brand-gold/80 text-lg md:text-xl font-medium tracking-widest uppercase">
-                        Mensagens, Orações e Sabedoria para o seu dia
+                    <p className="text-brand-gold/80 text-lg md:text-xl font-medium tracking-[0.2em] uppercase">
+                        Mensagens, Orações e Sabedoria
                     </p>
                 </div>
             </header>

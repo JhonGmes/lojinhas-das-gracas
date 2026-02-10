@@ -5,20 +5,31 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 import { BlogProvider } from './context/BlogContext';
+import { HelmetProvider } from 'react-helmet-async';
+import { lazy, Suspense, useState } from 'react';
+import { MessageCircle, Sparkles } from 'lucide-react';
 
 import { Layout } from './components/layout/Layout';
-import { Home } from './pages/Home';
-import { ProductDetail } from './pages/ProductDetail';
-import { Cart } from './pages/Cart';
-import { BlogList } from './pages/BlogList';
-import { BlogDetail } from './pages/BlogDetail';
-import { AdminLayout } from './pages/admin/AdminLayout';
-import { Login } from './pages/Login';
-import { Identification } from './pages/Identification';
-
 import { geminiService } from './services/gemini';
-import { useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+
+// Lazy loaded pages
+const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
+const ProductDetail = lazy(() => import('./pages/ProductDetail').then(m => ({ default: m.ProductDetail })));
+const Cart = lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })));
+const BlogList = lazy(() => import('./pages/BlogList').then(m => ({ default: m.BlogList })));
+const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
+const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
+const Identification = lazy(() => import('./pages/Identification').then(m => ({ default: m.Identification })));
+
+const LoadingFallback = () => (
+    <div className="min-h-screen flex items-center justify-center bg-brand-cotton">
+        <div className="flex flex-col items-center gap-4">
+            <Sparkles className="animate-spin text-brand-gold" size={48} />
+            <span className="font-display uppercase tracking-widest text-sm text-stone-400">Paz e Bem...</span>
+        </div>
+    </div>
+);
 
 function ChatBot() {
     const [open, setOpen] = useState(false);
@@ -86,41 +97,45 @@ function ChatBot() {
 
 function App() {
     return (
-        <ThemeProvider>
-            <StoreProvider>
-                <AuthProvider>
-                    <BlogProvider>
-                        <ProductProvider>
-                            <CartProvider>
-                                <BrowserRouter>
-                                    <Routes>
-                                        {/* Public Routes */}
-                                        <Route path="/" element={<Layout><Home /></Layout>} />
-                                        <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
-                                        <Route path="/cart" element={<Layout><Cart /></Layout>} />
+        <HelmetProvider>
+            <ThemeProvider>
+                <StoreProvider>
+                    <AuthProvider>
+                        <BlogProvider>
+                            <ProductProvider>
+                                <CartProvider>
+                                    <BrowserRouter>
+                                        <Suspense fallback={<LoadingFallback />}>
+                                            <Routes>
+                                                {/* Public Routes */}
+                                                <Route path="/" element={<Layout><Home /></Layout>} />
+                                                <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
+                                                <Route path="/cart" element={<Layout><Cart /></Layout>} />
 
-                                        {/* Blog Routes */}
-                                        <Route path="/blog" element={<Layout><BlogList /></Layout>} />
-                                        <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
+                                                {/* Blog Routes */}
+                                                <Route path="/blog" element={<Layout><BlogList /></Layout>} />
+                                                <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
 
-                                        {/* Auth Routes */}
-                                        <Route path="/login" element={<Layout><Identification /></Layout>} />
-                                        <Route path="/admin-login" element={<Login />} />
+                                                {/* Auth Routes */}
+                                                <Route path="/login" element={<Layout><Identification /></Layout>} />
+                                                <Route path="/admin-login" element={<Login />} />
 
-                                        {/* Secure Routes */}
-                                        <Route path="/admin/*" element={<AdminLayout />} />
+                                                {/* Secure Routes */}
+                                                <Route path="/admin/*" element={<AdminLayout />} />
 
-                                        {/* Catch All */}
-                                        <Route path="*" element={<Navigate to="/" replace />} />
-                                    </Routes>
-                                    <ChatBot />
-                                </BrowserRouter>
-                            </CartProvider>
-                        </ProductProvider>
-                    </BlogProvider>
-                </AuthProvider>
-            </StoreProvider>
-        </ThemeProvider>
+                                                {/* Catch All */}
+                                                <Route path="*" element={<Navigate to="/" replace />} />
+                                            </Routes>
+                                        </Suspense>
+                                        <ChatBot />
+                                    </BrowserRouter>
+                                </CartProvider>
+                            </ProductProvider>
+                        </BlogProvider>
+                    </AuthProvider>
+                </StoreProvider>
+            </ThemeProvider>
+        </HelmetProvider>
     );
 }
 

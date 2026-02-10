@@ -97,19 +97,19 @@ export function AddProduct() {
 
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
-            <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
+            <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">
                 Cadastrar Produto
             </h1>
 
-            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 p-8">
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-white dark:bg-stone-800 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700 p-8">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
                     <div className="space-y-6">
                         <div>
                             <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Nome do Produto</label>
                             <input
                                 required
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
+                                className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 focus:border-brand-gold outline-none transition-colors shadow-soft-sm"
                                 placeholder="Ex: Terço de São Bento"
                                 value={form.name}
                                 onChange={e => setForm({ ...form, name: e.target.value })}
@@ -119,7 +119,7 @@ export function AddProduct() {
                         <div>
                             <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Código (SKU)</label>
                             <input
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
+                                className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 focus:border-brand-gold outline-none transition-colors shadow-soft-sm"
                                 placeholder="Ex: 007066GR"
                                 value={form.code}
                                 onChange={e => setForm({ ...form, code: e.target.value })}
@@ -133,7 +133,7 @@ export function AddProduct() {
                                     required
                                     type="number"
                                     step="0.01"
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
+                                    className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 focus:border-brand-gold outline-none transition-colors shadow-soft-sm"
                                     placeholder="0.00"
                                     value={form.price}
                                     onChange={e => setForm({ ...form, price: e.target.value })}
@@ -145,7 +145,8 @@ export function AddProduct() {
                                 <input
                                     required
                                     type="number"
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
+                                    className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 focus:border-brand-gold outline-none transition-colors shadow-soft-sm"
+                                    placeholder="0"
                                     value={form.stock}
                                     onChange={e => setForm({ ...form, stock: e.target.value })}
                                 />
@@ -168,7 +169,7 @@ export function AddProduct() {
                                 <div className="flex gap-2">
                                     <input
                                         autoFocus
-                                        className="flex-1 bg-brand-light dark:bg-stone-900 border border-brand-gold rounded-lg p-3 text-sm"
+                                        className="flex-1 bg-white dark:bg-stone-900 border border-brand-gold rounded-sm p-3 text-sm outline-none"
                                         placeholder="Nome da nova categoria..."
                                         value={newCategoryName}
                                         onChange={e => setNewCategoryName(e.target.value)}
@@ -177,14 +178,14 @@ export function AddProduct() {
                                     <button
                                         type="button"
                                         onClick={handleAddCategory}
-                                        className="bg-brand-gold text-white px-4 rounded-lg font-bold text-sm"
+                                        className="bg-brand-gold text-brand-wood px-6 rounded-sm font-bold text-xs uppercase tracking-widest"
                                     >
                                         Add
                                     </button>
                                 </div>
                             ) : (
                                 <select
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 outline-none"
+                                    className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 outline-none focus:border-brand-gold transition-colors shadow-soft-sm appearance-none"
                                     value={form.category}
                                     onChange={e => setForm({ ...form, category: e.target.value })}
                                 >
@@ -198,21 +199,21 @@ export function AddProduct() {
                         <div>
                             <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Descrição Detalhada</label>
                             <textarea
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 h-32 focus:ring-2 focus:ring-brand-gold outline-none resize-none"
+                                className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm p-3 h-32 focus:border-brand-gold outline-none resize-none transition-colors shadow-soft-sm"
                                 placeholder="Conte sobre o produto, materiais, significados..."
                                 value={form.description}
                                 onChange={e => setForm({ ...form, description: e.target.value })}
                             />
                         </div>
 
-                        <div className="p-4 bg-brand-light/20 dark:bg-stone-900 border border-brand-gold/30 rounded-xl flex items-center justify-between">
+                        <div className="p-4 bg-brand-cotton dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm flex items-center justify-between shadow-soft-sm">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${form.isFeatured ? 'bg-amber-100 text-amber-600' : 'bg-stone-100 text-stone-400'}`}>
+                                <div className={`p-2 rounded-sm ${form.isFeatured ? 'bg-amber-100 text-brand-gold' : 'bg-stone-100 text-stone-400'}`}>
                                     <Star size={20} fill={form.isFeatured ? 'currentColor' : 'none'} />
                                 </div>
                                 <div>
                                     <div className="font-bold text-sm text-stone-700 dark:text-stone-200">Destaque da Vitrine</div>
-                                    <div className="text-[10px] text-stone-400 uppercase font-bold">Mostrar no topo da página inicial</div>
+                                    <div className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">Mostrar no topo da página inicial</div>
                                 </div>
                             </div>
                             <button
@@ -228,11 +229,11 @@ export function AddProduct() {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Imagem Principal</label>
-                            <div className="aspect-square bg-stone-100 dark:bg-stone-900 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-xl flex flex-col items-center justify-center text-stone-400 hover:border-brand-gold transition cursor-pointer relative overflow-hidden">
+                            <div className="aspect-square bg-white dark:bg-stone-900 border-2 border-dashed border-brand-cotton-dark dark:border-stone-700 rounded-sm flex flex-col items-center justify-center text-stone-400 hover:border-brand-gold transition-all duration-400 cursor-pointer relative overflow-hidden group">
                                 {form.image ? (
                                     <>
                                         <img src={form.image} className="w-full h-full object-cover" alt="Preview" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                             <span className="text-white text-xs font-bold uppercase tracking-widest">Trocar Foto</span>
                                         </div>
                                     </>
@@ -256,22 +257,22 @@ export function AddProduct() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Galeria de Fotos (Outros Ângulos)</label>
-                            <div className="grid grid-cols-4 gap-3">
+                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Galeria de Fotos (Opcional)</label>
+                            <div className="grid grid-cols-4 gap-2">
                                 {form.images.map((img: string, idx: number) => (
-                                    <div key={idx} className="aspect-square rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 relative group overflow-hidden">
+                                    <div key={idx} className="aspect-square rounded-sm overflow-hidden relative group">
                                         <img src={img} className="w-full h-full object-cover" />
                                         <button
                                             type="button"
                                             onClick={() => removeGalleryImage(idx)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             <X size={12} />
                                         </button>
                                     </div>
                                 ))}
                                 {form.images.length < 4 && (
-                                    <div className="aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-lg flex items-center justify-center text-stone-300 hover:text-brand-gold hover:border-brand-gold transition cursor-pointer relative">
+                                    <div className="aspect-square bg-brand-cotton dark:bg-stone-900 border border-dashed border-brand-cotton-dark dark:border-stone-700 rounded-sm flex items-center justify-center text-stone-400 hover:border-brand-gold cursor-pointer relative">
                                         <PlusCircle size={24} />
                                         <input
                                             type="file"
@@ -292,9 +293,9 @@ export function AddProduct() {
                             <button
                                 type="submit"
                                 disabled={uploading}
-                                className="w-full bg-brand-gold hover:bg-amber-600 disabled:bg-stone-300 text-white font-bold py-4 px-8 rounded-lg shadow-lg active:transform active:scale-95 transition-all text-sm uppercase tracking-widest"
+                                className="w-full bg-brand-gold hover:bg-brand-gold-light disabled:bg-stone-300 text-brand-wood font-bold py-4 px-8 rounded-sm shadow-soft active:transform active:scale-[0.98] transition-all duration-400 text-xs uppercase tracking-widest"
                             >
-                                {uploading ? 'Fazendo Upload...' : 'Finalizar Cadastro'}
+                                {uploading ? 'Carregando Imagens...' : 'Salvar Produto na Loja'}
                             </button>
                         </div>
                     </div>

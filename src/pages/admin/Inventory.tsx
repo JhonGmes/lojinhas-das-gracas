@@ -107,26 +107,26 @@ export function Inventory() {
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Gerenciar Produtos</h1>
+                <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Gerenciar Produtos</h1>
                 <button
                     onClick={() => navigate('/admin/add-product')}
-                    className="bg-brand-gold hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 text-sm uppercase tracking-wide transition-all transform active:scale-95"
+                    className="bg-brand-gold hover:bg-brand-gold-light text-brand-wood font-bold py-3 px-8 rounded-sm shadow-soft transition-all duration-400 flex items-center gap-2 text-xs uppercase tracking-widest active:scale-95"
                 >
                     <Plus size={18} /> Adicionar Novo
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 overflow-hidden">
+            <div className="bg-white dark:bg-stone-800 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-[#FDFBF7] dark:bg-stone-900 border-b border-stone-100 dark:border-stone-700">
+                        <thead className="bg-brand-cotton dark:bg-stone-900 border-b border-brand-cotton-dark dark:border-stone-700">
                             <tr>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Produto</th>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider text-center">Preço Original</th>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider text-center">Promoção</th>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Config. Oferta</th>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider text-center">Estoque</th>
-                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-wider text-right">Ações</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest">Produto</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest text-center">Preço Original</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest text-center">Promoção</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest">Config. Oferta</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest text-center">Estoque</th>
+                                <th className="p-5 font-bold text-stone-400 text-[10px] uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
@@ -180,7 +180,7 @@ export function Inventory() {
                                                             value={displayPrice}
                                                             onChange={(e) => handlePriceChange(p, e.target.value)}
                                                             onBlur={() => commitUpdate(p)}
-                                                            className="w-24 px-2 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded text-xs font-bold text-brand-brown dark:text-amber-500 outline-none focus:border-brand-gold shadow-inner"
+                                                            className="w-24 px-2 py-1 bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm text-xs font-bold text-brand-wood dark:text-brand-gold outline-none focus:border-brand-gold transition-colors shadow-soft-sm"
                                                         />
                                                     </div>
                                                     <div className="flex flex-col">
@@ -190,7 +190,7 @@ export function Inventory() {
                                                             value={displayPercent}
                                                             onChange={(e) => handlePercentChange(p, e.target.value)}
                                                             onBlur={() => commitUpdate(p)}
-                                                            className="w-16 px-2 py-1 bg-white dark:bg-stone-50 border border-stone-200 dark:border-stone-700 rounded text-xs font-bold text-red-500 outline-none focus:border-red-500 shadow-inner"
+                                                            className="w-16 px-2 py-1 bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-700 rounded-sm text-xs font-bold text-red-500 outline-none focus:border-red-400 transition-colors shadow-soft-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -202,7 +202,7 @@ export function Inventory() {
                                             <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => updateStock(p.id, Math.max(0, p.stock - 1))}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-full border border-stone-200 hover:border-brand-gold hover:text-brand-gold bg-white dark:bg-stone-800 transition-all active:scale-90"
+                                                    className="w-7 h-7 flex items-center justify-center rounded-sm border border-brand-cotton-dark hover:border-brand-gold hover:text-brand-gold bg-white dark:bg-stone-800 transition-all active:scale-90"
                                                 >
                                                     -
                                                 </button>
@@ -211,7 +211,7 @@ export function Inventory() {
                                                 </span>
                                                 <button
                                                     onClick={() => updateStock(p.id, p.stock + 1)}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-full border border-stone-200 hover:border-brand-gold hover:text-brand-gold bg-white dark:bg-stone-800 transition-all active:scale-90"
+                                                    className="w-7 h-7 flex items-center justify-center rounded-sm border border-brand-cotton-dark hover:border-brand-gold hover:text-brand-gold bg-white dark:bg-stone-800 transition-all active:scale-90"
                                                 >
                                                     +
                                                 </button>
@@ -221,14 +221,14 @@ export function Inventory() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => navigate(`/admin/edit-product/${p.id}`)}
-                                                    className="p-2 text-stone-400 hover:text-brand-gold hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-all"
+                                                    className="p-2 text-stone-400 hover:text-brand-gold hover:bg-brand-cotton dark:hover:bg-stone-700 rounded-sm transition-all duration-400"
                                                     title="Editar Detalhes"
                                                 >
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(p.id)}
-                                                    className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                    className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-all duration-400"
                                                     title="Excluir Produto"
                                                 >
                                                     <Trash2 size={16} />

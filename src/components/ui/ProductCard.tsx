@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import type { Product } from '../../types';
 import { formatCurrency } from '../../lib/utils';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
-export function ProductCard({ product }: { product: Product }) {
+export const ProductCard = memo(function ProductCard({ product }: { product: Product }) {
     const { addToCart } = useCart();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
@@ -35,7 +35,7 @@ export function ProductCard({ product }: { product: Product }) {
 
     return (
         <div
-            className="group glass-card premium-shadow rounded-2xl overflow-hidden transition-all duration-500 flex flex-col h-full border-none hover:-translate-y-2 active:scale-[0.98]"
+            className="group bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-800 rounded-sm shadow-soft hover:shadow-soft-lg transition-all duration-400 flex flex-col h-full"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -98,9 +98,9 @@ export function ProductCard({ product }: { product: Product }) {
             </Link>
 
             <div className="p-5 flex flex-col flex-1">
-                <div className="mb-2 text-[10px] text-brand-gold dark:text-amber-400/80 font-bold uppercase tracking-[0.15em] opacity-80">{product.category}</div>
+                <div className="mb-2 text-[10px] text-brand-gold font-bold uppercase tracking-[0.15em]">{product.category}</div>
                 <Link to={`/product/${product.id}`} className="block mb-3">
-                    <h3 className="font-display font-bold text-lg text-stone-800 dark:text-stone-100 mb-1 leading-tight group-hover:text-brand-gold transition-colors line-clamp-2">{product.name}</h3>
+                    <h3 className="font-display font-medium text-lg text-stone-800 dark:text-stone-100 mb-1 leading-tight group-hover:text-brand-gold transition-colors duration-400 line-clamp-2">{product.name}</h3>
                 </Link>
 
                 <div className="mt-auto pt-4 flex items-center justify-between border-t border-stone-100/50 dark:border-stone-700/30">
@@ -108,14 +108,14 @@ export function ProductCard({ product }: { product: Product }) {
                         {product.promotionalPrice && (
                             <span className="text-[10px] text-stone-400 font-bold line-through mb-0.5">{formatCurrency(product.price)}</span>
                         )}
-                        <span className="text-xl font-bold bg-gradient-to-r from-stone-800 to-stone-600 dark:from-white dark:to-stone-400 bg-clip-text text-transparent">
+                        <span className="text-xl font-bold text-stone-800 dark:text-white">
                             {formatCurrency(currentPrice)}
                         </span>
                     </div>
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock <= 0}
-                        className="p-3 bg-stone-900 dark:bg-amber-600 text-white rounded-xl hover:bg-brand-gold dark:hover:bg-amber-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-brand-gold/20 transform active:scale-90 flex items-center justify-center"
+                        className="p-3 bg-brand-gold text-brand-wood rounded-sm hover:bg-brand-gold-light disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-400 shadow-soft flex items-center justify-center"
                         aria-label="Adicionar ao carrinho"
                     >
                         <ShoppingCart size={18} />
@@ -124,4 +124,4 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
         </div>
     );
-}
+});

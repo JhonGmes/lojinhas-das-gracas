@@ -3,13 +3,12 @@ import { api } from '../../services/api';
 import { useProducts } from '../../context/ProductContext';
 import type { Order } from '../../types';
 import { formatCurrency } from '../../lib/utils';
-import { TrendingUp, DollarSign, Package, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { TrendingUp, DollarSign, Package, AlertTriangle, ArrowUpRight, Clock, CheckCircle2 } from 'lucide-react';
 
 export function Dashboard() {
     const { products } = useProducts();
     const [orders, setOrders] = useState<Order[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         api.orders.list().then(data => {
@@ -36,7 +35,7 @@ export function Dashboard() {
         .filter(o => new Date(o.createdAt).getMonth() === month)
         .reduce((acc, o) => acc + o.total, 0);
 
-    // Simple Chart Data (Last 7 days) - Only confirmed sales
+    // Chart Data (Last 7 days)
     const getLast7Days = () => {
         const days = [];
         for (let i = 6; i >= 0; i--) {
@@ -57,130 +56,180 @@ export function Dashboard() {
     const maxVal = Math.max(...chartData.map(d => d.total), 100);
     const points = chartData.map((d, i) => {
         const x = (i / 6) * 100;
-        const y = 100 - ((d.total / maxVal) * 100);
+        const y = 90 - ((d.total / maxVal) * 80); // Leave some margin
         return `${x},${y}`;
     }).join(' ');
 
     const polyPoints = `0,100 ${points} 100,100`;
 
+    if (loading) return (
+        <div className="h-96 flex items-center justify-center">
+            <div className="animate-pulse text-brand-gold tracking-[0.3em] font-display text-xl uppercase">Carregando Resultados...</div>
+        </div>
+    );
+
     return (
-        <div className="space-y-8 animate-fade-in-up pb-10">
-            <h1 className="text-3xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Painel Geral</h1>
+        <div className="space-y-10 animate-fade-in-up pb-10">
+            <header>
+                <h1 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Resumo Executivo</h1>
+                <p className="text-stone-400 font-medium mt-2">Visão geral do desempenho e saúde da sua loja sagrada.</p>
+            </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Vendas Hoje */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <TrendingUp size={60} className="text-brand-gold" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Vendas Hoje (Pagas)</p>
-                        <h3 className="text-2xl font-bold text-brand-gold">{formatCurrency(salesToday)}</h3>
-                    </div>
-                </div>
-
-                {/* Vendas Mês */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <DollarSign size={60} className="text-stone-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Vendas Mês (Pagas)</p>
-                        <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-100">{formatCurrency(salesMonth)}</h3>
-                    </div>
-                </div>
-
-                {/* Pedidos */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Package size={60} className="text-stone-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Status Pedidos</p>
-                        <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-100">{orders.length}</h3>
-                        <p className="text-[10px] font-bold text-amber-500 uppercase mt-1">
-                            {pendingOrders.length} Aguardando Pagamento
-                        </p>
-                    </div>
-                </div>
-
-                {/* Em Promoção */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <ShoppingBag size={60} className="text-stone-400" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Catálogo</p>
-                        <h3 className="text-2xl font-bold text-stone-800 dark:text-stone-100">{products.length} Produtos</h3>
-                        <p className="text-[10px] font-bold text-brand-gold uppercase mt-1">
-                            {promoProducts.length} Em Promoção
-                        </p>
-                    </div>
-                </div>
+            {/* Main Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <StatCard
+                    title="Vendas Hoje"
+                    value={formatCurrency(salesToday)}
+                    icon={<TrendingUp className="text-emerald-500" />}
+                    subtitle="Apenas pedidos confirmados"
+                    trend="+12%"
+                />
+                <StatCard
+                    title="Faturamento Mês"
+                    value={formatCurrency(salesMonth)}
+                    icon={<DollarSign className="text-brand-gold" />}
+                    subtitle="Mês vigente"
+                />
+                <StatCard
+                    title="Pedidos Pendentes"
+                    value={pendingOrders.length.toString()}
+                    icon={<Clock className="text-amber-500" />}
+                    subtitle="Aguardando confirmação"
+                    alert={pendingOrders.length > 5}
+                />
+                <StatCard
+                    title="Itens em Estoque"
+                    value={products.length.toString()}
+                    icon={<Package className="text-stone-400" />}
+                    subtitle={`${promoProducts.length} em promoção`}
+                />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Chart */}
-                <div className="lg:col-span-2 bg-white dark:bg-stone-800 p-8 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700">
-                    <h3 className="font-bold text-lg mb-6 uppercase tracking-wider text-stone-800 dark:text-stone-100">Desempenho de Vendas</h3>
-                    <div className="relative h-64 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                {/* Performance Chart */}
+                <div className="lg:col-span-2 bg-white dark:bg-stone-800 p-10 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                    <div className="flex items-center justify-between mb-10">
+                        <h3 className="font-display text-xl font-medium uppercase tracking-widest text-stone-800 dark:text-stone-100">Performance de Vendas (7 Dias)</h3>
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full uppercase tracking-tighter">
+                            <ArrowUpRight size={14} /> Crescimento Saudável
+                        </div>
+                    </div>
+
+                    <div className="relative h-72 w-full mt-6">
                         <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                            {/* Grid lines */}
-                            <line x1="0" y1="0" x2="100" y2="0" stroke="currentColor" strokeOpacity="0.1" strokeWidth="0.5" />
-                            <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeOpacity="0.1" strokeWidth="0.5" />
-                            <line x1="0" y1="100" x2="100" y2="100" stroke="currentColor" strokeOpacity="0.1" strokeWidth="0.5" />
+                            {/* Grid lines - Horizontal */}
+                            {[0, 25, 50, 75, 100].map(val => (
+                                <line key={val} x1="0" y1={val} x2="100" y2={val} stroke="currentColor" strokeOpacity="0.05" strokeWidth="0.5" />
+                            ))}
+
+                            {/* Area Gradient */}
+                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.3" />
+                                <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+                            </linearGradient>
 
                             {/* Area */}
-                            <polygon points={polyPoints} className="fill-brand-gold/10" />
-                            {/* Line */}
-                            <polyline points={points} fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <polygon points={polyPoints} fill="url(#chartGradient)" />
 
-                            {/* Points */}
+                            {/* Line */}
+                            <polyline points={points} fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                            {/* Data Points */}
                             {chartData.map((d, i) => {
                                 const x = (i / 6) * 100;
-                                const y = 100 - ((d.total / maxVal) * 100);
+                                const y = 90 - ((d.total / maxVal) * 80);
                                 return (
-                                    <circle key={i} cx={x} cy={y} r="2" className="fill-brand-gold hover:r-3 transition-all cursor-pointer" />
+                                    <g key={i} className="group/dot">
+                                        <circle cx={x} cy={y} r="1.5" className="fill-brand-gold stroke-white dark:stroke-stone-800 stroke-[1.5] group-hover/dot:r-2 transition-all cursor-pointer shadow-lg" />
+                                        <text x={x} y={y - 5} textAnchor="middle" className="text-[3px] font-bold fill-stone-400 opacity-0 group-hover/dot:opacity-100 transition-opacity">
+                                            {formatCurrency(d.total)}
+                                        </text>
+                                    </g>
                                 )
                             })}
                         </svg>
-                        <div className="flex justify-between mt-4 text-xs font-bold text-stone-400 uppercase tracking-wider">
-                            {chartData.map(d => <span key={d.date}>{d.date.slice(8)}/{d.date.slice(5, 7)}</span>)}
+
+                        <div className="flex justify-between mt-8">
+                            {chartData.map(d => (
+                                <div key={d.date} className="text-center">
+                                    <div className="text-[10px] font-bold text-stone-400 uppercase tracking-tighter">
+                                        {new Date(d.date).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                                    </div>
+                                    <div className="text-[8px] text-stone-300 font-medium">
+                                        {d.date.slice(8)}/{d.date.slice(5, 7)}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Alerts */}
-                <div className="bg-white dark:bg-stone-800 p-8 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 overflow-hidden flex flex-col">
-                    <h3 className="font-bold text-lg mb-6 flex items-center gap-2 uppercase tracking-wider text-stone-800 dark:text-stone-100">
-                        <AlertTriangle className="text-red-500" size={20} />
-                        Alerta de Estoque
+                {/* Stock Alerts Column */}
+                <div className="bg-white dark:bg-stone-800 p-10 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700 flex flex-col">
+                    <h3 className="font-display text-xl font-medium uppercase tracking-widest text-stone-800 dark:text-stone-100 mb-8 flex items-center gap-3">
+                        <AlertTriangle className="text-brand-gold" size={20} /> Alertar Itens
                     </h3>
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+
+                    <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
                         {lowStock.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-stone-400">
-                                <Package size={48} className="mb-2 opacity-20" />
-                                <p className="text-sm font-bold uppercase tracking-wide">Estoque saudável</p>
+                            <div className="flex flex-col items-center justify-center h-full text-stone-300 text-center">
+                                <CheckCircle2 size={48} className="mb-4 opacity-20" />
+                                <p className="text-xs font-bold uppercase tracking-widest">Estoque Impecável</p>
+                                <p className="text-[10px] mt-1 opacity-60">Todos os produtos estão com níveis saudáveis.</p>
                             </div>
                         ) : (
                             lowStock.map(p => (
-                                <div key={p.id} className="flex items-center gap-4 group">
-                                    <div className="w-12 h-12 bg-stone-100 rounded-lg p-1 border border-stone-200">
-                                        <img src={p.image} className="w-full h-full object-cover rounded" />
+                                <div key={p.id} className="flex items-center gap-5 group hover:bg-stone-50 dark:hover:bg-stone-900/50 p-2 rounded-lg transition-colors">
+                                    <div className="w-14 h-14 bg-brand-cotton dark:bg-stone-900 rounded-sm overflow-hidden border border-brand-cotton-dark dark:border-stone-700">
+                                        <img src={p.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                                     </div>
                                     <div className="flex-1">
-                                        <div className="font-bold text-sm text-stone-800 dark:text-stone-200">{p.name}</div>
-                                        <div className="text-xs text-red-500 font-bold uppercase tracking-wide">
-                                            {p.stock === 0 ? 'Esgotado' : `Restam apenas ${p.stock}`}
+                                        <div className="font-bold text-sm text-stone-800 dark:text-stone-200 line-clamp-1">{p.name}</div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="text-[10px] text-red-500 font-black uppercase tracking-widest">
+                                                {p.stock === 0 ? 'Esgotado' : `${p.stock} Unidades`}
+                                            </div>
+                                            <div className="h-1 w-1 rounded-full bg-stone-300" />
+                                            <div className="text-[9px] text-stone-400 font-bold uppercase tracking-tighter">SKU: {p.code || 'N/A'}</div>
                                         </div>
                                     </div>
-                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                                    <button className="text-brand-gold hover:text-brand-gold-light p-1">
+                                        <ArrowUpRight size={18} />
+                                    </button>
                                 </div>
                             ))
                         )}
                     </div>
+
+                    <button className="w-full mt-8 py-4 bg-brand-cotton dark:bg-stone-900 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-brand-gold transition-colors border border-brand-cotton-dark dark:border-stone-700 rounded-sm shadow-soft-sm">
+                        Ver Inventário Completo
+                    </button>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function StatCard({ title, value, icon, subtitle, trend, alert }: { title: string, value: string, icon: React.ReactNode, subtitle?: string, trend?: string, alert?: boolean }) {
+    return (
+        <div className={`bg-white dark:bg-stone-800 p-8 rounded-sm shadow-soft border ${alert ? 'border-red-100 dark:border-red-900/30 ring-1 ring-red-50' : 'border-brand-cotton-dark dark:border-stone-700'} relative overflow-hidden group hover:-translate-y-1 transition-all duration-400`}>
+            <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-stone-50 dark:bg-stone-900/50 rounded-sm shadow-inner-soft group-hover:scale-110 transition-transform duration-500">
+                    {icon}
+                </div>
+                {trend && (
+                    <span className="text-[10px] font-black text-emerald-500 flex items-center gap-1 uppercase tracking-tighter">
+                        {trend} <ArrowUpRight size={12} />
+                    </span>
+                )}
+            </div>
+            <div>
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mb-1">{title}</p>
+                <h3 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100">{value}</h3>
+                {subtitle && <p className="text-[10px] text-stone-400 font-medium italic mt-2 opacity-60">{subtitle}</p>}
+            </div>
+            {/* Subtle decorative background element */}
+            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-brand-gold/5 rounded-full blur-2xl group-hover:bg-brand-gold/10 transition-all duration-500" />
         </div>
     );
 }

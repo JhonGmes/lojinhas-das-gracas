@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp } from 'lucide-react';
+import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon } from 'lucide-react';
 
 export function Settings() {
     const { settings, updateSettings, loading } = useStore();
@@ -34,6 +34,24 @@ export function Settings() {
         } finally {
             setSaving(false);
         }
+    };
+
+    const addBanner = () => {
+        const banners = formData.hero_banners || [];
+        if (banners.length < 4) {
+            setFormData({ ...formData, hero_banners: [...banners, ''] });
+        }
+    };
+
+    const updateBanner = (index: number, url: string) => {
+        const banners = [...(formData.hero_banners || [])];
+        banners[index] = url;
+        setFormData({ ...formData, hero_banners: banners });
+    };
+
+    const removeBanner = (index: number) => {
+        const banners = (formData.hero_banners || []).filter((_, i) => i !== index);
+        setFormData({ ...formData, hero_banners: banners });
     };
 
     if (loading) return (
@@ -141,7 +159,7 @@ export function Settings() {
                     </div>
                 </div>
 
-                {/* Logo & Banner */}
+                {/* Logotipo da Loja */}
                 <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Layout className="text-indigo-500" size={20} />
@@ -209,22 +227,34 @@ export function Settings() {
                         </div>
                     )}
                 </div>
-                {/* Marketing & Banner */}
+
+                {/* Banner Principal e Adicionais (Carousel) */}
                 <div className="md:col-span-2 bg-white dark:bg-stone-800 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-6">
-                    <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="text-brand-gold" size={22} />
-                        <h2 className="text-lg font-bold text-stone-700 dark:text-stone-200 uppercase tracking-wider">Marketing & Banner Principal</h2>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="text-brand-gold" size={22} />
+                            <h2 className="text-lg font-bold text-stone-700 dark:text-stone-200 uppercase tracking-wider">Marketing & Banners Carousel</h2>
+                        </div>
+                        <button
+                            onClick={addBanner}
+                            disabled={(formData.hero_banners?.length || 0) >= 4}
+                            className="text-[10px] font-bold uppercase tracking-widest text-brand-gold hover:text-amber-600 disabled:opacity-50 flex items-center gap-2 bg-brand-gold/10 px-4 py-2 rounded-lg transition-all"
+                        >
+                            <PlusCircle size={16} /> Adicionar Banner (Máx 4)
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Banner Primário - Conteúdo de Texto */}
+                    <div className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-xl border border-stone-100 dark:border-stone-800 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-stone-400">Conteúdo do Herói</h3>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Título do Banner</label>
                                 <input
                                     type="text"
                                     value={formData.hero_title || ''}
                                     onChange={e => setFormData({ ...formData, hero_title: e.target.value })}
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
                                     placeholder="Ex: Encontre Paz e Devoção"
                                 />
                             </div>
@@ -234,7 +264,7 @@ export function Settings() {
                                 <textarea
                                     value={formData.hero_subtitle || ''}
                                     onChange={e => setFormData({ ...formData, hero_subtitle: e.target.value })}
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors min-h-[100px]"
+                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors min-h-[100px]"
                                     placeholder="Descreva sua oferta principal..."
                                 />
                             </div>
@@ -245,15 +275,15 @@ export function Settings() {
                                     type="text"
                                     value={formData.hero_button_text || ''}
                                     onChange={e => setFormData({ ...formData, hero_button_text: e.target.value })}
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
                                     placeholder="Ex: Ver Ofertas"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-4">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-stone-400">Imagem Principal</h3>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Imagem do Banner</label>
                                 <div className="space-y-3">
                                     <input
                                         type="file"
@@ -273,19 +303,19 @@ export function Settings() {
                                     />
                                     <label
                                         htmlFor="banner-upload"
-                                        className="flex items-center justify-center gap-2 w-full px-4 py-6 bg-stone-50 dark:bg-stone-900 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-xl cursor-pointer hover:border-brand-gold transition-colors font-bold text-xs uppercase text-stone-500"
+                                        className="flex items-center justify-center gap-2 w-full px-4 py-6 bg-white dark:bg-stone-900 border-2 border-dashed border-stone-100 dark:border-stone-800 rounded-xl cursor-pointer hover:border-brand-gold transition-colors font-bold text-xs uppercase text-stone-500"
                                     >
-                                        <PlusCircle size={20} />
-                                        Trocar Imagem do Banner
+                                        <ImageIcon size={20} />
+                                        {formData.hero_image_url ? 'Trocar Imagem' : 'Trocar Imagem do Banner'}
                                     </label>
 
                                     {formData.hero_image_url && (
-                                        <div className="relative group rounded-xl overflow-hidden aspect-video">
+                                        <div className="relative group rounded-xl overflow-hidden aspect-video shadow-soft border border-stone-100 dark:border-stone-800">
                                             <img src={formData.hero_image_url} className="w-full h-full object-cover" alt="Banner Preview" />
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => setFormData({ ...formData, hero_image_url: '' })}
-                                                    className="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase"
+                                                    className="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase transition-transform active:scale-95"
                                                 >
                                                     Remover
                                                 </button>
@@ -296,6 +326,72 @@ export function Settings() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Carousel Banners Adicionais */}
+                    {formData.hero_banners && formData.hero_banners.length > 0 && (
+                        <div className="space-y-4 pt-4 border-t border-stone-50 dark:border-stone-800">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-stone-400">Banners Adicionais (Carousel)</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {formData.hero_banners.map((url, index) => (
+                                    <div key={index} className="bg-stone-50 dark:bg-stone-900/50 p-4 rounded-xl border border-stone-100 dark:border-stone-800 space-y-4 group">
+                                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-stone-400">
+                                            <span>Banner {index + 2}</span>
+                                            <button
+                                                onClick={() => removeBanner(index)}
+                                                className="text-red-400 hover:text-red-600 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+
+                                        <input
+                                            type="text"
+                                            value={url}
+                                            onChange={e => updateBanner(index, e.target.value)}
+                                            className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-gold transition-colors"
+                                            placeholder="URL da Imagem..."
+                                        />
+
+                                        <div className="relative aspect-video rounded-lg overflow-hidden border border-stone-100 dark:border-stone-800 bg-stone-200 dark:bg-stone-800">
+                                            {url ? (
+                                                <img src={url} className="w-full h-full object-cover" alt={`Banner ${index + 2}`} />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-stone-400 italic text-[10px]">
+                                                    <ImageIcon size={24} className="mb-2 opacity-20" />
+                                                    Sem imagem selecionada
+                                                </div>
+                                            )}
+
+                                            <div className="absolute inset-0 bg-stone-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <input
+                                                    type="file"
+                                                    id={`banner-upload-${index}`}
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => {
+                                                                updateBanner(index, reader.result as string);
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor={`banner-upload-${index}`}
+                                                    className="bg-white text-stone-800 px-4 py-2 rounded-lg text-[10px] font-bold uppercase cursor-pointer hover:bg-brand-gold hover:text-white transition-colors"
+                                                >
+                                                    Trocar Imagem
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

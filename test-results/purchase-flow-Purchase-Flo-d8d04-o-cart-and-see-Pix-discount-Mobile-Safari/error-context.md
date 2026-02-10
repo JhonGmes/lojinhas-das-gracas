@@ -1,0 +1,212 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "Lojinha das Graças Lojinha das Graças Artigos Religiosos" [ref=e6]:
+          - /url: /
+          - img "Lojinha das Graças" [ref=e7]
+          - generic [ref=e8]:
+            - heading "Lojinha das Graças" [level=1] [ref=e9]
+            - paragraph [ref=e10]: Artigos Religiosos
+        - generic [ref=e11]:
+          - button [ref=e12] [cursor=pointer]:
+            - img [ref=e13]
+          - link [ref=e16]:
+            - /url: /login
+            - img [ref=e17]
+          - link [ref=e20]:
+            - /url: /cart
+            - img [ref=e22]
+      - navigation [ref=e26]:
+        - button [ref=e28] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img "Hero" [ref=e37]
+          - generic [ref=e40]:
+            - heading "Paz e Devoção" [level=1] [ref=e41]
+            - paragraph [ref=e42]: aqui voce encontra fe e devoção
+            - button "Ver Ofertas" [ref=e43] [cursor=pointer]
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - img [ref=e49]
+              - generic [ref=e51]:
+                - heading "Destaques da Vitrine" [level=2] [ref=e52]
+                - paragraph [ref=e53]: Curadoria Especial
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e56]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - img "Caneca A Cruz Sagrada" [ref=e59]
+                  - generic [ref=e60]:
+                    - generic [ref=e61]: Oferta
+                    - generic [ref=e62]: 10% OFF
+                - generic [ref=e63]:
+                  - generic [ref=e64]: Caneca
+                  - link "Caneca A Cruz Sagrada" [ref=e65]:
+                    - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                    - heading "Caneca A Cruz Sagrada" [level=3] [ref=e66]
+                  - generic [ref=e67]:
+                    - generic [ref=e68]:
+                      - generic [ref=e69]: R$ 39,99
+                      - generic [ref=e70]: R$ 35,99
+                    - button "Adicionar ao carrinho" [ref=e71] [cursor=pointer]:
+                      - img [ref=e72]
+              - generic [ref=e76]:
+                - link "Pulseira de Nossa Senhora de Fatima" [ref=e77]:
+                  - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                  - img "Pulseira de Nossa Senhora de Fatima" [ref=e80]
+                - generic [ref=e81]:
+                  - generic [ref=e82]: Pulseira
+                  - link "Pulseira de Nossa Senhora de Fatima" [ref=e83]:
+                    - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                    - heading "Pulseira de Nossa Senhora de Fatima" [level=3] [ref=e84]
+                  - generic [ref=e85]:
+                    - generic [ref=e87]: R$ 29,99
+                    - button "Adicionar ao carrinho" [ref=e88] [cursor=pointer]:
+                      - img [ref=e89]
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - img [ref=e96]
+              - generic [ref=e99]:
+                - heading "Ofertas de Fé" [level=2] [ref=e100]
+                - paragraph [ref=e101]: Oportunidades Únicas
+            - generic [ref=e103]:
+              - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e104]:
+                - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                - img "Caneca A Cruz Sagrada" [ref=e107]
+                - generic [ref=e108]:
+                  - generic [ref=e109]: Oferta
+                  - generic [ref=e110]: 10% OFF
+              - generic [ref=e111]:
+                - generic [ref=e112]: Caneca
+                - link "Caneca A Cruz Sagrada" [ref=e113]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - heading "Caneca A Cruz Sagrada" [level=3] [ref=e114]
+                - generic [ref=e115]:
+                  - generic [ref=e116]:
+                    - generic [ref=e117]: R$ 39,99
+                    - generic [ref=e118]: R$ 35,99
+                  - button "Adicionar ao carrinho" [ref=e119] [cursor=pointer]:
+                    - img [ref=e120]
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - generic [ref=e127]:
+              - img [ref=e129]
+              - generic [ref=e132]:
+                - heading "Catálogo Completo" [level=2] [ref=e133]
+                - paragraph [ref=e134]: Navegue em nossa Seleção Divina
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - link "Busto Sagrada Família Esgotado" [ref=e137]:
+                  - /url: /product/f8e3ad9e-9c0c-4710-9f45-78811a944eec
+                  - img "Busto Sagrada Família" [ref=e140]
+                  - generic [ref=e142]: Esgotado
+                - generic [ref=e143]:
+                  - generic [ref=e144]: Imagem Sacra
+                  - link "Busto Sagrada Família" [ref=e145]:
+                    - /url: /product/f8e3ad9e-9c0c-4710-9f45-78811a944eec
+                    - heading "Busto Sagrada Família" [level=3] [ref=e146]
+                  - generic [ref=e147]:
+                    - generic [ref=e148]:
+                      - generic [ref=e149]: R$ 129,99
+                      - generic [ref=e150]: R$ 90,99
+                    - button "Adicionar ao carrinho" [disabled] [ref=e151]:
+                      - img [ref=e152]
+              - generic [ref=e156]:
+                - link "Caneca A Cruz Sagrada Oferta 10% OFF" [ref=e157]:
+                  - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                  - img "Caneca A Cruz Sagrada" [ref=e160]
+                  - generic [ref=e161]:
+                    - generic [ref=e162]: Oferta
+                    - generic [ref=e163]: 10% OFF
+                - generic [ref=e164]:
+                  - generic [ref=e165]: Caneca
+                  - link "Caneca A Cruz Sagrada" [ref=e166]:
+                    - /url: /product/a5feb741-7986-4e60-8c73-24b579352c0e
+                    - heading "Caneca A Cruz Sagrada" [level=3] [ref=e167]
+                  - generic [ref=e168]:
+                    - generic [ref=e169]:
+                      - generic [ref=e170]: R$ 39,99
+                      - generic [ref=e171]: R$ 35,99
+                    - button "Adicionar ao carrinho" [ref=e172] [cursor=pointer]:
+                      - img [ref=e173]
+              - generic [ref=e177]:
+                - link "Pulseira de Nossa Senhora de Fatima" [ref=e178]:
+                  - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                  - img "Pulseira de Nossa Senhora de Fatima" [ref=e181]
+                - generic [ref=e182]:
+                  - generic [ref=e183]: Pulseira
+                  - link "Pulseira de Nossa Senhora de Fatima" [ref=e184]:
+                    - /url: /product/82140620-b185-43ab-8206-38360a4dce18
+                    - heading "Pulseira de Nossa Senhora de Fatima" [level=3] [ref=e185]
+                  - generic [ref=e186]:
+                    - generic [ref=e188]: R$ 29,99
+                    - button "Adicionar ao carrinho" [ref=e189] [cursor=pointer]:
+                      - img [ref=e190]
+          - generic [ref=e196]:
+            - img [ref=e198]
+            - generic [ref=e200]:
+              - heading "Blog de Fé" [level=2] [ref=e201]
+              - paragraph [ref=e202]: Mensagens e Orações Diárias
+    - contentinfo [ref=e203]:
+      - generic [ref=e206]:
+        - generic [ref=e207]:
+          - img [ref=e209]
+          - generic [ref=e212]:
+            - heading "Bênção Diária" [level=3] [ref=e213]
+            - paragraph [ref=e214]: Receba orações e novidades em seu e-mail
+        - generic [ref=e215]:
+          - textbox "Seu melhor e-mail" [ref=e216]
+          - button [ref=e217] [cursor=pointer]:
+            - img [ref=e218]
+      - generic [ref=e221]:
+        - generic [ref=e222]:
+          - generic [ref=e223]:
+            - generic [ref=e224]:
+              - heading "Lojinha das Graças" [level=2] [ref=e225]
+              - paragraph [ref=e226]: Artigos Religiosos
+            - paragraph [ref=e227]: Levando fé, esperança e devoção para o seu lar através de artigos selecionados com amor e respeito à tradição.
+            - generic [ref=e228]:
+              - link [ref=e229]:
+                - /url: "#"
+                - img [ref=e230]
+              - link [ref=e233]:
+                - /url: "#"
+                - img [ref=e234]
+              - link [ref=e236]:
+                - /url: "#"
+                - img [ref=e237]
+          - generic [ref=e240]:
+            - heading "Institucional" [level=4] [ref=e241]
+            - list [ref=e242]:
+              - listitem [ref=e243]:
+                - link "Quem Somos" [ref=e244]:
+                  - /url: "#"
+              - listitem [ref=e245]:
+                - link "Fale Conosco" [ref=e246]:
+                  - /url: /contact
+              - listitem [ref=e247]:
+                - link "Termos de Uso" [ref=e248]:
+                  - /url: "#"
+              - listitem [ref=e249]:
+                - link "Política de Privacidade" [ref=e250]:
+                  - /url: "#"
+          - generic [ref=e251]:
+            - heading "Inspiração" [level=4] [ref=e252]
+            - generic [ref=e253]:
+              - text: "\"Tudo posso naquele que me fortalece. A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos.\""
+              - generic [ref=e254]: “
+            - link "Área do Lojista" [ref=e255]:
+              - /url: /admin
+        - paragraph [ref=e257]: © 2026 Lojinha das Graças • Todos os direitos reservados
+    - link [ref=e258]:
+      - /url: https://wa.me/5598984095956?text=Ol%C3%A1!%20Estou%20visitando%20a%20Lojinha%20das%20Gra%C3%A7as%20e%20gostaria%20de%20tirar%20uma%20d%C3%BAvida.
+      - img [ref=e262]
+  - button [ref=e264] [cursor=pointer]:
+    - img [ref=e265]
+```
