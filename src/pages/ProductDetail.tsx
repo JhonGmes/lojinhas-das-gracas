@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
-import { geminiService } from '../services/gemini';
-import { Sparkles, ShoppingCart, ArrowLeft, Wand2, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check } from 'lucide-react';
+
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { Helmet } from 'react-helmet-async';
 
@@ -14,11 +14,7 @@ export function ProductDetail() {
     const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
-    const [analysis, setAnalysis] = useState('');
-    const [analyzing, setAnalyzing] = useState(false);
-    const [editedImage, setEditedImage] = useState<string | null>(null);
-    const [editPrompt, setEditPrompt] = useState('Em um altar iluminado');
-    const [editing, setEditing] = useState(false);
+
     const quantity = 1;
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -35,27 +31,7 @@ export function ProductDetail() {
         }
     }, [id]);
 
-    const handleAnalyze = async () => {
-        if (!product) return;
-        setAnalyzing(true);
-        try {
-            const text = await geminiService.analyzeProduct(product.name, product.description);
-            setAnalysis(text);
-        } finally {
-            setAnalyzing(false);
-        }
-    };
 
-    const handleEditImage = async () => {
-        if (!product) return;
-        setEditing(true);
-        try {
-            const newUrl = await geminiService.editImage(allImages[currentImageIndex], editPrompt);
-            setEditedImage(newUrl);
-        } finally {
-            setEditing(false);
-        }
-    };
 
     const handleAddToCart = () => {
         if (product) {
@@ -76,16 +52,13 @@ export function ProductDetail() {
 
     const nextImage = () => {
         setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-        setEditedImage(null); // Reset IA edit when switching images
     };
 
     const prevImage = () => {
         setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
-        setEditedImage(null);
     };
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (editing) return;
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
         const x = ((e.pageX - left - window.scrollX) / width) * 100;
         const y = ((e.pageY - top - window.scrollY) / height) * 100;
@@ -136,17 +109,10 @@ export function ProductDetail() {
                     onMouseEnter={() => setIsZooming(true)}
                     onMouseLeave={() => setIsZooming(false)}
                 >
-                    {editing && (
-                        <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center backdrop-blur-md">
-                            <div className="text-white font-bold flex flex-col items-center text-center p-6">
-                                <Sparkles className="animate-spin mb-4 text-brand-gold" size={40} />
-                                <span className="uppercase tracking-widest text-sm">A IA está criando um cenário divino para você...</span>
-                            </div>
-                        </div>
-                    )}
+
 
                     <img
-                        src={editedImage || allImages[currentImageIndex]}
+                        src={allImages[currentImageIndex]}
                         alt={product.name}
                         className={`w-full h-full object-cover transition-transform duration-500 ease-out`}
                         style={{
@@ -156,7 +122,7 @@ export function ProductDetail() {
                     />
 
                     {/* Navigation Arrows */}
-                    {allImages.length > 1 && !editedImage && (
+                    {allImages.length > 1 && (
                         <>
                             <button
                                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
@@ -210,8 +176,8 @@ export function ProductDetail() {
                         {allImages.map((img, idx) => (
                             <button
                                 key={idx}
-                                onClick={() => { setCurrentImageIndex(idx); setEditedImage(null); }}
-                                className={`w-20 h-24 rounded-xl overflow-hidden border-2 transition-all ${idx === currentImageIndex && !editedImage
+                                onClick={() => setCurrentImageIndex(idx)}
+                                className={`w-20 h-24 rounded-xl overflow-hidden border-2 transition-all ${idx === currentImageIndex
                                     ? 'border-brand-gold scale-110 shadow-lg'
                                     : 'border-transparent opacity-60 hover:opacity-100'
                                     }`}
