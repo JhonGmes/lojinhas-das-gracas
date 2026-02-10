@@ -34,7 +34,7 @@ const LoadingFallback = () => (
 function ChatBot() {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>([
-        { role: 'bot', text: 'A Paz de Cristo! Posso ajudar você a encontrar algo especial hoje?' }
+        { role: 'bot', text: 'A Paz de Cristo! Eu sou a Gracinh IA. Posso ajudar você a encontrar algo especial hoje?' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -55,7 +55,10 @@ function ChatBot() {
             {open && (
                 <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 w-80 mb-4 overflow-hidden pointer-events-auto animate-fade-in-up flex flex-col max-h-[500px]">
                     <div className="bg-brand-wood text-white p-4 font-bold flex justify-between items-center">
-                        <span>Assistente Virtual</span>
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={18} className="text-brand-gold" />
+                            <span>Gracinh IA</span>
+                        </div>
                         <button onClick={() => setOpen(false)} className="opacity-70 hover:opacity-100">✕</button>
                     </div>
                     <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-stone-50 dark:bg-stone-900">

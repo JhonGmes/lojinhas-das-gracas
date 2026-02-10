@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ui/ProductCard';
-import { Tag, Star, ArrowRight, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Feather, Compass, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
 
@@ -155,8 +155,8 @@ export function Home() {
                         {featuredProducts.length > 0 && (
                             <section className="animate-fade-in-up">
                                 <div className="flex items-center gap-4 mb-8 md:mb-12">
-                                    <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Star size={20} className="md:size-24" fill="currentColor" />
+                                    <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                        <Sparkles size={18} className="md:size-20" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Destaques</h2>
@@ -176,8 +176,8 @@ export function Home() {
                         {promoProducts.length > 0 && (
                             <section ref={offersRef} className="animate-fade-in-up">
                                 <div className="flex items-center gap-4 mb-8 md:mb-12">
-                                    <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Tag size={20} className="md:size-24" />
+                                    <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                        <Gift size={18} className="md:size-20" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Ofertas</h2>
@@ -201,8 +201,8 @@ export function Home() {
                 <section className="animate-fade-in-up">
                     <div className="flex items-center justify-between mb-10 md:mb-16">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                <Tag size={20} className="md:size-24" />
+                            <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                <Compass size={18} className="md:size-20" />
                             </div>
                             <div>
                                 <h2 className="text-2xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">
@@ -245,8 +245,8 @@ export function Home() {
                     <section className="animate-fade-in-up py-24 border-t border-brand-cotton-dark dark:border-stone-800">
                         <div className="flex items-center justify-between mb-10 md:mb-16">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                    <BookOpen size={20} className="md:size-24" />
+                                <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                    <Feather size={18} className="md:size-20" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Blog de Fé</h2>
