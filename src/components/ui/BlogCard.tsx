@@ -29,7 +29,7 @@ export function BlogCard({ post }: BlogPostProps) {
                 </div>
             </div>
 
-            <div className="p-8 flex flex-col flex-1">
+            <div className="p-6 md:p-8 flex flex-col flex-1">
                 <div className="flex items-center gap-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-4">
                     <span className="flex items-center gap-1.5">
                         <Calendar size={12} className="text-brand-gold" /> {post.date}

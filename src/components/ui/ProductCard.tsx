@@ -97,7 +97,7 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
                 )}
             </Link>
 
-            <div className="p-5 flex flex-col flex-1">
+            <div className="p-4 md:p-5 flex flex-col flex-1">
                 <div className="mb-2 text-[10px] text-brand-gold font-bold uppercase tracking-[0.15em]">{product.category}</div>
                 <Link to={`/product/${product.id}`} className="block mb-3">
                     <h3 className="font-display font-medium text-lg text-stone-800 dark:text-stone-100 mb-1 leading-tight group-hover:text-brand-gold transition-colors duration-400 line-clamp-2">{product.name}</h3>
@@ -108,7 +108,7 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
                         {product.promotionalPrice && (
                             <span className="text-[10px] text-stone-400 font-bold line-through mb-0.5">{formatCurrency(product.price)}</span>
                         )}
-                        <span className="text-xl font-bold text-stone-800 dark:text-white">
+                        <span className="text-lg md:text-xl font-bold text-stone-800 dark:text-white">
                             {formatCurrency(currentPrice)}
                         </span>
                     </div>

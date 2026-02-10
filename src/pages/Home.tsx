@@ -81,7 +81,7 @@ export function Home() {
                             <div
                                 key={index}
                                 className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentBanner ? 'opacity-100 scale-100 translate-x-0' :
-                                        index < currentBanner ? 'opacity-0 scale-110 -translate-x-full' : 'opacity-0 scale-110 translate-x-full'
+                                    index < currentBanner ? 'opacity-0 scale-110 -translate-x-full' : 'opacity-0 scale-110 translate-x-full'
                                     }`}
                             >
                                 <img
@@ -97,18 +97,18 @@ export function Home() {
                         <div className="absolute inset-0 flex items-center z-10 pointer-events-none">
                             <div className="container mx-auto px-4 md:px-8">
                                 <div className="max-w-3xl text-white space-y-10 animate-fade-in-up pointer-events-auto">
-                                    <h1 className="text-4xl md:text-9xl font-display font-medium leading-[0.9] drop-shadow-2xl uppercase tracking-tighter">
+                                    <h1 className="text-3xl md:text-6xl lg:text-9xl font-display font-medium leading-[0.9] drop-shadow-2xl uppercase tracking-tighter">
                                         {settings.hero_title || 'Encontre Paz e Devoção'}
                                     </h1>
-                                    <p className="text-base md:text-3xl opacity-90 drop-shadow-lg font-light max-w-xl italic">
+                                    <p className="text-sm md:text-3xl opacity-90 drop-shadow-lg font-light max-w-xl italic">
                                         {settings.hero_subtitle || 'Artigos religiosos selecionados com amor para fortalecer sua fé.'}
                                     </p>
-                                    <div className="pt-6">
+                                    <div className="pt-2 md:pt-6">
                                         <button
                                             onClick={scrollToOffers}
-                                            className="bg-brand-gold text-brand-wood font-black py-4 px-10 md:py-6 md:px-16 rounded-sm shadow-soft-lg hover:bg-white hover:text-brand-gold transition-all duration-500 transform hover:-translate-y-1 active:scale-95 text-xs md:text-sm uppercase tracking-[0.3em] flex items-center gap-4"
+                                            className="bg-brand-gold text-brand-wood font-black py-3 px-8 md:py-6 md:px-16 rounded-sm shadow-soft-lg hover:bg-white hover:text-brand-gold transition-all duration-500 transform hover:-translate-y-1 active:scale-95 text-[10px] md:text-sm uppercase tracking-[0.3em] flex items-center gap-3 md:gap-4"
                                         >
-                                            {settings.hero_button_text || 'Ver Ofertas'} <ArrowRight size={20} />
+                                            {settings.hero_button_text || 'Ver Ofertas'} <ArrowRight size={18} className="md:size-20" />
                                         </button>
                                     </div>
                                 </div>
@@ -132,12 +132,12 @@ export function Home() {
                                 </button>
 
                                 {/* Progress Indicators */}
-                                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-4">
+                                <div className="absolute bottom-6 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2 md:gap-4">
                                     {banners.map((_, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setCurrentBanner(index)}
-                                            className={`h-1.5 transition-all duration-500 rounded-full ${index === currentBanner ? 'w-12 bg-brand-gold' : 'w-3 bg-white/30 hover:bg-white/50'
+                                            className={`h-1 md:h-1.5 transition-all duration-500 rounded-full ${index === currentBanner ? 'w-8 md:w-12 bg-brand-gold' : 'w-2 md:w-3 bg-white/30 hover:bg-white/50'
                                                 }`}
                                         />
                                     ))}
@@ -154,15 +154,15 @@ export function Home() {
                         {/* Showcase Highlights / Destaques */}
                         {featuredProducts.length > 0 && (
                             <section className="animate-fade-in-up">
-                                <div className="flex items-center gap-4 mb-12">
-                                    <div className="p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Star size={24} fill="currentColor" />
+                                <div className="flex items-center gap-4 mb-8 md:mb-12">
+                                    <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                        <Star size={20} className="md:size-24" fill="currentColor" />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Destaques da Vitrine</h2>
-                                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.4em] mt-1">Curadoria Especial</p>
+                                        <h2 className="text-xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Destaques</h2>
+                                        <p className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.4em] mt-1">Curadoria Especial</p>
                                     </div>
-                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-8" />
+                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-4 md:ml-8" />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                                     {featuredProducts.slice(0, 4).map(p => (
@@ -175,15 +175,15 @@ export function Home() {
                         {/* Flash Deals / Promo Section */}
                         {promoProducts.length > 0 && (
                             <section ref={offersRef} className="animate-fade-in-up">
-                                <div className="flex items-center gap-4 mb-12">
-                                    <div className="p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Tag size={24} />
+                                <div className="flex items-center gap-4 mb-8 md:mb-12">
+                                    <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                        <Tag size={20} className="md:size-24" />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Ofertas de Fé</h2>
-                                        <p className="text-[10px] text-brand-gold font-bold uppercase tracking-[0.4em] mt-1">Oportunidades Únicas</p>
+                                        <h2 className="text-xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Ofertas</h2>
+                                        <p className="text-[8px] md:text-[10px] text-brand-gold font-bold uppercase tracking-[0.4em] mt-1">Oportunidades Únicas</p>
                                     </div>
-                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-8" />
+                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-4 md:ml-8" />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                                     {promoProducts.slice(0, 4).map(p => (
@@ -199,16 +199,16 @@ export function Home() {
             {/* Main Product Grid Wrapped */}
             <div className="container mx-auto px-4 space-y-16 mt-24">
                 <section className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-16">
+                    <div className="flex items-center justify-between mb-10 md:mb-16">
                         <div className="flex items-center gap-4">
-                            <div className="p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                <Tag size={24} />
+                            <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                <Tag size={20} className="md:size-24" />
                             </div>
                             <div>
-                                <h2 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">
-                                    {isFiltered ? (urlSearch ? `Resultados para "${urlSearch}"` : urlCategory) : 'Catálogo Completo'}
+                                <h2 className="text-2xl md:text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">
+                                    {isFiltered ? (urlSearch ? `Resultados para "${urlSearch}"` : urlCategory) : 'Catálogo'}
                                 </h2>
-                                <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.5em] mt-2">
+                                <p className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] mt-1 md:mt-2">
                                     {isFiltered ? 'Filtrado com Devoção' : 'Navegue em nossa Seleção Divina'}
                                 </p>
                             </div>
@@ -243,14 +243,14 @@ export function Home() {
                 {/* Blog Section */}
                 {!isFiltered && (
                     <section className="animate-fade-in-up py-24 border-t border-brand-cotton-dark dark:border-stone-800">
-                        <div className="flex items-center justify-between mb-16">
+                        <div className="flex items-center justify-between mb-10 md:mb-16">
                             <div className="flex items-center gap-4">
-                                <div className="p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                    <BookOpen size={24} />
+                                <div className="p-3 md:p-4 bg-white dark:bg-stone-800 rounded-sm text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
+                                    <BookOpen size={20} className="md:size-24" />
                                 </div>
                                 <div>
-                                    <h2 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Blog de Fé</h2>
-                                    <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.5em] mt-2">Mensagens e Orações Diárias</p>
+                                    <h2 className="text-2xl md:text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Blog de Fé</h2>
+                                    <p className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] mt-1 md:mt-2">Mensagens Diárias</p>
                                 </div>
                             </div>
                             <Link to="/blog" className="hidden md:flex items-center gap-4 text-brand-gold font-black text-xs uppercase tracking-[0.3em] hover:gap-6 transition-all border-b border-brand-gold pb-2">

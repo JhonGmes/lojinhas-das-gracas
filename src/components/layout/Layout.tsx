@@ -58,20 +58,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="min-h-screen flex flex-col transition-colors duration-400 dark:bg-stone-950 dark:text-stone-100 bg-brand-cotton">
             <header className="sticky top-0 z-50 bg-white/95 dark:bg-stone-900 shadow-soft transition-all duration-400 backdrop-blur-md border-b border-brand-cotton-dark/50">
                 {/* Top Row: Logo, Search, Actions - Widened container */}
-                <div className="max-w-[1600px] mx-auto px-4 md:px-10 py-4 flex items-center justify-between gap-8">
+                <div className="max-w-[1600px] mx-auto px-4 md:px-10 py-4 flex items-center justify-between gap-2 md:gap-8">
 
                     {/* Brand Section: Logo + Name Side-by-Side */}
-                    <Link to="/" className="flex items-center gap-4 shrink-0 hover:opacity-95 transition-all group">
+                    <Link to="/" className="flex items-center gap-2 md:gap-4 shrink-0 hover:opacity-95 transition-all group">
                         {settings.logo_url ? (
-                            <img src={settings.logo_url} className="h-12 md:h-32 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
+                            <img src={settings.logo_url} className="h-10 md:h-32 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
                         ) : (
-                            <div className="h-14 w-14 md:h-24 md:w-24 bg-brand-gold/10 rounded-full flex items-center justify-center text-4xl shadow-inner">🕊️</div>
+                            <div className="h-10 w-10 md:h-24 md:w-24 bg-brand-gold/10 rounded-full flex items-center justify-center text-xl md:text-4xl shadow-inner">🕊️</div>
                         )}
-                        <div className="flex flex-col text-center -gap-1">
-                            <h1 className="font-script text-xl md:text-5xl text-brand-gold leading-[0.7] text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
+                        <div className="flex flex-col -gap-1">
+                            <h1 className="font-script text-lg md:text-5xl text-brand-gold leading-none md:leading-[0.7] text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
                                 {settings.store_name}
                             </h1>
-                            <p className="font-display text-[10px] md:text-sm text-brand-gold/80 -mt-2 md:-mt-3 font-medium tracking-widest uppercase">
+                            <p className="font-display text-[8px] md:text-sm text-brand-gold/80 -mt-0.5 md:-mt-3 font-medium tracking-widest uppercase truncate max-w-[80px] md:max-w-none">
                                 Artigos Religiosos
                             </p>
                         </div>
@@ -106,19 +106,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             {user ? (
                                 <button
                                     onClick={() => setMenuOpen(!menuOpen)}
-                                    className="flex items-center gap-2 group p-1 pr-2 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-sm transition-all duration-400"
+                                    className="flex items-center gap-1.5 md:gap-2 group p-1 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-sm transition-all duration-400"
                                 >
-                                    <div className="w-8 h-8 rounded-sm bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold font-bold text-xs">
+                                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-sm bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold font-bold text-[10px] md:text-xs">
                                         {user.email[0].toUpperCase()}
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-gold">
+                                    <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest text-brand-gold">
                                         {user.role === 'admin' ? 'Painel' : 'Perfil'}
                                     </span>
                                 </button>
                             ) : (
-                                <Link to="/login" className="flex items-center gap-2 px-3 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-lg transition-all text-[10px] font-black uppercase tracking-widest text-brand-gold">
+                                <Link to="/login" className="flex items-center gap-2 p-2 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-lg transition-all text-stone-600 dark:text-stone-300">
                                     <User size={20} className="text-brand-gold/60" />
-                                    <span className="hidden sm:inline">Entrar</span>
+                                    <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest text-brand-gold">Entrar</span>
                                 </Link>
                             )}
 
@@ -144,11 +144,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             )}
                         </div>
 
-                        <Link to="/cart" className="flex items-center gap-2 px-3 py-2 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-sm transition-all duration-400 group">
+                        <Link to="/cart" className="flex items-center gap-1.5 md:gap-2 p-1 md:px-3 md:py-2 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-sm transition-all duration-400 group">
                             <div className="relative">
-                                <ShoppingCart size={22} className="text-brand-gold group-hover:text-brand-gold-light transition-colors" />
+                                <ShoppingCart size={20} className="md:size-22 text-brand-gold group-hover:text-brand-gold-light transition-colors" />
                                 {items.length > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 bg-brand-gold text-brand-wood text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-minimal ring-2 ring-white">
+                                    <span className="absolute -top-1.5 -right-1.5 bg-brand-gold text-brand-wood text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-minimal ring-1 ring-white">
                                         {items.length}
                                     </span>
                                 )}
@@ -159,8 +159,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Bottom Row: Navigation */}
-                <nav className="border-t border-stone-100 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 relative overflow-x-auto no-scrollbar">
-                    <div className="max-w-[1600px] mx-auto px-4 md:px-10 flex items-center justify-center h-16">
+                <nav className="border-t border-stone-100 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 relative overflow-x-auto no-scrollbar scroll-smooth">
+                    <div className="max-w-[1600px] mx-auto px-4 md:px-10 flex items-center h-12 md:h-16">
                         <ul className="flex items-center gap-6 md:gap-12 min-w-max">
                             {categories.map((cat) => (
                                 <li key={cat}>
