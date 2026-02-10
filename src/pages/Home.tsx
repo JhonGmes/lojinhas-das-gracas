@@ -106,9 +106,9 @@ export function Home() {
                                     <div className="pt-2 md:pt-6">
                                         <button
                                             onClick={scrollToOffers}
-                                            className="bg-brand-gold text-brand-wood font-black py-3 px-8 md:py-6 md:px-16 rounded-sm shadow-soft-lg hover:bg-white hover:text-brand-gold transition-all duration-500 transform hover:-translate-y-1 active:scale-95 text-[10px] md:text-sm uppercase tracking-[0.3em] flex items-center gap-3 md:gap-4"
+                                            className="bg-brand-gold text-brand-wood font-black py-3 px-8 md:py-4 md:px-12 rounded-sm shadow-soft-lg hover:bg-white hover:text-brand-gold transition-all duration-500 transform hover:-translate-y-1 active:scale-95 text-[10px] md:text-xs uppercase tracking-[0.3em] flex items-center gap-3 md:gap-4"
                                         >
-                                            {settings.hero_button_text || 'Ver Ofertas'} <ArrowRight size={18} className="md:size-20" />
+                                            {settings.hero_button_text || 'Ver Ofertas'} <ArrowRight size={18} />
                                         </button>
                                     </div>
                                 </div>
@@ -144,8 +144,6 @@ export function Home() {
                                 </div>
                             </>
                         )}
-
-                        {/* Decorative bottom element */}
                         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-brand-cotton dark:from-stone-950 to-transparent z-10" />
                     </section>
 
@@ -154,9 +152,9 @@ export function Home() {
                         {/* Showcase Highlights / Destaques */}
                         {featuredProducts.length > 0 && (
                             <section className="animate-fade-in-up">
-                                <div className="flex items-center gap-4 mb-8 md:mb-12">
-                                    <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Sparkles size={18} className="md:size-20" />
+                                <div className="flex items-center gap-4 mb-4 md:mb-6">
+                                    <div className="text-brand-gold">
+                                        <Sparkles size={24} className="md:size-8" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Destaques</h2>
@@ -175,9 +173,9 @@ export function Home() {
                         {/* Flash Deals / Promo Section */}
                         {promoProducts.length > 0 && (
                             <section ref={offersRef} className="animate-fade-in-up">
-                                <div className="flex items-center gap-4 mb-8 md:mb-12">
-                                    <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                        <Gift size={18} className="md:size-20" />
+                                <div className="flex items-center gap-4 mb-4 md:mb-6">
+                                    <div className="text-brand-gold">
+                                        <Gift size={24} className="md:size-8" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Ofertas</h2>
@@ -200,9 +198,9 @@ export function Home() {
             <div className="container mx-auto px-4 space-y-16 mt-24">
                 <section className="animate-fade-in-up">
                     <div className="flex items-center justify-between mb-10 md:mb-16">
-                        <div className="flex items-center gap-4">
-                            <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                <Compass size={18} className="md:size-20" />
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="text-brand-gold">
+                                <Compass size={24} className="md:size-8" />
                             </div>
                             <div>
                                 <h2 className="text-2xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">
@@ -245,8 +243,8 @@ export function Home() {
                     <section className="animate-fade-in-up py-24 border-t border-brand-cotton-dark dark:border-stone-800">
                         <div className="flex items-center justify-between mb-10 md:mb-16">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 md:p-3 bg-white dark:bg-stone-800 rounded-minimal text-brand-gold shadow-soft border border-brand-cotton-dark dark:border-stone-700">
-                                    <Feather size={18} className="md:size-20" />
+                                <div className="text-brand-gold">
+                                    <Feather size={24} className="md:size-8" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl md:text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em]">Blog de Fé</h2>

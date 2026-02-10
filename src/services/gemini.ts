@@ -34,7 +34,7 @@ export const geminiService = {
             const response = await result.response;
             return response.text();
         } catch (e) {
-            return "Desculpe, estou em manutenção.";
+            return "A Paz de Cristo! No momento estou em um breve momento de oração (manutenção técnica). Que tal conversarmos novamente em alguns instantes?";
         }
     },
     editImage: async (_image: string, _prompt: string) => {
