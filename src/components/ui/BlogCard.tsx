@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar, User, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 
 interface BlogPostProps {
     post: {
@@ -15,44 +15,39 @@ interface BlogPostProps {
 
 export function BlogCard({ post }: BlogPostProps) {
     return (
-        <article className="group bg-white dark:bg-stone-900 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-stone-100 dark:border-stone-800 flex flex-col h-full">
-            <div className="relative h-56 overflow-hidden">
+        <article className="group bg-white dark:bg-stone-900 rounded-sm overflow-hidden shadow-soft hover:shadow-soft-lg transition-all duration-400 border border-brand-cotton-dark dark:border-stone-800 flex flex-col h-full">
+            <Link to={`/blog/${post.id}`} className="relative aspect-square overflow-hidden bg-stone-100 dark:bg-stone-900/50 block group/img">
                 <img
                     src={post.image}
                     alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute top-4 left-4">
-                    <span className="bg-brand-gold text-brand-wood text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
+                <div className="absolute top-2 left-2">
+                    <span className="bg-brand-gold text-brand-wood text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shadow-sm">
                         {post.category}
                     </span>
                 </div>
-            </div>
+            </Link>
 
-            <div className="p-6 md:p-8 flex flex-col flex-1">
-                <div className="flex items-center gap-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-4">
-                    <span className="flex items-center gap-1.5">
-                        <Calendar size={12} className="text-brand-gold" /> {post.date}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                        <User size={12} className="text-brand-gold" /> {post.author}
+            <div className="p-2 md:p-3 flex flex-col flex-1">
+                <div className="flex items-center gap-2 text-[8px] font-bold text-stone-400 uppercase tracking-tight mb-1">
+                    <span className="flex items-center gap-1">
+                        <Calendar size={10} className="text-brand-gold" /> {post.date}
                     </span>
                 </div>
 
-                <h3 className="font-display text-2xl font-bold text-stone-800 dark:text-stone-100 mb-4 group-hover:text-brand-gold transition-colors line-clamp-2">
-                    {post.title}
-                </h3>
+                <Link to={`/blog/${post.id}`} className="block mb-1.5">
+                    <h3 className="font-display font-medium text-xs md:text-sm text-stone-800 dark:text-stone-100 mb-0.5 leading-snug group-hover:text-brand-gold transition-colors duration-400 line-clamp-2 h-8 md:h-10">
+                        {post.title}
+                    </h3>
+                </Link>
 
-                <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed mb-8 line-clamp-3">
-                    {post.excerpt}
-                </p>
-
-                <div className="mt-auto">
+                <div className="mt-auto pt-2 border-t border-stone-100/30 dark:border-stone-700/20">
                     <Link
                         to={`/blog/${post.id}`}
-                        className="inline-flex items-center gap-2 text-brand-gold font-black text-[10px] uppercase tracking-[0.2em] hover:gap-4 transition-all"
+                        className="inline-flex items-center gap-1.5 text-brand-gold font-black text-[9px] uppercase tracking-wider hover:gap-2.5 transition-all"
                     >
-                        Ler Mensagem <ArrowRight size={14} />
+                        Ler Mensagem <ArrowRight size={12} />
                     </Link>
                 </div>
             </div>

@@ -11,6 +11,8 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 
 import { Layout } from './components/layout/Layout';
 import { geminiService } from './services/gemini';
+import ScrollToTop from './components/layout/ScrollToTop';
+import { Toaster } from 'react-hot-toast';
 
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -21,6 +23,8 @@ const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default:
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Identification = lazy(() => import('./pages/Identification').then(m => ({ default: m.Identification })));
+const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
+const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-brand-cotton">
@@ -108,12 +112,16 @@ function App() {
                             <ProductProvider>
                                 <CartProvider>
                                     <BrowserRouter>
+                                        <ScrollToTop />
+                                        <Toaster position="top-right" />
                                         <Suspense fallback={<LoadingFallback />}>
                                             <Routes>
                                                 {/* Public Routes */}
                                                 <Route path="/" element={<Layout><Home /></Layout>} />
                                                 <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
                                                 <Route path="/cart" element={<Layout><Cart /></Layout>} />
+                                                <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+                                                <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
 
                                                 {/* Blog Routes */}
                                                 <Route path="/blog" element={<Layout><BlogList /></Layout>} />

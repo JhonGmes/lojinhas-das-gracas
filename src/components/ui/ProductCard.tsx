@@ -39,13 +39,13 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <Link to={`/product/${product.id}`} className="relative aspect-[4/5] overflow-hidden bg-stone-100 dark:bg-stone-900/50 block group/img">
+            <Link to={`/product/${product.id}`} className="relative aspect-square overflow-hidden bg-stone-100 dark:bg-stone-900/50 block group/img">
                 {/* Desktop View: Auto Cycle on Hover */}
                 <div className="hidden md:block w-full h-full">
                     <img
                         src={allImages[currentImageIndex]}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
+                        className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-700"
                         loading="lazy"
                     />
                 </div>
@@ -69,56 +69,53 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
 
                 {/* Progress Indicators */}
                 {allImages.length > 1 && (
-                    <div className={`absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 px-2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-100 md:opacity-0'}`}>
+                    <div className={`absolute bottom-2 left-0 right-0 flex justify-center gap-1 px-2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-100 md:opacity-0'}`}>
                         {allImages.map((_, idx) => (
                             <div
                                 key={idx}
-                                className={`h-1 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-4 bg-brand-gold shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'w-1 bg-white/40'}`}
+                                className={`h-0.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-3 bg-brand-gold shadow-[0_0_4px_rgba(245,158,11,0.6)]' : 'w-1 bg-white/40'}`}
                             />
                         ))}
                     </div>
                 )}
 
                 {product.stock <= 0 && (
-                    <div className="absolute inset-0 bg-stone-950/70 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="text-white font-bold bg-stone-800/80 backdrop-blur-md px-4 py-2 rounded-full text-xs uppercase tracking-[0.2em] border border-white/10">Esgotado</span>
+                    <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-[1px] flex items-center justify-center">
+                        <span className="text-white font-bold bg-stone-800/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] uppercase tracking-[0.15em] border border-white/10">Esgotado</span>
                     </div>
                 )}
 
                 {product.promotionalPrice && product.stock > 0 && (
-                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-                        <div className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg uppercase tracking-widest animate-pulse">
+                    <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                        <div className="bg-brand-gold text-brand-wood text-[8px] font-bold px-1.5 py-0.5 rounded-sm shadow-sm uppercase tracking-wider">
                             Oferta
-                        </div>
-                        <div className="bg-white/90 backdrop-blur-sm text-amber-600 text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm border border-amber-100">
-                            {Math.round(((product.price - product.promotionalPrice) / product.price) * 100)}% OFF
                         </div>
                     </div>
                 )}
             </Link>
 
-            <div className="p-4 md:p-5 flex flex-col flex-1">
-                <div className="mb-2 text-[10px] text-brand-gold font-bold uppercase tracking-[0.15em]">{product.category}</div>
-                <Link to={`/product/${product.id}`} className="block mb-3">
-                    <h3 className="font-display font-medium text-lg text-stone-800 dark:text-stone-100 mb-1 leading-tight group-hover:text-brand-gold transition-colors duration-400 line-clamp-2">{product.name}</h3>
+            <div className="p-2 md:p-3 flex flex-col flex-1">
+                <div className="mb-0.5 text-[8px] text-brand-gold font-bold uppercase tracking-[0.05em]">{product.category}</div>
+                <Link to={`/product/${product.id}`} className="block mb-1.5">
+                    <h3 className="font-display font-medium text-xs md:text-sm text-stone-800 dark:text-stone-100 mb-0.5 leading-snug group-hover:text-brand-gold transition-colors duration-400 line-clamp-2 h-8 md:h-10">{product.name}</h3>
                 </Link>
 
-                <div className="mt-auto pt-4 flex items-center justify-between border-t border-stone-100/50 dark:border-stone-700/30">
+                <div className="mt-auto pt-2 flex items-center justify-between border-t border-stone-100/30 dark:border-stone-700/20">
                     <div className="flex flex-col">
                         {product.promotionalPrice && (
-                            <span className="text-[10px] text-stone-400 font-bold line-through mb-0.5">{formatCurrency(product.price)}</span>
+                            <span className="text-[8px] text-stone-400 font-bold line-through mb-0">{formatCurrency(product.price)}</span>
                         )}
-                        <span className="text-lg md:text-xl font-bold text-stone-800 dark:text-white">
+                        <span className="text-sm md:text-base font-bold text-stone-800 dark:text-white">
                             {formatCurrency(currentPrice)}
                         </span>
                     </div>
                     <button
                         onClick={handleAddToCart}
                         disabled={product.stock <= 0}
-                        className="p-3 bg-brand-gold text-brand-wood rounded-sm hover:bg-brand-gold-light disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-400 shadow-soft flex items-center justify-center"
+                        className="p-2 bg-brand-gold text-brand-wood rounded-sm hover:bg-brand-gold-light disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-400 shadow-soft flex items-center justify-center"
                         aria-label="Adicionar ao carrinho"
                     >
-                        <ShoppingCart size={18} />
+                        <ShoppingCart size={14} />
                     </button>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import type { CartItem, Product, Order } from '../types';
 import { api } from '../services/api';
 import { useStore } from './StoreContext';
+import { toast } from 'react-hot-toast';
 
 interface CartContextType {
     items: CartItem[];
@@ -10,7 +11,7 @@ interface CartContextType {
     clearCart: () => void;
     updateQuantity: (productId: string, quantity: number) => void;
     total: number;
-    checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'card') => Promise<{ success: boolean; message?: string; whatsappUrl?: string }>;
+    checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'card') => Promise<{ success: boolean; message?: string; whatsappUrl?: string; orderId?: string }>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -26,6 +27,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('cart', JSON.stringify(items));
     }, [items]);
 
+
+
     const addToCart = (product: Product, quantity: number) => {
         setItems(prev => {
             const existing = prev.find(item => item.id === product.id);
@@ -37,6 +40,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 );
             }
             return [...prev, { ...product, quantity }];
+        });
+        toast.success(`${product.name} adicionado ao carrinho!`, {
+            style: {
+                fontSize: '10px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                borderRadius: '2px',
+                background: '#2d2a28',
+                color: '#fff',
+                border: '1px solid #d4af37'
+            },
+            iconTheme: {
+                primary: '#d4af37',
+                secondary: '#fff',
+            },
         });
     };
 
@@ -118,8 +137,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-        clearCart();
-        return { success: true, whatsappUrl: url };
+        return {
+            success: true,
+            whatsappUrl: url,
+            orderId: displayId
+        };
     };
 
     return (

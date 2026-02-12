@@ -131,6 +131,32 @@ export function Settings() {
                         </div>
                         <p className="text-[9px] text-stone-400 italic">Digite apenas números (com DDD e código do país)</p>
                     </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Chave Pix Principal (Fallback)</label>
+                        <input
+                            type="text"
+                            value={formData.pix_key || ''}
+                            onChange={e => setFormData({ ...formData, pix_key: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors font-mono"
+                            placeholder="E-mail, CPF, CNPJ ou Aleatória"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                            InfiniteTag (InfinitePay)
+                            <span className="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-black uppercase">Automático</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.infinitepay_handle || ''}
+                            onChange={e => setFormData({ ...formData, infinitepay_handle: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors font-mono"
+                            placeholder="Ex: lojinhadasgracas"
+                        />
+                        <p className="text-[9px] text-stone-400 italic leading-tight">Seu nome de usuário no App InfinitePay (use sem o @). Ativa o Checkout Automático.</p>
+                    </div>
                 </div>
 
                 {/* Identidade Visual */}

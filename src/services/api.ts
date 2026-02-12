@@ -264,13 +264,25 @@ export const api = {
                     .limit(1);
 
                 if (error) throw error;
-                if (data && data.length > 0) return data[0];
 
-                return {
+                const storeData = (data && data.length > 0) ? data[0] : {
                     store_name: 'Lojinha das Graças',
                     whatsapp_number: '5598984095956',
                     primary_color: '#D4AF37'
                 };
+
+                // Recupera a chave pix do localStorage (fallback)
+                const localPix = localStorage.getItem('ljg_pix_key');
+                if (localPix) {
+                    storeData.pix_key = localPix;
+                }
+
+                const localInfinite = localStorage.getItem('ljg_infinitepay_handle');
+                if (localInfinite) {
+                    storeData.infinitepay_handle = localInfinite;
+                }
+
+                return storeData;
             } catch (err) {
                 console.warn('⚠️ Erro ao buscar settings, usando padrões');
                 return {
@@ -285,14 +297,27 @@ export const api = {
                 const payload = { ...settings };
                 delete payload.updated_at;
 
+                // Salva localmente por segurança, já que as colunas podem não existir no banco
+                if (payload.pix_key) {
+                    localStorage.setItem('ljg_pix_key', payload.pix_key);
+                }
+                if (payload.infinitepay_handle) {
+                    localStorage.setItem('ljg_infinitepay_handle', payload.infinitepay_handle);
+                }
+
                 // Se o ID for inválido ou a string "undefined", removemos para o Supabase gerar um novo
                 if (!payload.id || payload.id === 'undefined' || payload.id === '') {
                     delete payload.id;
                 }
 
+                // Removemos os campos que podem não existir no banco para evitar erro SQL
+                const dbPayload = { ...payload };
+                delete dbPayload.pix_key;
+                delete dbPayload.infinitepay_handle;
+
                 const { error } = await supabase
                     .from('store_settings')
-                    .upsert(payload);
+                    .upsert(dbPayload);
 
                 if (error) throw error;
             } catch (err: any) {

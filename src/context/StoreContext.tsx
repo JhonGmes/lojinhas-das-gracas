@@ -13,6 +13,8 @@ interface StoreSettings {
     hero_button_text?: string;
     hero_image_url?: string;
     hero_banners?: string[];
+    pix_key?: string;
+    infinitepay_handle?: string;
 }
 
 interface StoreContextType {
@@ -33,7 +35,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
         hero_button_text: 'Ver Ofertas',
         hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
-        hero_banners: []
+        hero_banners: [],
+        pix_key: 'suachave@pix.com'
     });
     const [loading, setLoading] = useState(true);
 
