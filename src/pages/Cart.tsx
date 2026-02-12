@@ -38,7 +38,8 @@ export function Cart() {
                                 price: Math.round((item.promotionalPrice || item.price) * 100), // Em centavos
                                 description: item.name
                             })),
-                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
+                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`,
+                            webhook_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
                         };
 
                         const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
