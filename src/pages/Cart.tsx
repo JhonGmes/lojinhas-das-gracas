@@ -42,7 +42,7 @@ export function Cart() {
                             webhook_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
                         };
 
-                        const response = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`, {
+                        const response = await fetch(`/api?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(infinitePayPayload)
