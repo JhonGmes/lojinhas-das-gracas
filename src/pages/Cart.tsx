@@ -5,7 +5,6 @@ import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Loader2 } from 'lucide-reac
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 
 export function Cart() {
     const { items, removeFromCart, updateQuantity, total, checkout } = useCart();

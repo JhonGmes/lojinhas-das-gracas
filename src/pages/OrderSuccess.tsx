@@ -6,7 +6,6 @@ import { useStore } from '../context/StoreContext';
 import { useCart } from '../context/CartContext';
 import { useEffect, useState, useMemo } from 'react';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
 import { Clock, AlertTriangle } from 'lucide-react';
 
 const EXPIRATION_MINUTES = 20;
