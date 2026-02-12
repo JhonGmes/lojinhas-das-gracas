@@ -11,7 +11,7 @@ import { Clock, AlertTriangle } from 'lucide-react';
 const EXPIRATION_MINUTES = 20;
 
 export function OrderSuccess() {
-    const { orderId } = useParams();
+    const { orderId } = useParams(); // DEBUG: 2026-02-12-03-07-force-update
     const { settings } = useStore();
     const { clearCart } = useCart();
     const [order, setOrder] = useState<any>(null);
