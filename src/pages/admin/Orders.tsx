@@ -2,19 +2,40 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import type { Order } from '../../types';
 import { formatCurrency } from '../../lib/utils';
-import { RefreshCw, CheckCircle2, XCircle, Clock, Package } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Clock, Package, Eye, Bell } from 'lucide-react';
+import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal';
+import { toast } from 'react-hot-toast';
 
 export function Orders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [newOrdersCount, setNewOrdersCount] = useState(0);
 
-    const loadOrders = async () => {
-        setLoading(true);
+    const loadOrders = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const data = await api.orders.list();
+
+            // Detectar novos pedidos
+            if (orders.length > 0 && data.length > orders.length) {
+                const newCount = data.length - orders.length;
+                setNewOrdersCount(newCount);
+                toast.success(`${newCount} ${newCount === 1 ? 'novo pedido' : 'novos pedidos'}!`, {
+                    icon: '🔔',
+                    duration: 5000,
+                    style: {
+                        background: '#D4AF37',
+                        color: '#2d2a28',
+                        fontSize: '12px',
+                        fontWeight: '900'
+                    }
+                });
+            }
+
             setOrders(data);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -25,6 +46,13 @@ export function Orders() {
 
     useEffect(() => {
         loadOrders();
+
+        // Auto-refresh a cada 30 segundos para detectar novos pedidos
+        const interval = setInterval(() => {
+            loadOrders(true); // Silent refresh
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const getStatusConfig = (status: Order['status']) => {
@@ -50,9 +78,21 @@ export function Orders() {
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Histórico de Vendas</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
+                        Histórico de Vendas
+                    </h1>
+                    {newOrdersCount > 0 && (
+                        <div className="flex items-center gap-2 bg-brand-gold text-brand-wood px-4 py-2 rounded-full animate-bounce">
+                            <Bell size={16} />
+                            <span className="text-xs font-black uppercase tracking-widest">
+                                {newOrdersCount} {newOrdersCount === 1 ? 'Novo' : 'Novos'}
+                            </span>
+                        </div>
+                    )}
+                </div>
                 <button
-                    onClick={loadOrders}
+                    onClick={() => loadOrders()}
                     className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 p-2 rounded-lg hover:bg-stone-50 transition-colors shadow-sm"
                     title="Atualizar Lista"
                 >
@@ -71,17 +111,20 @@ export function Orders() {
                                 <th className="p-4 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Cliente</th>
                                 <th className="p-4 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Pedido</th>
                                 <th className="p-4 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Total</th>
+                                <th className="p-4 font-bold text-stone-400 text-[10px] uppercase tracking-wider">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
                             {orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-20 text-center text-stone-400 italic">
+                                    <td colSpan={7} className="p-20 text-center text-stone-400 italic">
                                         Nenhuma venda registrada ainda.
                                     </td>
                                 </tr>
                             ) : orders.map(order => {
                                 const config = getStatusConfig(order.status);
+                                const hasCustomerData = order.customerEmail || order.customerPhone || order.customerAddress?.street;
+
                                 return (
                                     <tr key={order.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-700/30 transition-colors">
                                         <td className="p-4 text-xs font-mono font-bold text-stone-400">
@@ -105,6 +148,13 @@ export function Orders() {
                                         </td>
                                         <td className="p-4">
                                             <div className="font-bold text-stone-800 dark:text-stone-200 text-sm">{order.customerName}</div>
+                                            {hasCustomerData && (
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    <span className="text-[9px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                                                        ✓ Dados Completos
+                                                    </span>
+                                                </div>
+                                            )}
                                             {order.notes && <div className="text-[10px] text-brand-gold italic truncate max-w-[150px]" title={order.notes}>Obs: {order.notes}</div>}
                                         </td>
                                         <td className="p-4">
@@ -118,6 +168,18 @@ export function Orders() {
                                         <td className="p-4 font-display font-bold text-brand-brown dark:text-amber-500">
                                             {formatCurrency(order.total)}
                                         </td>
+                                        <td className="p-4">
+                                            <button
+                                                onClick={() => setSelectedOrder(order)}
+                                                className="flex items-center gap-2 bg-brand-gold text-brand-wood px-3 py-2 rounded-sm hover:bg-brand-wood hover:text-white transition-all shadow-sm group"
+                                                title="Ver detalhes completos"
+                                            >
+                                                <Eye size={14} />
+                                                <span className="text-[10px] font-black uppercase tracking-wider">
+                                                    Detalhes
+                                                </span>
+                                            </button>
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -125,6 +187,13 @@ export function Orders() {
                     </table>
                 </div>
             </div>
+
+            {selectedOrder && (
+                <OrderDetailsModal
+                    order={selectedOrder}
+                    onClose={() => setSelectedOrder(null)}
+                />
+            )}
         </div>
     );
 }

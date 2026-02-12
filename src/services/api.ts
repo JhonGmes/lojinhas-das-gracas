@@ -232,6 +232,51 @@ export const api = {
             }
         },
 
+        updateOrderWithCustomerData: async (orderId: string, customerData: {
+            email?: string;
+            phone?: string;
+            address?: {
+                street?: string;
+                number?: string;
+                complement?: string;
+                neighborhood?: string;
+                city?: string;
+                state?: string;
+                zipcode?: string;
+            };
+            transactionNsu?: string;
+            infinitepayData?: any;
+        }): Promise<void> => {
+            try {
+                const updateData: any = {};
+
+                if (customerData.email) updateData.customer_email = customerData.email;
+                if (customerData.phone) updateData.customer_phone = customerData.phone;
+                if (customerData.transactionNsu) updateData.transaction_nsu = customerData.transactionNsu;
+                if (customerData.infinitepayData) updateData.infinitepay_data = customerData.infinitepayData;
+
+                if (customerData.address) {
+                    if (customerData.address.street) updateData.customer_address_street = customerData.address.street;
+                    if (customerData.address.number) updateData.customer_address_number = customerData.address.number;
+                    if (customerData.address.complement) updateData.customer_address_complement = customerData.address.complement;
+                    if (customerData.address.neighborhood) updateData.customer_address_neighborhood = customerData.address.neighborhood;
+                    if (customerData.address.city) updateData.customer_address_city = customerData.address.city;
+                    if (customerData.address.state) updateData.customer_address_state = customerData.address.state;
+                    if (customerData.address.zipcode) updateData.customer_address_zipcode = customerData.address.zipcode;
+                }
+
+                const { error } = await supabase
+                    .from('orders')
+                    .update(updateData)
+                    .eq('id', orderId);
+
+                if (error) throw error;
+                console.log('✅ Dados do cliente salvos com sucesso!');
+            } catch (err: any) {
+                console.error('❌ Erro ao salvar dados do cliente:', err.message);
+            }
+        },
+
         list: async (): Promise<Order[]> => {
             try {
                 const { data, error } = await supabase
@@ -245,7 +290,21 @@ export const api = {
                     ...o,
                     customerName: o.customer_name || o.customerName,
                     orderNumber: o.order_number,
-                    createdAt: o.created_at || o.createdAt
+                    createdAt: o.created_at || o.createdAt,
+                    // Adicionar novos campos de cliente
+                    customerEmail: o.customer_email,
+                    customerPhone: o.customer_phone,
+                    customerAddress: {
+                        street: o.customer_address_street,
+                        number: o.customer_address_number,
+                        complement: o.customer_address_complement,
+                        neighborhood: o.customer_address_neighborhood,
+                        city: o.customer_address_city,
+                        state: o.customer_address_state,
+                        zipcode: o.customer_address_zipcode
+                    },
+                    transactionNsu: o.transaction_nsu,
+                    infinitepayData: o.infinitepay_data
                 })) || [];
             } catch (err: any) {
                 console.warn('Recuperando pedidos do navegador:', err.message);

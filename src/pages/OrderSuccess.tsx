@@ -91,25 +91,59 @@ export function OrderSuccess() {
                         if (currentStatus === 'pending' && settings.infinitepay_handle) {
                             try {
                                 const checkResponse = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
-                                    method: 'POST', // InfinitePay usa POST para o check
+                                    method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         handle: settings.infinitepay_handle,
-                                        order_nsu: orderId // Usa o ID do pedido como referência
+                                        order_nsu: orderId
                                     })
                                 });
 
                                 if (checkResponse.ok) {
                                     const checkData = await checkResponse.json();
+
                                     // A InfinitePay retorna success e paid se estiver tudo certo
                                     if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
+                                        // Atualizar status do pedido
                                         await api.orders.updateStatus(found.id, 'paid');
                                         currentStatus = 'paid';
                                         found.status = 'paid';
+
+                                        // 🎯 CAPTURAR DADOS DO CLIENTE DA INFINITEPAY
+                                        // A InfinitePay retorna dados do cliente quando o pagamento é confirmado
+                                        if (checkData.customer || checkData.payer) {
+                                            const customer = checkData.customer || checkData.payer;
+                                            const customerData: any = {
+                                                transactionNsu: checkData.transaction_nsu || transactionNsu,
+                                                infinitepayData: checkData // Backup completo dos dados
+                                            };
+
+                                            // Email e Telefone
+                                            if (customer.email) customerData.email = customer.email;
+                                            if (customer.phone || customer.phone_number) {
+                                                customerData.phone = customer.phone || customer.phone_number;
+                                            }
+
+                                            // Endereço (se disponível)
+                                            if (customer.address) {
+                                                customerData.address = {
+                                                    street: customer.address.street || customer.address.line1,
+                                                    number: customer.address.number,
+                                                    complement: customer.address.complement || customer.address.line2,
+                                                    neighborhood: customer.address.neighborhood || customer.address.district,
+                                                    city: customer.address.city,
+                                                    state: customer.address.state || customer.address.state_code,
+                                                    zipcode: customer.address.zipcode || customer.address.postal_code
+                                                };
+                                            }
+
+                                            // Salvar dados do cliente no banco
+                                            await api.orders.updateOrderWithCustomerData(found.id, customerData);
+                                            console.log('✅ Dados do cliente capturados e salvos!', customerData);
+                                        }
                                     }
                                 }
                             } catch (e) {
-                                // Se falhar (ex: rede), o polling do banco (found.status) servirá de backup
                                 console.warn("Polling de segundo plano aguardando sinal...");
                             }
                         }
