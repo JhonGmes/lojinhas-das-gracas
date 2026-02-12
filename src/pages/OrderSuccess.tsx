@@ -80,18 +80,38 @@ export function OrderSuccess() {
                         setLoading(false);
                         let currentStatus = found.status;
 
-                        // 2. Detecção automática via Redirect (InfinitePay retorna com transaction_nsu)
+                        // 2. Detecção via Redirect (Se o cliente clicou em 'Voltar para a Loja')
                         if (transactionNsu && currentStatus === 'pending') {
                             await api.orders.updateStatus(found.id, 'paid');
                             currentStatus = 'paid';
                             found.status = 'paid';
                         }
 
-                        // 3. Se voltou do Redirect com NSU mas ainda está pendente
-                        if (transactionNsu && currentStatus === 'pending') {
-                            await api.orders.updateStatus(found.id, 'paid');
-                            currentStatus = 'paid';
-                            found.status = 'paid';
+                        // 3. Polling Ativo (O "Coração" do SaaS): Verifica no servidor se o Pix caiu enquanto o usuário espera na tela
+                        if (currentStatus === 'pending' && settings.infinitepay_handle) {
+                            try {
+                                const checkResponse = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
+                                    method: 'POST', // InfinitePay usa POST para o check
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        handle: settings.infinitepay_handle,
+                                        order_nsu: orderId // Usa o ID do pedido como referência
+                                    })
+                                });
+
+                                if (checkResponse.ok) {
+                                    const checkData = await checkResponse.json();
+                                    // A InfinitePay retorna success e paid se estiver tudo certo
+                                    if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
+                                        await api.orders.updateStatus(found.id, 'paid');
+                                        currentStatus = 'paid';
+                                        found.status = 'paid';
+                                    }
+                                }
+                            } catch (e) {
+                                // Se falhar (ex: rede), o polling do banco (found.status) servirá de backup
+                                console.warn("Polling de segundo plano aguardando sinal...");
+                            }
                         }
 
                         // 4. Detecção final e atualização da UI
@@ -177,56 +197,64 @@ export function OrderSuccess() {
         <div className="max-w-xl mx-auto py-12 px-4 animate-fade-in-up">
             <div className="bg-white dark:bg-stone-900 rounded-sm border border-brand-cotton-dark dark:border-stone-800 shadow-soft overflow-hidden">
                 {/* Header Sucesso */}
-                <div className={`${isPaid ? 'bg-brand-gold/10' : 'bg-emerald-50'} dark:bg-emerald-900/10 p-8 text-center border-b border-emerald-100 dark:border-emerald-900/20`}>
-                    <div className={`inline-flex items-center justify-center w-16 h-16 ${isPaid ? 'bg-brand-gold text-brand-wood' : 'bg-emerald-100 text-emerald-600'} dark:bg-emerald-900/30 rounded-full mb-4`}>
-                        <CheckCircle2 size={32} />
+                <div className={`${isPaid ? 'bg-brand-gold/10' : 'bg-stone-50/50'} dark:bg-stone-900/40 p-10 text-center border-b border-stone-100 dark:border-stone-800`}>
+                    <div className={`inline-flex items-center justify-center w-20 h-20 ${isPaid ? 'bg-brand-gold text-brand-wood' : 'bg-stone-100 text-stone-400'} dark:bg-stone-800 rounded-full mb-6 shadow-inner`}>
+                        <CheckCircle2 size={40} className={isPaid ? 'animate-bounce' : ''} />
                     </div>
-                    <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-emerald-500 uppercase tracking-tight">
+                    <h1 className="text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-tight">
                         {isPaid ? 'Pagamento Confirmado!' : 'Pedido Recebido!'}
                     </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mt-2">Número do Pedido: #{orderId}</p>
+                    <div className="flex items-center justify-center gap-2 mt-3">
+                        <span className="h-px w-4 bg-stone-200"></span>
+                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-stone-400">PEDIDO #{orderId}</p>
+                        <span className="h-px w-4 bg-stone-200"></span>
+                    </div>
                 </div>
 
-                <div className="p-8 space-y-8">
+                <div className="p-10 space-y-10">
                     {isPaid ? (
                         <div className="text-center space-y-6">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500 leading-relaxed">
-                                Seu pagamento foi processado com sucesso via <span className="text-indigo-600">InfinitePay</span>. Nossa equipe já foi notificada e iniciará a separação dos seus produtos.
+                            <p className="text-xs font-bold uppercase tracking-widest text-stone-500 leading-relaxed max-w-sm mx-auto">
+                                Seu pagamento foi processado com sucesso via <span className="text-indigo-600 font-black">InfinitePay</span>.
+                                <br /><br />
+                                Nossa equipe já foi notificada e iniciará a separação dos seus produtos imediatamente.
                             </p>
                         </div>
                     ) : timeLeft === 0 ? (
                         /* Tela de Expirado */
-                        <div className="bg-red-50 dark:bg-red-900/10 p-8 rounded-sm border border-red-100 dark:border-red-900/20 text-center space-y-4">
-                            <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600">
-                                <AlertTriangle size={24} />
+                        <div className="bg-red-50 dark:bg-red-900/10 p-10 rounded-sm border border-red-100 dark:border-red-900/20 text-center space-y-6">
+                            <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600">
+                                <AlertTriangle size={28} />
                             </div>
-                            <h2 className="text-sm font-black uppercase tracking-widest text-red-800 dark:text-red-400">Tempo Expirado</h2>
-                            <p className="text-[10px] text-red-600/70 uppercase font-bold leading-relaxed max-w-xs mx-auto">
-                                O tempo para pagamento deste pedido expirou. Por favor, realize um novo pedido para gerar um novo QR Code.
-                            </p>
-                            <Link to="/" className="inline-block bg-brand-gold text-brand-wood px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-soft">
-                                Voltar para a Loja
+                            <div>
+                                <h2 className="text-base font-black uppercase tracking-widest text-red-800 dark:text-red-400 mb-2">Tempo Expirado</h2>
+                                <p className="text-xs text-red-600/70 uppercase font-bold leading-relaxed max-w-xs mx-auto">
+                                    O código de pagamento expirou. Por favor, realize um novo pedido.
+                                </p>
+                            </div>
+                            <Link to="/" className="inline-block bg-brand-gold text-brand-wood px-8 py-4 text-xs font-black uppercase tracking-widest rounded-sm shadow-soft hover:bg-brand-wood hover:text-white transition-all">
+                                Fazer novo pedido
                             </Link>
                         </div>
                     ) : (
                         /* Instruções Pix com Countdown */
-                        <div className="space-y-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-6 h-6 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-[10px] font-black">1</span>
-                                    <h2 className="text-xs font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Pague com Pix</h2>
+                        <div className="space-y-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <span className="w-8 h-8 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-xs font-black shadow-soft">1</span>
+                                    <h2 className="text-sm font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Pague com Pix</h2>
                                 </div>
 
                                 {timeLeft !== null && (
-                                    <div className="flex items-center gap-3 bg-stone-50 dark:bg-stone-800 px-4 py-2 rounded-full border border-stone-100 dark:border-stone-700">
-                                        <Clock size={14} className="text-brand-gold animate-pulse" />
+                                    <div className="flex items-center gap-4 bg-stone-50 dark:bg-stone-800/80 px-5 py-3 rounded-full border border-stone-100 dark:border-stone-700 shadow-sm">
+                                        <Clock size={16} className="text-brand-gold" />
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] font-black text-stone-400 uppercase tracking-tighter leading-none mb-0.5">Expira em</span>
-                                            <span className="text-xs font-mono font-black text-stone-700 dark:text-stone-100 leading-none">
+                                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-tighter leading-none mb-1">Expira em</span>
+                                            <span className="text-sm font-mono font-black text-stone-700 dark:text-stone-100 leading-none">
                                                 {formatTime(timeLeft)}
                                             </span>
                                         </div>
-                                        <div className="w-12 h-1 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden ml-1">
+                                        <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-brand-gold transition-all duration-1000"
                                                 style={{ width: `${progressPercentage}%` }}
@@ -236,63 +264,67 @@ export function OrderSuccess() {
                                 )}
                             </div>
 
-                            <div className="bg-stone-50 dark:bg-stone-800/50 p-6 rounded-sm border border-stone-100 dark:border-stone-800 flex flex-col items-center text-center">
-                                <div className="mb-4 p-2 bg-white rounded-sm border border-stone-100 shadow-inner">
+                            <div className="bg-stone-50 dark:bg-stone-800/30 p-10 rounded-sm border border-stone-100 dark:border-stone-800/50 flex flex-col items-center text-center shadow-inner">
+                                <div className="mb-8 p-3 bg-white rounded-sm border border-stone-200 shadow-md transform transition-all hover:scale-105">
                                     <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixPayload)}`}
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pixPayload)}`}
                                         alt="QR Code Pix"
-                                        className="w-40 h-40"
+                                        className="w-48 h-48"
                                     />
                                 </div>
 
-                                <div className="w-full space-y-2">
-                                    <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Pix Copia e Cola</p>
+                                <div className="w-full space-y-3 mb-8">
+                                    <p className="text-xs font-bold text-stone-400 uppercase tracking-[0.2em]">Pix Copia e Cola</p>
                                     <div className="flex gap-2">
-                                        <div className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 px-4 py-3 text-[10px] font-bold text-stone-400 break-all rounded-sm overflow-hidden text-ellipsis whitespace-nowrap">
+                                        <div className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 px-5 py-4 text-xs font-mono text-stone-400 break-all rounded-sm overflow-hidden text-ellipsis whitespace-nowrap shadow-inner">
                                             {pixPayload}
                                         </div>
                                         <button
                                             onClick={copyPix}
-                                            className="bg-brand-gold text-brand-wood px-4 py-3 rounded-sm hover:bg-brand-wood hover:text-white transition-all shadow-soft"
+                                            className="bg-brand-gold text-brand-wood px-6 py-4 rounded-sm hover:bg-brand-wood hover:text-white transition-all shadow-md group"
+                                            title="Copiar código Pix"
                                         >
-                                            <Copy size={16} />
+                                            <Copy size={20} className="group-active:scale-95" />
                                         </button>
                                     </div>
                                 </div>
 
-                                <p className="mt-4 text-[9px] font-bold text-stone-400 uppercase tracking-wider leading-relaxed">
-                                    Valor Total: <span className="text-brand-gold text-base ml-1">{formatCurrency(order?.total || 0)}</span>
-                                </p>
+                                <div className="pt-6 border-t border-stone-200/60 dark:border-stone-700/60 w-full">
+                                    <p className="text-xs font-black text-stone-500 uppercase tracking-[0.3em] mb-2">Valor Total</p>
+                                    <p className="text-4xl font-display text-brand-gold font-medium tracking-tight">
+                                        {formatCurrency(order?.total || 0)}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}
 
-
                     {/* Próximo Passo */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <span className="w-6 h-6 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-[10px] font-black">2</span>
-                            <h2 className="text-xs font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Envie o comprovante</h2>
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <span className="w-8 h-8 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-xs font-black shadow-soft">2</span>
+                            <h2 className="text-sm font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Envie o comprovante</h2>
                         </div>
 
                         <a
                             href={`https://wa.me/${settings.whatsapp_number}?text=Olá! Acabei de fazer o pedido #${orderId} e aqui está o comprovante do Pix.`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full bg-[#25D366] text-white py-4 rounded-sm font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg hover:bg-[#1db954] transition-all"
+                            className="w-full bg-[#25D366] text-white py-5 rounded-sm font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 shadow-lg hover:bg-brand-wood hover:scale-[1.02] transition-all"
                         >
-                            <MessageCircle size={18} />
-                            Enviar no WhatsApp
+                            <MessageCircle size={22} />
+                            Confirmar no WhatsApp
                         </a>
                     </div>
 
-                    <div className="pt-8 border-t border-stone-100 dark:border-stone-800 text-center">
-                        <Link to="/" className="text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-brand-gold transition-colors flex items-center justify-center gap-2">
-                            Voltar para a Loja <ArrowRight size={14} />
+                    <div className="pt-10 border-t border-stone-100 dark:border-stone-800 text-center">
+                        <Link to="/" className="text-xs font-black uppercase tracking-[0.3em] text-stone-400 hover:text-brand-gold transition-colors flex items-center justify-center gap-2 group">
+                            <ArrowRight size={16} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
+                            Voltar para a Loja
                         </Link>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
