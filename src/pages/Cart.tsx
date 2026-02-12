@@ -41,7 +41,7 @@ export function Cart() {
                             redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
                         };
 
-                        const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
+                        const response = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(infinitePayPayload)
@@ -53,7 +53,7 @@ export function Cart() {
                             return;
                         }
                     } catch (apiErr) {
-                        console.error("InfinitePay Direct Link Error:", apiErr);
+                        console.error("InfinitePay Link via Proxy Error:", apiErr);
                     }
                 }
 
