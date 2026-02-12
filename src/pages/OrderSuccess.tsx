@@ -81,26 +81,11 @@ export function OrderSuccess() {
                         setLoading(false);
                         let currentStatus = found.status;
 
-                        // 2. Se temos InfinitePay configurada, consultar API deles diretamente (Polling Ativo)
-                        if (currentStatus === 'pending' && settings.infinitepay_handle) {
-                            try {
-                                const { data: checkData, error: funcError } = await supabase.functions.invoke('infinitepay-integration', {
-                                    body: {
-                                        action: 'check-payment',
-                                        payload: {
-                                            handle: settings.infinitepay_handle,
-                                            order_nsu: orderId
-                                        }
-                                    }
-                                });
-                                if (!funcError && checkData && (checkData.paid || (checkData.success && checkData.paid))) {
-                                    await api.orders.updateStatus(found.id, 'paid');
-                                    currentStatus = 'paid';
-                                    found.status = 'paid';
-                                }
-                            } catch (e) {
-                                console.warn("Aguardando confirmação do banco...", e);
-                            }
+                        // 2. Detecção automática via Redirect (InfinitePay retorna com transaction_nsu)
+                        if (transactionNsu && currentStatus === 'pending') {
+                            await api.orders.updateStatus(found.id, 'paid');
+                            currentStatus = 'paid';
+                            found.status = 'paid';
                         }
 
                         // 3. Se voltou do Redirect com NSU mas ainda está pendente

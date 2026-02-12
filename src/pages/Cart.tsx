@@ -39,23 +39,22 @@ export function Cart() {
                                 price: Math.round((item.promotionalPrice || item.price) * 100), // Em centavos
                                 description: item.name
                             })),
-                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`,
-                            webhook_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
+                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
                         };
 
-                        const { data, error: funcError } = await supabase.functions.invoke('infinitepay-integration', {
-                            body: {
-                                action: 'create-link',
-                                payload: infinitePayPayload
-                            }
+                        const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(infinitePayPayload)
                         });
 
-                        if (!funcError && data && data.url) {
+                        const data = await response.json();
+                        if (data && data.url) {
                             window.location.href = data.url;
                             return;
                         }
                     } catch (apiErr) {
-                        console.error("Erro na Function Supabase:", apiErr);
+                        console.error("InfinitePay Direct Link Error:", apiErr);
                     }
                 }
 
