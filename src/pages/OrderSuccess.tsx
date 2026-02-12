@@ -83,7 +83,7 @@ export function OrderSuccess() {
                         // 2. Se temos InfinitePay configurada, consultar API deles diretamente (Polling Ativo)
                         if (currentStatus === 'pending' && settings.infinitepay_handle) {
                             try {
-                                const checkResponse = await fetch(`/api?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
+                                const checkResponse = await fetch(`/api/v1?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
