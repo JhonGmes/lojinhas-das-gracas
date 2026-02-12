@@ -5,6 +5,7 @@ import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Loader2 } from 'lucide-reac
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export function Cart() {
     const { items, removeFromCart, updateQuantity, total, checkout } = useCart();
@@ -42,22 +43,19 @@ export function Cart() {
                             webhook_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
                         };
 
-                        const response = await fetch(`/api/v1?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(infinitePayPayload)
+                        const { data, error: funcError } = await supabase.functions.invoke('infinitepay-integration', {
+                            body: {
+                                action: 'create-link',
+                                payload: infinitePayPayload
+                            }
                         });
 
-                        const data = await response.json();
-
-                        if (data && data.url) {
-                            // Se gerou o link com sucesso, redireciona para o checkout da InfinitePay
+                        if (!funcError && data && data.url) {
                             window.location.href = data.url;
                             return;
                         }
                     } catch (apiErr) {
-                        console.error("Erro na API InfinitePay:", apiErr);
-                        // Se falhar a API, segue para o fluxo manual normal como fallback
+                        console.error("Erro na Function Supabase:", apiErr);
                     }
                 }
 

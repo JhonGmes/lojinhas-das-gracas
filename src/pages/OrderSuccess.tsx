@@ -6,6 +6,7 @@ import { useStore } from '../context/StoreContext';
 import { useCart } from '../context/CartContext';
 import { useEffect, useState, useMemo } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 import { Clock, AlertTriangle } from 'lucide-react';
 
 const EXPIRATION_MINUTES = 20;
@@ -83,25 +84,22 @@ export function OrderSuccess() {
                         // 2. Se temos InfinitePay configurada, consultar API deles diretamente (Polling Ativo)
                         if (currentStatus === 'pending' && settings.infinitepay_handle) {
                             try {
-                                const checkResponse = await fetch(`/api/v1?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        handle: settings.infinitepay_handle,
-                                        order_nsu: orderId // Usa o ID do pedido como referência
-                                    })
-                                });
-
-                                if (checkResponse.ok) {
-                                    const checkData = await checkResponse.json();
-                                    if (checkData.success && checkData.paid) {
-                                        await api.orders.updateStatus(found.id, 'paid');
-                                        currentStatus = 'paid';
-                                        found.status = 'paid';
+                                const { data: checkData, error: funcError } = await supabase.functions.invoke('infinitepay-integration', {
+                                    body: {
+                                        action: 'check-payment',
+                                        payload: {
+                                            handle: settings.infinitepay_handle,
+                                            order_nsu: orderId
+                                        }
                                     }
+                                });
+                                if (!funcError && checkData && (checkData.paid || (checkData.success && checkData.paid))) {
+                                    await api.orders.updateStatus(found.id, 'paid');
+                                    currentStatus = 'paid';
+                                    found.status = 'paid';
                                 }
                             } catch (e) {
-                                console.warn("Polling InfinitePay falhou (provavelmente CORS), aguardando banco...", e);
+                                console.warn("Aguardando confirmação do banco...", e);
                             }
                         }
 
@@ -310,7 +308,7 @@ export function OrderSuccess() {
                         </Link>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
