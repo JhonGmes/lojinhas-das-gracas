@@ -25,6 +25,20 @@ export interface Order {
     status: 'pending' | 'paid' | 'delivered' | 'cancelled';
     createdAt: string;
     notes?: string;
+    // Campos de CRM (capturados da InfinitePay)
+    customerEmail?: string;
+    customerPhone?: string;
+    customerAddress?: {
+        street?: string;
+        number?: string;
+        complement?: string;
+        neighborhood?: string;
+        city?: string;
+        state?: string;
+        zipcode?: string;
+    };
+    transactionNsu?: string;
+    infinitepayData?: any;
 }
 
 export interface User {

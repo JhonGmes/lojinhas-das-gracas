@@ -62,6 +62,10 @@ export function OrderSuccess() {
 
     useEffect(() => {
         if (orderId) {
+            // 🛒 LIMPAR CARRINHO IMEDIATAMENTE ao chegar na página de sucesso
+            // Isso garante que o carrinho seja limpo mesmo se o usuário voltar para a página
+            clearCart();
+
             const fetchOrder = async () => {
                 try {
                     // 1. Checar parâmetros de retorno na URL (Redirect)
