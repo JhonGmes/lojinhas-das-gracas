@@ -4,14 +4,14 @@ import { toast } from 'react-hot-toast';
 import { formatCurrency, generatePixPayload } from '../lib/utils';
 import { useStore } from '../context/StoreContext';
 import { useCart } from '../context/CartContext';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { api } from '../services/api';
 import { Clock, AlertTriangle } from 'lucide-react';
 
 const EXPIRATION_MINUTES = 20;
 
 export function OrderSuccess() {
-    const { orderId } = useParams(); // DEBUG: 2026-02-12-03-07-force-update
+    const { orderId } = useParams();
     const { settings } = useStore();
     const { clearCart } = useCart();
     const [order, setOrder] = useState<any>(null);
@@ -19,6 +19,7 @@ export function OrderSuccess() {
     const [retryCount, setRetryCount] = useState(0);
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
     const [isPaid, setIsPaid] = useState(false);
+    const hasShownToast = useRef(false); // Controla se o toast já foi mostrado
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 2000; // 2 seconds
     const POLLING_INTERVAL = 5000; // 5 seconds
@@ -144,6 +145,16 @@ export function OrderSuccess() {
                                             // Salvar dados do cliente no banco
                                             await api.orders.updateOrderWithCustomerData(found.id, customerData);
                                             console.log('✅ Dados do cliente capturados e salvos!', customerData);
+
+                                            // Atualizar o estado do pedido com os novos dados
+                                            setOrder((prev: any) => ({
+                                                ...prev,
+                                                customerEmail: customerData.email,
+                                                customerPhone: customerData.phone,
+                                                customerAddress: customerData.address,
+                                                transactionNsu: customerData.transactionNsu,
+                                                infinitepayData: customerData.infinitepayData
+                                            }));
                                         }
                                     }
                                 }
@@ -157,15 +168,21 @@ export function OrderSuccess() {
                             if (!isPaid) {
                                 setIsPaid(true);
                                 clearCart();
-                                toast.success("PAGAMENTO CONFIRMADO!", {
-                                    icon: '💰',
-                                    duration: 5000
-                                });
-                                // Redirecionamento automático após confirmação
-                                setTimeout(() => {
-                                    const waUrl = `https://wa.me/${settings.whatsapp_number}?text=Olá! Meu pagamento do pedido #${orderId} foi confirmado via InfinitePay. Pode iniciar a separação!`;
-                                    window.open(waUrl, '_blank');
-                                }, 3000);
+
+                                // Mostrar toast apenas uma vez
+                                if (!hasShownToast.current) {
+                                    hasShownToast.current = true;
+                                    toast.success("PAGAMENTO CONFIRMADO!", {
+                                        icon: '💰',
+                                        duration: 5000
+                                    });
+
+                                    // Redirecionamento automático após confirmação
+                                    setTimeout(() => {
+                                        const waUrl = `https://wa.me/${settings.whatsapp_number}?text=Olá! Meu pagamento do pedido #${orderId} foi confirmado via InfinitePay. Pode iniciar a separação!`;
+                                        window.open(waUrl, '_blank');
+                                    }, 3000);
+                                }
                             }
                         }
                     } else if (retryCount < MAX_RETRIES && loading) {
@@ -187,7 +204,7 @@ export function OrderSuccess() {
             const poll = setInterval(fetchOrder, POLLING_INTERVAL);
             return () => clearInterval(poll);
         }
-    }, [orderId, retryCount, isPaid, settings.whatsapp_number, settings.infinitepay_handle, clearCart]);
+    }, [orderId, retryCount, settings.whatsapp_number, settings.infinitepay_handle]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
