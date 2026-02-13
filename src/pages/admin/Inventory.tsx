@@ -107,7 +107,7 @@ export function Inventory() {
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Gerenciar Produtos</h1>
+                <h1 className="text-xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Gerenciar Produtos</h1>
                 <button
                     onClick={() => navigate('/admin/add-product')}
                     className="bg-brand-gold hover:bg-brand-gold-light text-brand-wood font-bold py-3 px-8 rounded-sm shadow-soft transition-all duration-400 flex items-center gap-2 text-xs uppercase tracking-widest active:scale-95"

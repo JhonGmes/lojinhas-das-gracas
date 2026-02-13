@@ -71,8 +71,8 @@ export function Dashboard() {
     return (
         <div className="space-y-10 animate-fade-in-up pb-10">
             <header>
-                <h1 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Resumo Executivo</h1>
-                <p className="text-stone-400 font-medium mt-2">Visão geral do desempenho e saúde da sua loja sagrada.</p>
+                <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Resumo Executivo</h1>
+                <p className="text-stone-400 font-medium mt-2 text-sm">Visão geral do desempenho e saúde da sua loja sagrada.</p>
             </header>
 
             {/* Main Stats */}
