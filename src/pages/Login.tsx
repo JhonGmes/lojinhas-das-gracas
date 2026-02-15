@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { Lock, Mail, Loader2, Info, ArrowRight, Store } from 'lucide-react';
+import { Lock, Mail, Loader2, ArrowRight, Store } from 'lucide-react';
 
 export function Login() {
     const [email, setEmail] = useState('');
@@ -48,52 +48,38 @@ export function Login() {
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
-                        {storeSettings?.logo_url ? (
-                            <img src={storeSettings.logo_url} className="w-20 h-20 object-contain rounded-xl" alt="Logo" />
-                        ) : (
-                            <Store size={48} className="text-brand-gold" />
-                        )}
-                    </div>
+                    {storeSettings?.logo_url ? (
+                        <img src={storeSettings.logo_url} className="w-48 h-48 object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500" alt="Logo" />
+                    ) : (
+                        <Store size={80} className="text-brand-gold drop-shadow-lg" />
+                    )}
 
                     <div className="space-y-2">
-                        <h1 className="text-3xl font-display font-medium tracking-wide">
+                        <h1 className="text-4xl font-display font-medium tracking-wide text-white drop-shadow-md">
                             {storeSettings?.store_name || "Lojinha das Graças"}
                         </h1>
-                        <p className="text-xs uppercase tracking-[0.3em] opacity-70">Portal Administrativo</p>
+                        <p className="text-xs uppercase tracking-[0.4em] text-blue-200 font-bold">Portal Administrativo</p>
                     </div>
 
-                    <p className="max-w-xs text-sm text-stone-300 leading-relaxed mt-4">
+                    <p className="max-w-xs text-sm text-blue-100/80 leading-relaxed mt-4 font-light">
                         Gerencie seus produtos, pedidos e clientes com eficiência e beleza.
                     </p>
                 </div>
 
-                <div className="absolute bottom-8 text-[10px] text-white/30 uppercase tracking-widest">
+                <div className="absolute bottom-8 text-[10px] text-white/20 uppercase tracking-widest font-black">
                     Sistema de Gestão v2.0
                 </div>
             </div>
 
             {/* Right Side - Login Form (Clean & Compact) */}
             <div className="w-full lg:w-7/12 flex items-center justify-center bg-white dark:bg-stone-950 p-8 relative">
-                <div className="w-full max-w-md space-y-8">
-                    <div className="space-y-2">
-                        <h2 className="text-2xl font-bold text-stone-800 dark:text-stone-100">Bem-vindo de volta</h2>
-                        <p className="text-sm text-stone-500">Insira suas credenciais para acessar o painel.</p>
+                <div className="w-full max-w-md space-y-10">
+                    <div className="space-y-2 text-center lg:text-left">
+                        <h2 className="text-3xl font-display text-stone-800 dark:text-stone-100">Bem-vindo de volta</h2>
+                        <p className="text-sm text-stone-500 font-medium">Insira suas credenciais para acessar o painel.</p>
                     </div>
 
-                    {/* Demo Alert Compact */}
-                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-lg flex gap-3 items-start">
-                        <Info size={16} className="text-amber-600 mt-0.5 shrink-0" />
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-amber-800 dark:text-amber-500 uppercase tracking-wide">Acesso de Demonstração</p>
-                            <div className="flex flex-wrap gap-3 text-xs text-amber-700 dark:text-amber-400">
-                                <span>Email: <code className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900 font-mono text-stone-600 dark:text-stone-300">admin@lojinha.com</code></span>
-                                <span>Senha: <code className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900 font-mono text-stone-600 dark:text-stone-300">admin</code></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Email</label>

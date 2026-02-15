@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { X, Phone, Mail, MapPin, Copy, MessageCircle, Package, AlertCircle, Calendar, Truck, User } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -10,7 +10,7 @@ interface OrderDetailsModalProps {
 }
 
 export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetailsModalProps) {
-    const drawerRef = useRef<HTMLDivElement>(null);
+
 
     // Handle ESC key to close
     useEffect(() => {
@@ -27,12 +27,7 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
         };
     }, [onClose]);
 
-    // Handle Backdrop Click
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
-            onClose();
-        }
-    };
+
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -60,7 +55,6 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
 
             {/* Slide-over Panel (Drawer) */}
             <div
-                ref={drawerRef}
                 className="relative w-full max-w-xl bg-white dark:bg-stone-900 shadow-2xl h-full flex flex-col border-l border-stone-200 dark:border-stone-800 animate-slide-in-right"
             >
                 {/* Header */}
@@ -93,9 +87,9 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
                         <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 block">Status do Pedido</label>
                         <div className="flex items-center gap-3">
                             <div className={`w-3 h-3 rounded-full ${order.status === 'paid' ? 'bg-emerald-500' :
-                                    order.status === 'delivered' ? 'bg-blue-500' :
-                                        order.status === 'cancelled' ? 'bg-red-500' :
-                                            'bg-amber-500'
+                                order.status === 'delivered' ? 'bg-blue-500' :
+                                    order.status === 'cancelled' ? 'bg-red-500' :
+                                        'bg-amber-500'
                                 }`} />
                             {onStatusUpdate ? (
                                 <select
