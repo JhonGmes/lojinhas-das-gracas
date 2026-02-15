@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useBlog } from '../../context/BlogContext';
-import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Sparkles, X, Calendar, Layout, FileText, CheckCircle2, Clock, BookOpen, MoreVertical } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Sparkles, X, Calendar, BookOpen } from 'lucide-react';
 import type { BlogPost } from '../../types';
 
 export function BlogAdmin() {

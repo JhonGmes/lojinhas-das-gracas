@@ -70,26 +70,26 @@ export function AdminLayout() {
         <div className="flex h-screen overflow-hidden bg-[#F7F7F7] dark:bg-stone-950 font-sans">
             {/* Sidebar Moderno - Ajustes Finos (Fonte Display, Less Yellow, Avatar Upload) */}
             <aside className="w-64 h-full bg-[#2A3F54] text-stone-300 hidden md:flex flex-col shadow-2xl z-20 font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden">
-                {/* Brand Header */}
-                <div className="h-20 flex items-center px-6 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
+                {/* Brand Header - Compacted */}
+                <div className="h-16 flex items-center px-6 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
 
-                    <div className="w-10 h-10 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
+                    <div className="w-9 h-9 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-xl" /> : storeInitials}
                     </div>
                     <span className="font-display font-bold text-xs text-white tracking-widest uppercase truncate drop-shadow-sm">{settings.store_name}</span>
                 </div>
 
-                {/* User Profile Section with Upload */}
-                <div className="px-6 py-6 border-b border-white/5 bg-[#253849] shrink-0">
+                {/* User Profile Section with Upload - Compacted */}
+                <div className="px-6 py-4 border-b border-white/5 bg-[#253849] shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="relative group/avatar cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
-                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={24} className="text-stone-400" />}
+                            <div className="w-10 h-10 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
+                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={20} className="text-stone-400" />}
                             </div>
                             {/* Camera Overlay */}
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center rounded-full transition-opacity duration-300 backdrop-blur-[1px]">
-                                <Camera size={16} className="text-white" />
+                                <Camera size={14} className="text-white" />
                             </div>
                             <input
                                 type="file"
@@ -106,8 +106,8 @@ export function AdminLayout() {
                     </div>
                 </div>
 
-                {/* Navigation - Compacted & No Scrollbar */}
-                <nav className="flex-1 overflow-y-auto py-6 px-0 space-y-4 scrollbar-hide">
+                {/* Navigation - Fixed & Compacted */}
+                <nav className="flex-1 overflow-hidden py-4 px-0 space-y-2">
                     {navGroups.map((group, idx) => (
                         <div key={idx}>
                             <h3 className="px-6 text-[9px] font-black text-stone-500 uppercase tracking-widest mb-2 opacity-70 flex items-center gap-2">
@@ -142,7 +142,7 @@ export function AdminLayout() {
                 </nav>
 
                 {/* Footer / System - Compact */}
-                <div className="p-4 bg-[#1f2f3f] space-y-1 border-t border-white/5 shrink-0">
+                <div className="p-3 bg-[#1f2f3f] space-y-1 border-t border-white/5 shrink-0">
                     <Link
                         to="/admin/settings"
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold bg-white/5' : 'text-stone-400 hover:text-white hover:bg-white/5'
@@ -157,7 +157,7 @@ export function AdminLayout() {
                         <span className="text-sm font-medium">Sair</span>
                     </button>
 
-                    <Link to="/" className="flex items-center gap-2 px-4 py-3 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors mt-2 border-t border-white/5 pt-3 justify-center">
+                    <Link to="/" className="flex items-center gap-2 px-4 py-2 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors mt-2 border-t border-white/5 pt-2 justify-center">
                         <ArrowLeft size={10} /> Ir para Loja
                     </Link>
                 </div>
