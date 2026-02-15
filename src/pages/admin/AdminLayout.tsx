@@ -52,14 +52,14 @@ export function AdminLayout() {
 
     return (
         <div className="flex min-h-screen bg-[#F7F7F7] dark:bg-stone-950 font-sans">
-            {/* Sidebar Moderno - Estilo Gentelella Alela Refinado */}
-            <aside className="w-72 bg-[#2A3F54] text-stone-300 hidden md:flex flex-col shadow-2xl z-20 font-sans shrink-0">
+            {/* Sidebar Moderno - Estilo Gentelella Alela Refinado - Mais Estreito */}
+            <aside className="w-60 bg-[#2A3F54] text-stone-300 hidden md:flex flex-col shadow-2xl z-20 font-sans shrink-0 transition-all duration-300">
                 {/* Brand Header */}
-                <div className="h-16 flex items-center px-6 bg-[#1f2f3f] shadow-sm">
-                    <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20">
+                <div className="h-16 flex items-center px-5 bg-[#1f2f3f] shadow-sm">
+                    <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-5 h-5 object-contain" /> : storeInitials}
                     </div>
-                    <span className="font-bold text-lg text-white tracking-wide uppercase truncate">{settings.store_name}</span>
+                    <span className="font-bold text-sm text-white tracking-wide uppercase truncate">{settings.store_name}</span>
                 </div>
 
                 {/* User Profile Section */}
@@ -90,8 +90,8 @@ export function AdminLayout() {
                                             key={item.path}
                                             to={item.path}
                                             className={`flex items-center gap-3 px-4 py-3.5 rounded-r-full mr-4 transition-all group relative overflow-hidden ${isActive
-                                                    ? 'bg-gradient-to-r from-brand-gold to-brand-gold/80 text-white shadow-lg shadow-brand-gold/20 translate-x-1'
-                                                    : 'hover:bg-white/5 hover:text-white'
+                                                ? 'bg-gradient-to-r from-brand-gold to-brand-gold/80 text-white shadow-lg shadow-brand-gold/20 translate-x-1'
+                                                : 'hover:bg-white/5 hover:text-white'
                                                 }`}
                                         >
                                             <item.icon size={18} className={`transition-colors ${isActive ? 'text-white' : 'text-stone-400 group-hover:text-stone-200'}`} />
