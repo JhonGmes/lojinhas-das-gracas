@@ -76,14 +76,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     async function signUp({ email, pass, name, whatsapp, address }: { email: string; pass: string; name: string; whatsapp: string; address: string }) {
+        console.log('🚀 [AuthContext] Iniciando signUp com dados:', { email, name, whatsapp, address });
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password: pass
         })
 
         if (error || !data.user) {
+            console.error('❌ [AuthContext] Erro ao criar usuário no auth:', error);
             return { success: false, message: error?.message || 'Erro ao cadastrar' }
         }
+
+        console.log('✅ [AuthContext] Usuário auth criado com sucesso:', data.user.id);
 
         // Create profile in usuarios table
         const { error: profileError } = await supabase
@@ -95,13 +100,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     nome: name,
                     telefone: whatsapp,
                     endereco: address,
-                    nivel: 'cliente'
+                    nivel: 'customer'
                 }
             ])
 
         if (profileError) {
-            console.error('Error creating profile:', profileError)
+            console.error('❌ [AuthContext] Erro ao salvar perfil na tabela usuarios:', profileError);
+            console.error('Dados que tentamos inserir:', {
+                auth_id: data.user.id,
+                email,
+                nome: name,
+                telefone: whatsapp,
+                endereco: address,
+                nivel: 'customer'
+            });
+            return { success: false, message: 'Conta criada, mas erro ao salvar perfil. Contate o suporte.' }
         }
+
+        console.log('✅ [AuthContext] Perfil salvo com sucesso na tabela usuarios');
 
         // If email confirmation is disabled in Supabase, we get a session immediately
         if (data.session) {
@@ -113,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 address: address,
                 role: 'customer'
             })
+            console.log('✅ [AuthContext] Sessão criada e usuário setado no contexto');
         }
 
         return { success: true }

@@ -36,6 +36,8 @@ create table if not exists usuarios (
   email text,
   nivel text default 'customer',
   nome text,
+  telefone text,
+  endereco text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 -- Permissões

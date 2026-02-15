@@ -10,7 +10,12 @@ export function Identification() {
     const [registerPass, setRegisterPass] = useState('');
     const [registerName, setRegisterName] = useState('');
     const [registerPhone, setRegisterPhone] = useState('');
-    const [registerAddress, setRegisterAddress] = useState('');
+    const [registerStreet, setRegisterStreet] = useState('');
+    const [registerNumber, setRegisterNumber] = useState('');
+    const [registerComplement, setRegisterComplement] = useState('');
+    const [registerNeighborhood, setRegisterNeighborhood] = useState('');
+    const [registerCity, setRegisterCity] = useState('');
+    const [registerState, setRegisterState] = useState('');
     const [resetEmail, setResetEmail] = useState('');
     const [showResetPassword, setShowResetPassword] = useState(false);
     const [error, setError] = useState('');
@@ -54,13 +59,26 @@ export function Identification() {
         setLoading(true);
         setError('');
         setSuccess(''); // Clear success message on new attempt
+        // Concatenate address fields
+        const fullAddress = `${registerStreet}, ${registerNumber}${registerComplement ? ', ' + registerComplement : ''}, ${registerNeighborhood}, ${registerCity} - ${registerState}`;
+
+        console.log('🔍 [DEBUG] Tentando cadastrar:', {
+            email: registerEmail,
+            name: registerName,
+            whatsapp: registerPhone,
+            address: fullAddress
+        });
+
         const res = await signUp({
             email: registerEmail,
             pass: registerPass,
             name: registerName,
             whatsapp: registerPhone,
-            address: registerAddress
+            address: fullAddress
         });
+
+        console.log('✅ [DEBUG] Resultado do signUp:', res);
+
         if (res.success) {
             setSuccess('Cadastro concluído com sucesso!');
             // Se o Supabase estiver configurado para não confirmar e-mail,
@@ -69,9 +87,15 @@ export function Identification() {
             setRegisterPass('');
             setRegisterName('');
             setRegisterPhone('');
-            setRegisterAddress('');
+            setRegisterStreet('');
+            setRegisterNumber('');
+            setRegisterComplement('');
+            setRegisterNeighborhood('');
+            setRegisterCity('');
+            setRegisterState('');
         } else {
             setError(res.message || 'Erro ao realizar cadastro.');
+            console.error('❌ [DEBUG] Erro no cadastro:', res.message);
         }
         setLoading(false);
     };
@@ -323,25 +347,87 @@ export function Identification() {
                                                 required
                                                 value={registerPass}
                                                 onChange={e => setRegisterPass(e.target.value)}
+                                                autoComplete="new-password"
+                                                name="new-password-registration"
+                                                id="new-password-registration"
+                                                data-form-type="register"
                                                 className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
-                                                placeholder="Mínimo 6 chars"
+                                                placeholder="Crie sua senha (mínimo 6 caracteres)"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Endereço de Entrega</label>
-                                    <div className="relative">
-                                        <ArrowRight className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
-                                        <input
-                                            type="text"
-                                            required
-                                            value={registerAddress}
-                                            onChange={e => setRegisterAddress(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
-                                            placeholder="Rua, Número, Bairro, Cidade - Estado"
-                                        />
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Endereço</label>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="md:col-span-2">
+                                            <input
+                                                type="text"
+                                                required
+                                                value={registerStreet}
+                                                onChange={e => setRegisterStreet(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Rua"
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={registerNumber}
+                                                onChange={e => setRegisterNumber(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Número"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={registerComplement}
+                                                onChange={e => setRegisterComplement(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Complemento (opcional)"
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={registerNeighborhood}
+                                                onChange={e => setRegisterNeighborhood(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Bairro"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="md:col-span-2">
+                                            <input
+                                                type="text"
+                                                required
+                                                value={registerCity}
+                                                onChange={e => setRegisterCity(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Cidade"
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={registerState}
+                                                onChange={e => setRegisterState(e.target.value)}
+                                                maxLength={2}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 px-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200 uppercase"
+                                                placeholder="UF"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
