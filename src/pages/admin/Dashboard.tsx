@@ -6,11 +6,19 @@ import type { Order } from '../../types';
 import { formatCurrency } from '../../lib/utils';
 import { TrendingUp, DollarSign, Package, AlertTriangle, ArrowUpRight, Clock, User, ArrowUp, CheckCircle2 } from 'lucide-react';
 
+interface HoverState {
+    x: number;
+    y: number;
+    value: number;
+    date: string;
+}
+
 export function Dashboard() {
     const navigate = useNavigate();
     const { products } = useProducts();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hoveredPoint, setHoveredPoint] = useState<HoverState | null>(null);
 
     useEffect(() => {
         api.orders.list().then(data => {
@@ -157,7 +165,7 @@ export function Dashboard() {
             </div>
 
             {/* Main Chart Section - Compact Height */}
-            <div className="bg-white dark:bg-stone-900 p-6 rounded-sm shadow-lg border border-stone-100 dark:border-stone-800 relative overflow-hidden group">
+            <div className="bg-white dark:bg-stone-900 p-6 rounded-sm shadow-lg border border-stone-100 dark:border-stone-800 relative group">
                 <div className="flex justify-between items-start mb-4 relative z-10">
                     <div>
                         <h3 className="text-sm font-display uppercase tracking-widest text-stone-700 dark:text-stone-200">
@@ -169,6 +177,23 @@ export function Dashboard() {
 
                 {/* SVG Area Chart - Reduced Height (h-56) & Thinner Strokes */}
                 <div className="h-56 w-full relative">
+                    {/* Floating Tooltip (React State Managed) */}
+                    {hoveredPoint && (
+                        <div
+                            className="absolute z-20 bg-stone-800 text-white rounded p-2 shadow-xl pointer-events-none flex flex-col items-center transform -translate-x-1/2 -translate-y-[120%]"
+                            style={{ left: `${hoveredPoint.x}%`, top: `${hoveredPoint.y}%` }}
+                        >
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gold mb-0.5">
+                                {new Date(hoveredPoint.date).toLocaleDateString()}
+                            </span>
+                            <span className="text-xs font-bold font-mono">
+                                {formatCurrency(hoveredPoint.value)}
+                            </span>
+                            {/* Triangle Arrow */}
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-stone-800 rotate-45"></div>
+                        </div>
+                    )}
+
                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
                         <defs>
                             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
@@ -195,15 +220,23 @@ export function Dashboard() {
                             className="drop-shadow-sm transition-all duration-1000 ease-out"
                         />
 
-                        {/* Interactive Points - Small & Delicate */}
+                        {/* Interactive Points - Invisible Trigger Area but Visible Dot */}
                         {points.map((p, i) => (
-                            <g key={i} className="group/point hover:scale-150 transition-transform origin-center cursor-pointer">
-                                <circle cx={p.x} cy={p.y} r="1" className="fill-white stroke-emerald-500 stroke-[0.5]" />
-                                <foreignObject x={p.x - 10} y={p.y - 12} width="20" height="20" className="opacity-0 group-hover/point:opacity-100 transition-opacity">
-                                    <div className="bg-stone-800 text-white text-[6px] rounded px-1 py-0.5 text-center shadow-lg -translate-x-1/2">
-                                        R${chartData[i].total}
-                                    </div>
-                                </foreignObject>
+                            <g
+                                key={i}
+                                className="group/point cursor-pointer"
+                                onMouseEnter={() => setHoveredPoint({ x: p.x, y: p.y, value: chartData[i].total, date: chartData[i].date })}
+                                onMouseLeave={() => setHoveredPoint(null)}
+                            >
+                                {/* Invisible larger target for easier hovering */}
+                                <circle cx={p.x} cy={p.y} r="4" className="fill-transparent stroke-none" />
+                                {/* Visible Dot */}
+                                <circle
+                                    cx={p.x}
+                                    cy={p.y}
+                                    r={hoveredPoint?.date === chartData[i].date ? '1.5' : '1'}
+                                    className={`fill-white stroke-emerald-500 stroke-[0.5] transition-all duration-300 ${hoveredPoint?.date === chartData[i].date ? 'scale-150 stroke-[1]' : ''}`}
+                                />
                             </g>
                         ))}
                     </svg>
