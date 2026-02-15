@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { api } from '../services/api';
+import { Lock, Mail, Loader2, Info, ArrowRight, Store } from 'lucide-react';
 
 export function Login() {
     const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [storeSettings, setStoreSettings] = useState<any>(null);
+
     const { login } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        api.settings.get().then(setStoreSettings);
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,112 +28,136 @@ export function Login() {
             if (ok) {
                 navigate('/admin');
             } else {
-                setError('As credenciais informadas não coincidem com nossos registros sagrados.');
+                setError('Credenciais inválidas.');
             }
         } catch (err) {
-            setError('Ocorreu um erro ao tentar acessar o templo administrativo.');
+            setError('Erro ao autenticar.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-brand-cotton dark:bg-stone-950 p-6 relative overflow-hidden">
-            {/* Background elements */}
-            <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-gold rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-gold rounded-full blur-[120px]" />
+        <div className="min-h-screen flex font-sans">
+            {/* Left Side - Brand (Professional Dark Blue) */}
+            <div className="hidden lg:flex w-5/12 bg-[#2A3F54] text-white relative overflow-hidden flex-col items-center justify-center p-12 text-center z-10">
+                {/* Abstract Pattern */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-gold rounded-full mix-blend-overlay blur-3xl translate-x-1/2 translate-y-1/2"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center gap-6">
+                    <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                        {storeSettings?.logo_url ? (
+                            <img src={storeSettings.logo_url} className="w-20 h-20 object-contain rounded-xl" alt="Logo" />
+                        ) : (
+                            <Store size={48} className="text-brand-gold" />
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-display font-medium tracking-wide">
+                            {storeSettings?.store_name || "Lojinha das Graças"}
+                        </h1>
+                        <p className="text-xs uppercase tracking-[0.3em] opacity-70">Portal Administrativo</p>
+                    </div>
+
+                    <p className="max-w-xs text-sm text-stone-300 leading-relaxed mt-4">
+                        Gerencie seus produtos, pedidos e clientes com eficiência e beleza.
+                    </p>
+                </div>
+
+                <div className="absolute bottom-8 text-[10px] text-white/30 uppercase tracking-widest">
+                    Sistema de Gestão v2.0
+                </div>
             </div>
 
-            <div className="w-full max-w-[480px] animate-fade-in-up relative z-10">
-                <div className="bg-white dark:bg-stone-900 rounded-sm shadow-soft-lg border border-brand-cotton-dark dark:border-stone-800 overflow-hidden">
-                    {/* Header */}
-                    <div className="p-12 pb-8 text-center border-b border-brand-cotton-dark dark:border-stone-800/50 bg-stone-50/50 dark:bg-stone-900/50">
-                        <div className="inline-flex p-4 bg-white dark:bg-stone-800 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700 mb-6">
-                            <Sparkles className="text-brand-gold" size={32} />
-                        </div>
-                        <h1 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.2em] mb-2 leading-tight">Admin</h1>
-                        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.4em]">Portal de Gestão Lojinha das Graças</p>
+            {/* Right Side - Login Form (Clean & Compact) */}
+            <div className="w-full lg:w-7/12 flex items-center justify-center bg-white dark:bg-stone-950 p-8 relative">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold text-stone-800 dark:text-stone-100">Bem-vindo de volta</h2>
+                        <p className="text-sm text-stone-500">Insira suas credenciais para acessar o painel.</p>
                     </div>
 
-                    <div className="p-12 space-y-10">
-                        {/* Demo Box */}
-                        <div className="bg-brand-cotton dark:bg-stone-950 border border-brand-gold/20 p-6 rounded-sm space-y-3 relative group">
-                            <div className="absolute -top-3 left-6 px-3 bg-brand-gold text-brand-wood text-[9px] font-black uppercase tracking-widest rounded-sm">Acesso de Demonstração</div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Identificador</p>
-                                    <p className="text-xs text-stone-600 dark:text-stone-300 font-medium">admin@lojinha.com</p>
+                    {/* Demo Alert Compact */}
+                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-lg flex gap-3 items-start">
+                        <Info size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                        <div className="space-y-1">
+                            <p className="text-xs font-bold text-amber-800 dark:text-amber-500 uppercase tracking-wide">Acesso de Demonstração</p>
+                            <div className="flex flex-wrap gap-3 text-xs text-amber-700 dark:text-amber-400">
+                                <span>Email: <code className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900 font-mono text-stone-600 dark:text-stone-300">admin@lojinha.com</code></span>
+                                <span>Senha: <code className="bg-white dark:bg-stone-800 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900 font-mono text-stone-600 dark:text-stone-300">admin</code></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Email</label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-brand-gold transition-colors" size={16} />
+                                    <input
+                                        required
+                                        type="email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                                        placeholder="seu@email.com"
+                                    />
                                 </div>
-                                <div>
-                                    <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Chave Secreta</p>
-                                    <p className="text-xs text-stone-600 dark:text-stone-300 font-medium">admin</p>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between">
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Senha</label>
+                                    <a href="#" className="text-xs text-brand-gold hover:underline">Esqueceu a senha?</a>
+                                </div>
+                                <div className="relative group">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-brand-gold transition-colors" size={16} />
+                                    <input
+                                        required
+                                        type="password"
+                                        value={pass}
+                                        onChange={e => setPass(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
+                                        placeholder="••••••••"
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        <form onSubmit={handleLogin} className="space-y-8">
-                            <div className="space-y-6">
-                                <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] ml-1 group-focus-within:text-brand-gold transition-colors">E-mail Administrativo</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300 group-focus-within:text-brand-gold transition-colors" size={18} />
-                                        <input
-                                            required
-                                            type="email"
-                                            className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-800 rounded-sm pl-12 pr-4 py-4 text-sm focus:border-brand-gold outline-none transition-all shadow-inner-soft placeholder:text-stone-300"
-                                            placeholder="exemplo@graças.com"
-                                            value={email}
-                                            onChange={e => setEmail(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2 group">
-                                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] ml-1 group-focus-within:text-brand-gold transition-colors">Senha de Acesso</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300 group-focus-within:text-brand-gold transition-colors" size={18} />
-                                        <input
-                                            required
-                                            type="password"
-                                            className="w-full bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-800 rounded-sm pl-12 pr-4 py-4 text-sm focus:border-brand-gold outline-none transition-all shadow-inner-soft placeholder:text-stone-300"
-                                            placeholder="••••••••"
-                                            value={pass}
-                                            onChange={e => setPass(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
+                        {error && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                {error}
                             </div>
+                        )}
 
-                            {error && (
-                                <div className="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 p-4 animate-shake">
-                                    <p className="text-xs text-red-600 dark:text-red-400 font-bold uppercase tracking-widest">{error}</p>
-                                </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-[#2A3F54] hover:bg-[#34495E] text-white font-bold py-3 rounded-lg shadow-lg shadow-stone-200/50 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide"
+                        >
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : (
+                                <>Entrar no Sistema <ArrowRight size={16} /></>
                             )}
+                        </button>
+                    </form>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-brand-gold text-brand-wood font-black py-5 rounded-sm shadow-soft-lg hover:bg-brand-gold-light transition-all active:scale-95 flex items-center justify-center gap-3 uppercase text-xs tracking-[0.3em] disabled:opacity-50"
-                            >
-                                {loading ? <Loader2 className="animate-spin" size={20} /> : (
-                                    <>Acessar o Painel <ArrowRight size={18} /></>
-                                )}
-                            </button>
-                        </form>
-                    </div>
+                    <p className="text-center text-xs text-stone-400">
+                        Não consegue acessar? <span className="text-stone-600 font-semibold cursor-pointer underline">Contate o suporte</span>
+                    </p>
                 </div>
 
-                <div className="mt-12 text-center space-y-4">
-                    <p className="text-[10px] text-stone-400 uppercase tracking-[0.3em] font-bold">Lojinha das Graças © 2026</p>
-                    <div className="h-px w-12 bg-brand-gold/30 mx-auto" />
-                    <button
-                        onClick={() => navigate('/')}
-                        className="text-[10px] text-brand-gold hover:text-brand-brown transition-colors uppercase tracking-[0.2em] font-black"
-                    >
-                        Voltar para a Loja
-                    </button>
-                </div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="absolute top-6 right-6 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-stone-600 transition-colors"
+                >
+                    Voltar à Loja &rarr;
+                </button>
             </div>
         </div>
     );
