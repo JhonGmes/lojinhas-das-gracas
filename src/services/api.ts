@@ -569,14 +569,20 @@ export const api = {
     usuarios: {
         list: async (): Promise<any[]> => {
             try {
+                console.log('📋 [API] Listando usuários da tabela usuarios...');
                 const { data, error } = await supabase
                     .from('usuarios')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                if (error) throw error;
+                    .select('*');
+
+                if (error) {
+                    console.error('❌ [API] Erro ao listar usuários:', error);
+                    throw error;
+                }
+
+                console.log(`✅ [API] ${data?.length || 0} usuários encontrados`);
                 return data || [];
             } catch (err) {
-                console.error('Erro ao listar usuários:', err);
+                console.error('❌ [API] Erro ao listar usuários:', err);
                 return [];
             }
         }
