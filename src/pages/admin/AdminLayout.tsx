@@ -74,10 +74,10 @@ export function AdminLayout() {
                 <div className="h-20 flex items-center px-6 bg-[#1f2f3f] shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
 
-                    <div className="w-10 h-10 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
+                    <div className="w-10 h-10 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-xl" /> : storeInitials}
                     </div>
-                    <span className="font-display font-medium text-lg text-white tracking-wide uppercase truncate drop-shadow-sm">{settings.store_name}</span>
+                    <span className="font-display font-bold text-xs text-white tracking-widest uppercase truncate drop-shadow-sm">{settings.store_name}</span>
                 </div>
 
                 {/* User Profile Section with Upload */}
@@ -121,8 +121,8 @@ export function AdminLayout() {
                                             key={item.path}
                                             to={item.path}
                                             className={`flex items-center gap-3 px-6 py-3 transition-all group relative ${isActive
-                                                    ? 'bg-gradient-to-r from-white/10 to-transparent text-brand-gold font-bold'
-                                                    : 'hover:bg-white/5 hover:text-white text-stone-400'
+                                                ? 'bg-gradient-to-r from-white/10 to-transparent text-brand-gold font-bold'
+                                                : 'hover:bg-white/5 hover:text-white text-stone-400'
                                                 }`}
                                         >
                                             {/* Active Indicator (Thin Line) */}

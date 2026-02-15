@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useProducts } from '../../context/ProductContext';
-import { Plus, Trash2, Tag, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Tag, Loader2, FolderTree } from 'lucide-react';
 
 export function Categories() {
     const { categories, addCategory, deleteCategory, loading, products } = useProducts();
@@ -36,107 +36,92 @@ export function Categories() {
 
     if (loading) return (
         <div className="p-20 text-center animate-pulse flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-stone-400 font-bold uppercase tracking-widest text-xs">Carregando Categorias...</span>
+            <Loader2 className="animate-spin text-brand-gold" size={24} />
+            <span className="text-stone-400 font-bold uppercase tracking-widest text-[10px]">Carregando...</span>
         </div>
     );
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-10">
-            <div>
-                <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Gestão de Categorias</h1>
-                <p className="text-stone-400 text-xs">Crie e organize as linhas de produtos do seu SaaS</p>
+        <div className="space-y-6 animate-fade-in-up pb-10 max-w-5xl mx-auto">
+            {/* Header Compacto */}
+            <div className="flex justify-between items-end border-b border-stone-200 dark:border-stone-800 pb-4">
+                <div>
+                    <h1 className="text-sm font-bold text-stone-700 dark:text-stone-200 uppercase tracking-widest flex items-center gap-2">
+                        <FolderTree size={16} className="text-brand-gold" />
+                        Gestão de Categorias
+                    </h1>
+                    <p className="text-[10px] text-stone-400 mt-0.5">Organize seu catálogo</p>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    {categories.length} Categorias Ativas
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Form Adicionar */}
-                <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 h-fit">
-                    <div className="flex items-center gap-2 mb-6">
-                        <Plus className="text-brand-gold" size={20} />
-                        <h2 className="font-bold text-stone-700 dark:text-stone-200">Nova Categoria</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Form Adicionar (Compacto) */}
+                <div className="bg-white dark:bg-stone-900 p-4 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800 h-fit">
+                    <div className="flex items-center gap-2 mb-4 text-stone-400 uppercase text-[10px] font-bold tracking-widest">
+                        <Plus size={14} /> Nova Categoria
                     </div>
 
-                    <form onSubmit={handleAdd} className="space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Nome da Categoria</label>
+                    <form onSubmit={handleAdd} className="space-y-3">
+                        <div>
                             <input
                                 type="text"
                                 value={newCategory}
                                 onChange={e => setNewCategory(e.target.value)}
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
-                                placeholder="Ex: Pulseiras"
+                                className="w-full bg-stone-50 dark:bg-stone-800 border-none rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-brand-gold transition-colors placeholder-stone-400"
+                                placeholder="Nome da categoria..."
                                 disabled={isAdding}
                             />
                         </div>
                         <button
                             type="submit"
                             disabled={isAdding || !newCategory.trim()}
-                            className="w-full bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2 uppercase text-xs tracking-widest disabled:opacity-50"
+                            className="w-full bg-stone-800 hover:bg-stone-700 text-white py-2 rounded-sm transition-all flex items-center justify-center gap-2 uppercase text-[10px] font-bold tracking-widest disabled:opacity-50"
                         >
-                            {isAdding ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}
+                            {isAdding ? <Loader2 className="animate-spin" size={12} /> : <Plus size={12} />}
                             {isAdding ? 'Criando...' : 'Adicionar'}
                         </button>
                     </form>
                 </div>
 
-                {/* Lista de Categorias */}
-                <div className="md:col-span-2 space-y-4">
-                    <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead className="bg-stone-50 dark:bg-stone-900/50 border-b border-stone-100 dark:border-stone-800">
-                                <tr>
-                                    <th className="p-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest">Categoria</th>
-                                    <th className="p-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest text-center">Produtos</th>
-                                    <th className="p-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-stone-50 dark:divide-stone-800">
-                                {categories.map(cat => {
-                                    const productCount = products.filter(p => p.category === cat).length;
-                                    return (
-                                        <tr key={cat} className="group hover:bg-stone-50 dark:hover:bg-stone-900/30 transition-colors">
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold">
-                                                        <Tag size={16} />
-                                                    </div>
-                                                    <span className="font-bold text-sm text-stone-700 dark:text-stone-200">{cat}</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <span className="px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded text-[10px] font-mono font-bold text-stone-500">
-                                                    {productCount}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-right">
-                                                <button
-                                                    onClick={() => handleDelete(cat)}
-                                                    className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                    title="Excluir Categoria"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {categories.length === 0 && (
-                                    <tr>
-                                        <td colSpan={3} className="p-10 text-center text-stone-400 italic text-sm">
-                                            Nenhuma categoria cadastrada.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Lista de Categorias (Grid Densa) */}
+                <div className="md:col-span-2 grid grid-cols-2 lg:grid-cols-3 gap-3 content-start">
+                    {categories.map((category) => {
+                        const productCount = products.filter(p => p.category === category.name).length;
+                        return (
+                            <div
+                                key={category.id}
+                                className="group bg-white dark:bg-stone-900 p-3 rounded-sm border border-stone-100 dark:border-stone-800 hover:border-brand-gold/30 transition-all flex justify-between items-center relative overflow-hidden"
+                            >
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <Tag size={12} className="text-stone-300 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <h3 className="font-bold text-xs text-stone-700 dark:text-stone-200 truncate">{category.name}</h3>
+                                        <p className="text-[9px] text-stone-400 font-mono uppercase tracking-widest">{productCount} items</p>
+                                    </div>
+                                </div>
 
-                    <div className="flex items-start gap-2 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                        <AlertCircle className="text-amber-600 flex-shrink-0" size={16} />
-                        <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight">
-                            <strong>Dica SaaS:</strong> Você não pode excluir uma categoria que já possua produtos vinculados. Mova os produtos de categoria antes de removê-la.
-                        </p>
-                    </div>
+                                <button
+                                    onClick={() => handleDelete(category.name)}
+                                    className="p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Excluir Categoria"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+
+                                {/* Active Indicator Bar */}
+                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-gold opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </div>
+                        );
+                    })}
+
+                    {categories.length === 0 && (
+                        <div className="col-span-full py-10 text-center text-stone-400 text-xs italic bg-stone-50 dark:bg-stone-800/50 rounded-sm border border-dashed border-stone-200 dark:border-stone-700">
+                            Nenhuma categoria cadastrada.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

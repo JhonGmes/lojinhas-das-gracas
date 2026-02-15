@@ -1,344 +1,228 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { useProducts } from "../../context/ProductContext"
-import { Upload, X, PlusCircle, ArrowLeft, Star } from "lucide-react"
-import { supabase } from "../../lib/supabase"
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useProducts } from '../../context/ProductContext';
+import { ChevronLeft, Upload, Check, Loader2, Image as ImageIcon, Trash2 } from 'lucide-react';
 
 export function EditProduct() {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams();
     const navigate = useNavigate();
-    const { products, updateProduct, categories, addCategory } = useProducts();
+    const { products, updateProduct, deleteProduct } = useProducts();
+    const [loading, setLoading] = useState(false);
 
-    const [form, setForm] = useState({
-        name: '',
-        code: '',
-        price: '',
-        stock: '0',
-        category: '',
-        description: '',
-        image: '',
-        images: [] as string[],
-        isFeatured: false
-    });
-
-    const [isAddingCategory, setIsAddingCategory] = useState(false);
-    const [newCategoryName, setNewCategoryName] = useState('');
-    const [uploading, setUploading] = useState(false);
-    const [loading, setLoading] = useState(true);
+    // Form States
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
+    const [image, setImage] = useState('');
+    const [stock, setStock] = useState('0');
+    const [code, setCode] = useState('');
+    const [active, setActive] = useState(true);
 
     useEffect(() => {
-        const product = products.find((p: any) => p.id === id);
+        const product = products.find(p => p.id === id);
         if (product) {
-            setForm({
-                name: product.name,
-                code: product.code || '',
-                price: product.price.toString(),
-                stock: product.stock.toString(),
-                category: product.category,
-                description: product.description,
-                image: product.image,
-                images: product.images || [],
-                isFeatured: product.isFeatured || false
-            });
-            setLoading(false);
-        } else if (products.length > 0) {
-            navigate('/admin/inventory');
+            setName(product.name);
+            setPrice(product.price.toString());
+            setDescription(product.description || '');
+            setCategory(product.category);
+            setImage(product.image);
+            setStock(product.stock.toString());
+            setCode(product.code || '');
+            setActive(product.active);
+        } else {
+            // Redirect or show error if not found
         }
-    }, [id, products, navigate]);
+    }, [id, products]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (!form.image) {
-            alert('Por favor, envie pelo menos uma imagem principal.');
-            return;
+        if (id) {
+            updateProduct(id, {
+                name,
+                price: parseFloat(price.replace(',', '.')),
+                description,
+                category,
+                image,
+                stock: parseInt(stock),
+                code,
+                active
+            });
         }
-
-        await updateProduct({
-            id: id!,
-            name: form.name,
-            code: form.code,
-            price: parseFloat(form.price) || 0,
-            stock: parseInt(form.stock) || 0,
-            category: form.category,
-            description: form.description,
-            image: form.image,
-            images: form.images,
-            isFeatured: form.isFeatured
-        });
-
-        alert('Produto atualizado com sucesso!');
+        setLoading(false);
         navigate('/admin/inventory');
     };
 
-    const handleImageUpload = async (file: File, target: 'main' | 'gallery') => {
-        try {
-            setUploading(true);
-            const fileName = `${Date.now()}-${file.name}`;
-
-            const { error } = await supabase.storage
-                .from("product-images")
-                .upload(fileName, file);
-
-            if (error) {
-                console.error("Supabase Storage Error:", error);
-                alert(`Erro ao enviar imagem: ${error.message}`);
-                return;
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from("product-images")
-                .getPublicUrl(fileName);
-
-            if (target === 'main') {
-                setForm((prev: any) => ({ ...prev, image: publicUrlData.publicUrl }));
-            } else {
-                setForm((prev: any) => ({ ...prev, images: [...prev.images, publicUrlData.publicUrl] }));
-            }
-
-        } catch (err: any) {
-            console.error("Upload Catch Error:", err);
-            alert(`Erro no upload: ${err.message || 'Erro desconhecido'}`);
-        } finally {
-            setUploading(false);
+    const handleDelete = () => {
+        if (confirm('Tem certeza que deseja excluir este produto permanentemente?')) {
+            if (id) deleteProduct(id);
+            navigate('/admin/inventory');
         }
     };
 
-    const removeGalleryImage = (index: number) => {
-        setForm((prev: any) => ({
-            ...prev,
-            images: prev.images.filter((_: any, i: number) => i !== index)
-        }));
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
-
-    const handleAddCategory = async () => {
-        if (!newCategoryName.trim()) return;
-        await addCategory(newCategoryName.trim());
-        setForm((prev: any) => ({ ...prev, category: newCategoryName.trim() }));
-        setNewCategoryName('');
-        setIsAddingCategory(false);
-    };
-
-    if (loading) return (
-        <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-stone-500 font-bold uppercase tracking-widest">Carregando dados...</p>
-        </div>
-    );
 
     return (
-        <div className="space-y-6 animate-fade-in-up pb-10">
-            <div className="flex items-center gap-4">
+        <form onSubmit={handleSubmit} className="animate-fade-in-up pb-10 max-w-4xl mx-auto">
+            {/* Header Compacto */}
+            <div className="flex items-center gap-4 mb-6 border-b border-stone-200 dark:border-stone-800 pb-4">
                 <button
+                    type="button"
                     onClick={() => navigate('/admin/inventory')}
-                    className="p-2 hover:bg-stone-100 rounded-full transition-colors"
+                    className="p-1.5 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
                 >
-                    <ArrowLeft size={24} className="text-stone-600" />
+                    <ChevronLeft size={16} className="text-stone-500" />
                 </button>
-                <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
-                    Editar Produto
-                </h1>
+                <div>
+                    <h1 className="text-sm font-bold text-stone-700 dark:text-stone-200 uppercase tracking-widest">Editar Produto</h1>
+                    <p className="text-[10px] text-stone-400">Atualize as informações</p>
+                </div>
+                <div className="ml-auto flex gap-2">
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors flex items-center gap-1"
+                    >
+                        <Trash2 size={12} /> Excluir
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="bg-brand-gold hover:bg-amber-600 text-white px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        {loading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                        Salvar Alterações
+                    </button>
+                </div>
             </div>
 
-            <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-100 dark:border-stone-700 p-8">
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-12 gap-6">
+                {/* Left Column: Details */}
+                <div className="col-span-12 md:col-span-8 space-y-4">
+                    {/* Basic Info Card */}
+                    <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2">
+                                <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">Nome do Produto</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold focus:border-brand-gold transition-colors"
+                                />
+                            </div>
 
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Nome do Produto</label>
-                            <input
-                                required
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
-                                placeholder="Ex: Terço de São Bento"
-                                value={form.name}
-                                onChange={e => setForm({ ...form, name: e.target.value })}
-                            />
-                        </div>
+                            <div>
+                                <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">SKU / Código</label>
+                                <input
+                                    type="text"
+                                    value={code}
+                                    onChange={e => setCode(e.target.value)}
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Código (SKU)</label>
-                            <input
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
-                                placeholder="Ex: 007066GR"
-                                value={form.code}
-                                onChange={e => setForm({ ...form, code: e.target.value })}
-                            />
+                            <div>
+                                <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">Categoria</label>
+                                <select
+                                    value={category}
+                                    onChange={e => setCategory(e.target.value)}
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
+                                >
+                                    <option value="imagens">Imagens Sacras</option>
+                                    <option value="tercos">Terços</option>
+                                    <option value="livros">Livros</option>
+                                    <option value="acessorios">Acessórios</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Preço (R$)</label>
+                                <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">Preço (R$)</label>
                                 <input
-                                    required
                                     type="number"
+                                    required
                                     step="0.01"
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
-                                    placeholder="0.00"
-                                    value={form.price}
-                                    onChange={e => setForm({ ...form, price: e.target.value })}
+                                    value={price}
+                                    onChange={e => setPrice(e.target.value)}
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
                                 />
                             </div>
-
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Estoque</label>
+                                <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">Estoque</label>
                                 <input
-                                    required
                                     type="number"
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 focus:ring-2 focus:ring-brand-gold outline-none"
-                                    value={form.stock}
-                                    onChange={e => setForm({ ...form, stock: e.target.value })}
+                                    required
+                                    value={stock}
+                                    onChange={e => setStock(e.target.value)}
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="block text-xs font-bold text-stone-500 uppercase text-stone-400">Categoria</label>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAddingCategory(!isAddingCategory)}
-                                    className="text-[10px] text-brand-gold font-bold uppercase flex items-center gap-1 hover:underline"
-                                >
-                                    <PlusCircle size={12} /> {isAddingCategory ? 'Cancelar' : 'Nova Categoria'}
-                                </button>
-                            </div>
-
-                            {isAddingCategory ? (
-                                <div className="flex gap-2">
-                                    <input
-                                        autoFocus
-                                        className="flex-1 bg-brand-light dark:bg-stone-900 border border-brand-gold rounded-lg p-3 text-sm"
-                                        placeholder="Nome da nova categoria..."
-                                        value={newCategoryName}
-                                        onChange={e => setNewCategoryName(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddCategory}
-                                        className="bg-brand-gold text-white px-4 rounded-lg font-bold text-sm"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
-                            ) : (
-                                <select
-                                    className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 outline-none"
-                                    value={form.category}
-                                    onChange={e => setForm({ ...form, category: e.target.value })}
-                                >
-                                    {categories.map((cat: string) => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Descrição Detalhada</label>
+                            <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-1">Descrição</label>
                             <textarea
-                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-3 h-32 focus:ring-2 focus:ring-brand-gold outline-none resize-none"
-                                placeholder="..."
-                                value={form.description}
-                                onChange={e => setForm({ ...form, description: e.target.value })}
+                                rows={4}
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                             />
                         </div>
 
-                        <div className="p-4 bg-brand-light/20 dark:bg-stone-900 border border-brand-gold/30 rounded-xl flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${form.isFeatured ? 'bg-amber-100 text-amber-600' : 'bg-stone-100 text-stone-400'}`}>
-                                    <Star size={20} fill={form.isFeatured ? 'currentColor' : 'none'} />
-                                </div>
-                                <div>
-                                    <div className="font-bold text-sm text-stone-700 dark:text-stone-200">Destaque da Vitrine</div>
-                                    <div className="text-[10px] text-stone-400 uppercase font-bold">Mostrar no topo da página inicial</div>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setForm({ ...form, isFeatured: !form.isFeatured })}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${form.isFeatured ? 'bg-brand-gold' : 'bg-stone-300'}`}
+                        <div className="flex items-center gap-3 pt-2">
+                            <div
+                                onClick={() => setActive(!active)}
+                                className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${active ? 'bg-emerald-500' : 'bg-stone-300'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${form.isFeatured ? 'right-1' : 'left-1'}`} />
-                            </button>
+                                <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${active ? 'left-4.5' : 'left-0.5'}`} style={{ left: active ? '18px' : '2px' }} />
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{active ? 'Produto Ativo na Loja' : 'Produto Oculto'}</span>
                         </div>
                     </div>
+                </div>
 
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Imagem Principal</label>
-                            <div className="aspect-square bg-stone-100 dark:bg-stone-900 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-xl flex flex-col items-center justify-center text-stone-400 hover:border-brand-gold transition cursor-pointer relative overflow-hidden">
-                                {form.image ? (
-                                    <>
-                                        <img src={form.image} className="w-full h-full object-cover" alt="Preview" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
-                                            <span className="text-white text-xs font-bold uppercase tracking-widest">Trocar Foto</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload size={40} className={`mb-2 ${uploading ? 'animate-bounce' : ''}`} />
-                                        <span className="text-sm font-bold uppercase tracking-tight">{uploading ? 'Subindo...' : 'Enviar Foto'}</span>
-                                    </>
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    disabled={uploading}
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleImageUpload(file, 'main');
-                                    }}
-                                />
-                            </div>
-                        </div>
+                {/* Right Column: Media */}
+                <div className="col-span-12 md:col-span-4 space-y-4">
+                    <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800 h-full">
+                        <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-3">Imagem Principal</label>
 
-                        <div>
-                            <label className="block text-xs font-bold text-stone-500 uppercase mb-2 text-stone-400">Galeria de Fotos</label>
-                            <div className="grid grid-cols-4 gap-3">
-                                {form.images.map((img: string, idx: number) => (
-                                    <div key={idx} className="aspect-square rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 relative group overflow-hidden">
-                                        <img src={img} className="w-full h-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeGalleryImage(idx)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X size={12} />
-                                        </button>
+                        <div className="relative group w-full aspect-square bg-stone-50 dark:bg-stone-800 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex flex-col items-center justify-center cursor-pointer hover:border-brand-gold transition-colors overflow-hidden">
+                            {image ? (
+                                <>
+                                    <img src={image} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <p className="text-white text-[10px] uppercase font-bold tracking-widest">Alterar Imagem</p>
                                     </div>
-                                ))}
-                                {form.images.length < 4 && (
-                                    <div className="aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-lg flex items-center justify-center text-stone-300 hover:text-brand-gold hover:border-brand-gold transition cursor-pointer relative">
-                                        <PlusCircle size={24} />
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                            disabled={uploading}
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) handleImageUpload(file, 'gallery');
-                                            }}
-                                        />
+                                </>
+                            ) : (
+                                <div className="text-center p-4">
+                                    <div className="w-10 h-10 bg-stone-100 dark:bg-stone-700 rounded-full flex items-center justify-center mx-auto mb-2 text-stone-400">
+                                        <ImageIcon size={18} />
                                     </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end pt-4">
-                            <button
-                                type="submit"
-                                disabled={uploading}
-                                className="w-full bg-brand-gold hover:bg-amber-600 disabled:bg-stone-300 text-white font-bold py-4 px-8 rounded-lg shadow-lg active:transform active:scale-95 transition-all text-sm uppercase tracking-widest"
-                            >
-                                {uploading ? 'Salvando...' : 'Salvar Alterações'}
-                            </button>
+                                    <p className="text-[10px] text-stone-400 uppercase font-bold">Clique para upload</p>
+                                </div>
+                            )}
+                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     );
 }
