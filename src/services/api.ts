@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { INITIAL_PRODUCTS } from './constants'
-import type { Product, Order, BlogPost } from '../types'
+import type { Product, Order, BlogPost, Review, WishlistItem } from '../types'
 
 const LS_PRODUCTS = 'ljg_products'
 const LS_ORDERS = 'ljg_orders'
@@ -585,6 +585,96 @@ export const api = {
                 console.error('❌ [API] Erro ao listar usuários:', err);
                 return [];
             }
+        }
+    },
+    reviews: {
+        list: async (productId: string): Promise<Review[]> => {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select('*')
+                .eq('product_id', productId)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        },
+        listAll: async (): Promise<(Review & { products: { name: string } | null })[]> => {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select('*, products(name)')
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        },
+        create: async (review: Omit<Review, 'id' | 'created_at' | 'helpful_count'>): Promise<void> => {
+            const { error } = await supabase.from('reviews').insert([review]);
+            if (error) throw error;
+        },
+        respond: async (reviewId: string, response: string): Promise<void> => {
+            const { error } = await supabase
+                .from('reviews')
+                .update({
+                    admin_response: response,
+                    admin_response_date: new Date().toISOString()
+                })
+                .eq('id', reviewId);
+            if (error) throw error;
+        },
+        delete: async (reviewId: string): Promise<void> => {
+            const { error } = await supabase
+                .from('reviews')
+                .delete()
+                .eq('id', reviewId);
+            if (error) throw error;
+        },
+        markHelpful: async (reviewId: string): Promise<void> => {
+            // Lógica para incrementar helpful_count (de preferência via RPC no Supabase para evitar concorrência)
+            const { error } = await supabase.rpc('increment_review_helpful', { review_id: reviewId });
+            if (error) {
+                // Fallback simples se RPC não existir
+                const { data: current } = await supabase.from('reviews').select('helpful_count').eq('id', reviewId).single();
+                await supabase.from('reviews').update({ helpful_count: (current?.helpful_count || 0) + 1 }).eq('id', reviewId);
+            }
+        }
+    },
+    wishlist: {
+        list: async (sessionId: string, userEmail?: string): Promise<WishlistItem[]> => {
+            let query = supabase
+                .from('wishlists')
+                .select('*, product:products(*)')
+
+            if (userEmail) {
+                query = query.or(`session_id.eq.${sessionId},user_email.eq.${userEmail}`);
+            } else {
+                query = query.eq('session_id', sessionId);
+            }
+
+            const { data, error } = await query.order('added_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        },
+        add: async (item: Omit<WishlistItem, 'id' | 'added_at'>): Promise<void> => {
+            const { error } = await supabase.from('wishlists').insert([item]);
+            if (error) throw error;
+        },
+        remove: async (sessionId: string, productId: string): Promise<void> => {
+            const { error } = await supabase
+                .from('wishlists')
+                .delete()
+                .eq('session_id', sessionId)
+                .eq('product_id', productId);
+            if (error) throw error;
+        },
+        updatePreferences: async (sessionId: string, productId: string, prefs: { notify_on_sale?: boolean; notify_on_stock?: boolean }): Promise<void> => {
+            const { error } = await supabase
+                .from('wishlists')
+                .update(prefs)
+                .eq('session_id', sessionId)
+                .eq('product_id', productId);
+            if (error) throw error;
+        },
+        updateNotifications: async (id: string, options: { notify_on_sale?: boolean; notify_on_stock?: boolean }): Promise<void> => {
+            const { error } = await supabase.from('wishlists').update(options).eq('id', id);
+            if (error) throw error;
         }
     }
 };

@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import {
     LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft,
     Settings as SettingsIcon, FolderTree, BookOpen,
-    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X
+    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star
 } from 'lucide-react';
 import { Dashboard } from './Dashboard';
 import { Inventory } from './Inventory';
@@ -19,6 +19,7 @@ import { BlogAdmin } from './BlogAdmin';
 import { Customers } from './Customers';
 import { Coupons } from './Coupons';
 import { Waitlist } from './Waitlist';
+import { Reviews } from './Reviews';
 
 
 export function AdminLayout() {
@@ -85,6 +86,7 @@ export function AdminLayout() {
                 { path: '/admin/inventory', label: 'Catálogo de Produtos', icon: Package },
                 { path: '/admin/categories', label: 'Categorias', icon: FolderTree },
                 { path: '/admin/coupons', label: 'Cupons de Desconto', icon: Ticket },
+                { path: '/admin/reviews', label: 'Avaliações de Clientes', icon: Star },
                 { path: '/admin/blog', label: 'Blog de Fé', icon: BookOpen },
             ]
         }
@@ -234,6 +236,7 @@ export function AdminLayout() {
                         <Route path="/add-product" element={<AddProduct />} />
                         <Route path="/edit-product/:id" element={<EditProduct />} />
                         <Route path="/waitlist" element={<Waitlist />} />
+                        <Route path="/reviews" element={<Reviews />} />
                         <Route path="/settings" element={<Settings />} />
                     </Routes>
 

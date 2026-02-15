@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, Sun, Moon, User, LogOut, LayoutDashboard, Search, Mail, Send, Instagram, Facebook, Menu, X as CloseIcon } from 'lucide-react';
+import { ShoppingCart, Sun, Moon, User, LogOut, LayoutDashboard, Search, Mail, Send, Menu, X as CloseIcon, Heart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +10,8 @@ import { WhatsAppWidget } from '../ui/WhatsAppWidget';
 import { useState, useRef, useEffect } from 'react';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-    const { items } = useCart();
+    const { items: cartItems } = useCart();
+    const { items: wishlistItems } = useWishlist();
     const { theme, toggleTheme } = useTheme();
     const { settings } = useStore();
     const { user, logout } = useAuth();
@@ -22,7 +24,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const [search, setSearch] = useState('');
     const userMenuRef = useRef<HTMLDivElement>(null);
 
-    // Sync search input with URL if needed
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const s = params.get('q');
@@ -53,7 +54,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             navigate('/');
         }
     };
-
 
     return (
         <div className="min-h-screen flex flex-col transition-colors duration-400 dark:bg-stone-950 dark:text-stone-100 bg-brand-cotton">
@@ -92,9 +92,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             <header className="sticky top-0 z-50 bg-white/95 dark:bg-stone-900 shadow-soft transition-all duration-400 backdrop-blur-md border-b border-brand-cotton-dark/50">
-                {/* Top Row: Logo, Search, Actions - Adjusted Scale for perfect balance */}
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-3.5 flex items-center justify-between gap-5 md:gap-10">
-                    {/* Mobile Menu Trigger */}
                     <button
                         className="lg:hidden p-2 text-stone-600 dark:text-stone-300 hover:text-brand-gold transition-colors"
                         onClick={() => setIsSidebarOpen(true)}
@@ -102,7 +100,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <Menu size={22} />
                     </button>
 
-                    {/* Brand Section: Logo + Name Side-by-Side */}
                     <Link to="/" className="flex items-center gap-3 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0">
                         {settings.logo_url ? (
                             <img src={settings.logo_url} className="h-8 md:h-11 lg:h-13 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
@@ -110,7 +107,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             <div className="h-8 w-8 md:h-11 md:w-11 bg-brand-gold/10 rounded-full flex items-center justify-center text-lg md:text-xl shadow-inner">🕊️</div>
                         )}
                         <div className="flex flex-col">
-                            <h1 className="font-script text-base md:text-xl lg:text-2xl text-brand-gold leading-none text-shadow-premium" style={{ fontFamily: "'Cookie', cursive" }}>
+                            <h1 className="font-script text-base md:text-xl lg:text-2xl text-brand-gold leading-none" style={{ fontFamily: "'Cookie', cursive" }}>
                                 {settings.store_name}
                             </h1>
                             <p className="font-display text-[6px] md:text-[8px] text-brand-gold/80 mt-0.5 font-bold tracking-[0.2em] uppercase truncate">
@@ -119,7 +116,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </div>
                     </Link>
 
-                    {/* Search Section: Centered & Balanced */}
                     <div className="hidden lg:flex flex-1 max-w-lg mx-4">
                         <form onSubmit={handleSearch} className="relative w-full group">
                             <input
@@ -138,9 +134,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </form>
                     </div>
 
-                    {/* Actions Section: Balanced Icons & Labels */}
-                    <div className="flex items-center gap-2.5 md:gap-5">
-                        <button onClick={toggleTheme} className="p-1.5 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-full transition-colors text-stone-600 dark:text-stone-300">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        <button onClick={toggleTheme} className="hidden sm:block p-1.5 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-full transition-colors text-stone-600 dark:text-stone-300">
                             {theme === 'light' ? <Moon size={18} className="text-brand-gold/60" /> : <Sun size={18} className="text-brand-gold" />}
                         </button>
 
@@ -153,15 +148,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                     <div className="w-7 h-7 md:w-8 md:h-8 rounded-sm bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold font-bold text-[10px] md:text-xs">
                                         {user.email[0].toUpperCase()}
                                     </div>
-                                    <div className="hidden sm:flex flex-col items-start leading-none">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-brand-gold">Olá, {user.email.split('@')[0]}</span>
-                                        <span className="text-[6px] text-stone-400 font-bold uppercase tracking-tighter mt-0.5">{user.role === 'admin' ? 'Gerente' : 'Minha conta'}</span>
-                                    </div>
                                 </button>
                             ) : (
                                 <Link to="/login" className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-all text-brand-gold">
                                     <User size={18} />
-                                    <span className="text-[7px] font-black uppercase tracking-widest">Entrar</span>
+                                    <span className="text-[7px] font-black uppercase tracking-widest hidden md:block">Entrar</span>
                                 </Link>
                             )}
 
@@ -169,9 +160,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                 <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-stone-800 rounded-sm shadow-soft-xl border border-brand-cotton-dark dark:border-stone-700 p-2 z-[100] animate-fade-in-up">
                                     <div className="p-4 border-b border-stone-50 dark:border-stone-700 mb-2 bg-stone-50/50 dark:bg-stone-900/30 rounded-sm text-center">
                                         <p className="text-[10px] font-bold text-stone-800 dark:text-stone-100 truncate">{user.email}</p>
-                                        <p className="text-[7px] bg-brand-gold/10 text-brand-gold px-2 py-0.5 rounded-sm inline-block mt-2 font-black uppercase tracking-widest border border-brand-gold/10">
-                                            {user.role === 'admin' ? 'Administrador' : 'Cliente Especial'}
-                                        </p>
                                     </div>
                                     <div className="space-y-1">
                                         {user.role === 'admin' && (
@@ -187,21 +175,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             )}
                         </div>
 
-                        <Link to="/cart" className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-all text-brand-gold relative group">
+                        {/* Wishlist Link */}
+                        <Link to="/wishlist" className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-all text-brand-gold relative group">
                             <div className="relative">
-                                <ShoppingCart size={20} className="md:size-22 group-hover:scale-110 transition-transform" />
-                                {items.length > 0 && (
-                                    <span className="absolute -top-1 -right-1.5 bg-brand-wood text-brand-gold text-[7px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-sm ring-2 ring-white dark:ring-stone-900 shadow-md">
-                                        {items.length}
+                                <Heart size={20} className="md:size-22 group-hover:scale-110 transition-transform" />
+                                {wishlistItems.length > 0 && (
+                                    <span className="absolute -top-1 -right-1.5 bg-brand-gold text-brand-wood text-[7px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-sm ring-2 ring-white dark:ring-stone-900 shadow-md">
+                                        {wishlistItems.length}
                                     </span>
                                 )}
                             </div>
-                            <span className="text-[7px] font-black uppercase tracking-widest">Carrinho</span>
+                            <span className="text-[7px] font-black uppercase tracking-widest hidden md:block">Favoritos</span>
+                        </Link>
+
+                        <Link to="/cart" className="flex flex-col items-center gap-0.5 hover:opacity-75 transition-all text-brand-gold relative group">
+                            <div className="relative">
+                                <ShoppingCart size={20} className="md:size-22 group-hover:scale-110 transition-transform" />
+                                {cartItems.length > 0 && (
+                                    <span className="absolute -top-1 -right-1.5 bg-brand-wood text-brand-gold text-[7px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-sm ring-2 ring-white dark:ring-stone-900 shadow-md">
+                                        {cartItems.length}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="text-[7px] font-black uppercase tracking-widest hidden md:block">Carrinho</span>
                         </Link>
                     </div>
                 </div>
 
-                {/* Bottom Row: Navigation (Desktop only) - Prominent but slim */}
                 <nav className="hidden lg:block border-t border-stone-100 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-center h-12">
                         <ul className="flex items-center gap-8 md:gap-10">
@@ -226,7 +226,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </main>
 
             <footer className="bg-brand-wood text-amber-50 mt-auto border-t-2 border-brand-gold overflow-hidden">
-                {/* Newsletter Section - Slimmer */}
                 <div className="bg-white/5 border-b border-white/5 py-8">
                     <div className="max-w-7xl mx-auto px-4">
                         <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
@@ -257,23 +256,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start text-center md:text-left">
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <h2 className="font-script text-3xl md:text-4xl text-brand-gold leading-none">{settings.store_name}</h2>
+                                <h2 className="font-script text-3xl md:text-4xl text-brand-gold leading-none" style={{ fontFamily: "'Cookie', cursive" }}>{settings.store_name}</h2>
                                 <p className="font-display text-[8px] text-brand-gold/60 uppercase tracking-[0.2em] font-bold">Artigos Religiosos</p>
                             </div>
                             <p className="text-[11px] leading-relaxed opacity-60 max-w-xs mx-auto md:mx-0">
                                 Levando fé, esperança e devoção para o seu lar através de artigos selecionados com amor e respeito à tradição.
                             </p>
-                            <div className="flex justify-center md:justify-start gap-3 pt-1">
-                                <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-gold transition-all border border-white/5 group">
-                                    <Instagram size={14} />
-                                </a>
-                                <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-gold transition-all border border-white/5 group">
-                                    <Facebook size={14} />
-                                </a>
-                                <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-gold transition-all border border-white/5 group">
-                                    <Mail size={14} />
-                                </a>
-                            </div>
                         </div>
 
                         <div className="space-y-4">
@@ -281,7 +269,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             <ul className="space-y-2 text-[11px] opacity-60">
                                 <li><a href="#" className="hover:text-brand-gold transition-colors">Quem Somos</a></li>
                                 <li><Link to="/contact" className="hover:text-brand-gold transition-colors">Fale Conosco</Link></li>
-                                <li><a href="#" className="hover:text-brand-gold transition-colors">Termos de Uso</a></li>
                                 <li><a href="#" className="hover:text-brand-gold transition-colors">Política de Privacidade</a></li>
                             </ul>
                         </div>
@@ -289,10 +276,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <div className="space-y-4">
                             <h4 className="font-display text-sm font-bold text-brand-gold uppercase tracking-widest">Inspiração</h4>
                             <div className="relative p-4 bg-white/5 rounded-2xl border border-white/5 italic text-[11px] opacity-80 leading-relaxed shadow-inner">
-                                "Tudo posso naquele que me fortalece. A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos."
+                                "Tudo posso naquele que me fortalece."
                                 <div className="absolute -top-2 -left-2 w-6 h-6 bg-brand-gold text-brand-wood flex items-center justify-center rounded text-sm font-serif">“</div>
                             </div>
-                            <Link to="/admin" className="text-[8px] font-black uppercase tracking-widest text-brand-gold/30 hover:text-brand-gold transition-colors inline-block pt-2">Área do Lojista</Link>
                         </div>
                     </div>
 
@@ -304,6 +290,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
             </footer>
             <WhatsAppWidget />
-        </div >
+        </div>
     );
 }

@@ -4,6 +4,7 @@ import type { Product } from '../../types';
 import { formatCurrency } from '../../lib/utils';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import WishlistButton from '../WishlistButton';
 
 export const ProductCard = memo(function ProductCard({ product }: { product: Product }) {
     const { addToCart } = useCart();
@@ -95,6 +96,10 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
                         </div>
                     </div>
                 )}
+
+                <div className="absolute top-2 right-2 z-10">
+                    <WishlistButton productId={product.id} size={18} />
+                </div>
             </Link>
 
             <div className="p-2 md:p-3 flex flex-col flex-1">

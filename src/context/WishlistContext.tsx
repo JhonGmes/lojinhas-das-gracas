@@ -1,0 +1,99 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../services/api';
+import type { WishlistItem } from '../types';
+import { toast } from 'react-hot-toast';
+
+interface WishlistContextType {
+    items: WishlistItem[];
+    addToWishlist: (productId: string) => Promise<void>;
+    removeFromWishlist: (productId: string) => Promise<void>;
+    updatePreferences: (productId: string, prefs: { notify_on_sale?: boolean; notify_on_stock?: boolean }) => Promise<void>;
+    isInWishlist: (productId: string) => boolean;
+    loading: boolean;
+}
+
+const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+
+const LS_SESSION_ID = 'ljg_wishlist_session';
+
+export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [items, setItems] = useState<WishlistItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [sessionId, setSessionId] = useState<string>('');
+
+    useEffect(() => {
+        let id = localStorage.getItem(LS_SESSION_ID);
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem(LS_SESSION_ID, id);
+        }
+        setSessionId(id);
+        loadWishlist(id);
+    }, []);
+
+    const loadWishlist = async (id: string) => {
+        try {
+            const data = await api.wishlist.list(id);
+            setItems(data);
+        } catch (error) {
+            console.error('Erro ao carregar wishlist:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const addToWishlist = async (productId: string) => {
+        try {
+            if (items.find(i => i.product_id === productId)) return;
+
+            await api.wishlist.add({
+                session_id: sessionId,
+                product_id: productId,
+                notify_on_sale: false,
+                notify_on_stock: false
+            });
+
+            await loadWishlist(sessionId);
+        } catch (error) {
+            console.error('Erro ao adicionar à wishlist:', error);
+        }
+    };
+
+    const removeFromWishlist = async (productId: string) => {
+        try {
+            await api.wishlist.remove(sessionId, productId);
+            setItems(prev => prev.filter(i => i.product_id !== productId));
+        } catch (error) {
+            console.error('Erro ao remover da wishlist:', error);
+        }
+    };
+
+    const updatePreferences = async (productId: string, prefs: { notify_on_sale?: boolean; notify_on_stock?: boolean }) => {
+        try {
+            await api.wishlist.updatePreferences(sessionId, productId, prefs);
+            setItems(prev => prev.map(item =>
+                item.product_id === productId ? { ...item, ...prefs } : item
+            ));
+            toast.success('Preferências de notificação atualizadas! 🔔');
+        } catch (error) {
+            console.error('Erro ao atualizar preferências:', error);
+            toast.error('Erro ao salvar preferências.');
+        }
+    };
+
+    const isInWishlist = (productId: string) => {
+        return items.some(i => i.product_id === productId);
+    };
+
+    return (
+        <WishlistContext.Provider value={{ items, addToWishlist, removeFromWishlist, updatePreferences, isInWishlist, loading }}>
+            {children}
+        </WishlistContext.Provider>
+    );
+};
+
+export const useWishlist = () => {
+    const context = useContext(WishlistContext);
+    if (!context) throw new Error('useWishlist must be used within a WishlistProvider');
+    return context;
+};

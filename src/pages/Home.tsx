@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ui/ProductCard';
-import { Sparkles, ArrowRight, Feather, Compass, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Sparkles, ArrowRight, Feather, Compass, Gift } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
+import ProductFilters, { type FilterState } from '../components/ProductFilters';
 
 import { useBlog } from '../context/BlogContext';
 import { Helmet } from 'react-helmet-async';
@@ -12,251 +13,238 @@ import { Helmet } from 'react-helmet-async';
 export function Home() {
     const { products, loading } = useProducts();
     const { settings } = useStore();
-    const location = useLocation();
     const { posts } = useBlog();
     const offersRef = useRef<HTMLDivElement>(null);
 
-    // Carousel State
-    const [currentBanner, setCurrentBanner] = useState(0);
-    const banners = [
-        settings.hero_image_url || "https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000",
-        ...(settings.hero_banners || [])
-    ].filter(Boolean);
-
-    // Auto-advance carousel
-    useEffect(() => {
-        if (banners.length <= 1) return;
-
-        const timer = setInterval(() => {
-            setCurrentBanner((prev) => (prev + 1) % banners.length);
-        }, 6000); // 6 seconds per banner
-
-        return () => clearInterval(timer);
-    }, [banners.length]);
-
-    const nextBanner = () => {
-        setCurrentBanner((prev) => (prev + 1) % banners.length);
-    };
-
-    const prevBanner = () => {
-        setCurrentBanner((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-    };
-
-    // Filter states driven by URL
-    const queryParams = new URLSearchParams(location.search);
-    const urlCategory = queryParams.get('cat') || 'Todos';
-    const urlSearch = queryParams.get('q') || '';
-
-    const scrollToOffers = () => {
-        offersRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const promoProducts = products.filter(p => p.promotionalPrice && p.stock > 0);
-    const featuredProducts = products.filter(p => p.isFeatured && p.stock > 0);
-
-    const filtered = products.filter(p => {
-        const matchesCategory = urlCategory === 'Todos' || p.category === urlCategory;
-        const matchesSearch = p.name.toLowerCase().includes(urlSearch.toLowerCase());
-        return matchesCategory && matchesSearch;
+    // Filter states
+    const [activeFilters, setActiveFilters] = useState<FilterState>({
+        search: '',
+        category: [],
+        priceRange: [0, 1000],
+        materials: [],
+        colors: [],
+        sortBy: 'newest'
     });
 
-    const isFiltered = urlCategory !== 'Todos' || urlSearch !== '';
+    // Carousel State
+    const [currentBanner] = useState(0);
+    const banners = useMemo(() => [
+        settings.hero_image_url || "https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000",
+        ...(settings.hero_banners || [])
+    ].filter(Boolean), [settings.hero_image_url, settings.hero_banners]);
 
-    const featuredPosts = posts.filter(p => p.isFeatured && p.isPublished).slice(0, 3);
+    // Data for filters
+    const categories = useMemo(() => {
+        const cats = Array.from(new Set(products.map(p => p.category)));
+        return cats.sort();
+    }, [products]);
+
+    const materials = useMemo(() => {
+        const mats = Array.from(new Set(products.map(p => p.material).filter(Boolean)));
+        return mats.sort() as string[];
+    }, [products]);
+
+    const colors = useMemo(() => {
+        const colorMap: Record<string, string> = {
+            'Dourado': '#D4AF37',
+            'Marrom': '#8B4513',
+            'Branco': '#FFFFFF',
+            'Prata': '#C0C0C0',
+            'Preto': '#1a1a1a',
+            'Azul': '#4A90E2',
+            'Vermelho': '#E24A4A',
+            'Rosa': '#E291A8',
+            'Verde': '#4AE290',
+            'Bege': '#F5F5DC',
+            'Multicolor': 'linear-gradient(to right, red, yellow, green, blue)'
+        };
+        const uniqueColors = Array.from(new Set(products.map(p => p.color).filter(Boolean)));
+        return uniqueColors.map(c => ({ name: c as string, hex: colorMap[c as string] || '#CCCCCC' }));
+    }, [products]);
+
+    // Internal filtering logic
+    const filteredProducts = useMemo(() => {
+        let result = [...products];
+
+        if (activeFilters.search) {
+            const search = activeFilters.search.toLowerCase();
+            result = result.filter(p =>
+                p.name.toLowerCase().includes(search) ||
+                p.description.toLowerCase().includes(search)
+            );
+        }
+
+        if (activeFilters.category.length > 0) {
+            result = result.filter(p => activeFilters.category.includes(p.category));
+        }
+
+        result = result.filter(p => {
+            const price = p.promotionalPrice || p.price;
+            return price <= activeFilters.priceRange[1];
+        });
+
+        if (activeFilters.materials.length > 0) {
+            result = result.filter(p => p.material && activeFilters.materials.includes(p.material));
+        }
+
+        if (activeFilters.colors.length > 0) {
+            result = result.filter(p => p.color && activeFilters.colors.includes(p.color));
+        }
+
+        switch (activeFilters.sortBy) {
+            case 'price-asc':
+                result.sort((a, b) => (a.promotionalPrice || a.price) - (b.promotionalPrice || b.price));
+                break;
+            case 'price-desc':
+                result.sort((a, b) => (b.promotionalPrice || b.price) - (a.promotionalPrice || a.price));
+                break;
+            case 'rating':
+                result.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+                break;
+            case 'newest':
+            default:
+                break;
+        }
+
+        return result;
+    }, [products, activeFilters]);
+
+    const promoProducts = useMemo(() => products.filter(p => p.promotionalPrice && p.stock > 0), [products]);
+    const featuredProducts = useMemo(() => products.filter(p => p.isFeatured && p.stock > 0), [products]);
+    const featuredPosts = useMemo(() => posts.filter(p => p.isFeatured && p.isPublished).slice(0, 3), [posts]);
+
+    const isGlobalSearch = activeFilters.search !== '' || activeFilters.category.length > 0 || activeFilters.colors.length > 0 || activeFilters.materials.length > 0;
 
     return (
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full bg-gray-50/30">
             <Helmet>
                 <title>{settings.store_name} - Artigos Religiosos e Presentes de Fé</title>
                 <meta name="description" content={`Bem-vindo à ${settings.store_name}. Encontre os melhores artigos religiosos, terços, imagens e presentes para fortalecer sua fé.`} />
-                <meta property="og:title" content={`${settings.store_name} - Artigos Religiosos`} />
-                <meta property="og:description" content="Sua loja de fé e devoção online. Artigos selecionados com carinho e reverência." />
             </Helmet>
-            {!isFiltered && (
-                <>
-                    {/* Hero Carousel - Slimmer Height like ML */}
-                    <section className="relative h-[300px] md:h-[400px] lg:h-[450px] overflow-hidden group w-full bg-stone-900 border-b border-brand-gold/20">
-                        {/* Slides */}
-                        {banners.map((url, index) => (
-                            <div
-                                key={index}
-                                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentBanner ? 'opacity-100 scale-100 translate-x-0' :
-                                    index < currentBanner ? 'opacity-0 scale-110 -translate-x-full' : 'opacity-0 scale-110 translate-x-full'
-                                    }`}
-                            >
-                                <img
-                                    src={url}
-                                    alt={`Banner ${index + 1}`}
-                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] ease-linear group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-                            </div>
-                        ))}
 
-                        {/* Content (Constant across slides for consistent branding) */}
-                        <div className="absolute inset-0 flex items-center z-10 pointer-events-none">
-                            <div className="max-w-7xl mx-auto w-full px-4 md:px-8">
-                                <div className="max-w-2xl text-white space-y-4 md:space-y-6 animate-fade-in-up pointer-events-auto">
-                                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-display font-medium leading-[1.1] drop-shadow-2xl uppercase tracking-tighter">
-                                        {settings.hero_title || 'Encontre Paz e Devoção'}
-                                    </h1>
-                                    <p className="text-xs md:text-base lg:text-xl opacity-90 drop-shadow-lg font-light max-w-xl italic line-clamp-2 md:line-clamp-none">
-                                        {settings.hero_subtitle || 'Artigos religiosos selecionados com amor para fortalecer sua fé.'}
-                                    </p>
-                                    <div className="pt-2">
-                                        <button
-                                            onClick={scrollToOffers}
-                                            className="bg-brand-gold text-brand-wood font-black py-2.5 px-6 md:py-3.5 md:px-10 rounded-sm shadow-soft-lg hover:bg-white hover:text-brand-gold transition-all duration-500 transform hover:-translate-y-1 active:scale-95 text-[9px] md:text-xs uppercase tracking-[0.2em] flex items-center gap-2 md:gap-3"
-                                        >
-                                            {settings.hero_button_text || 'Ver Ofertas'} <ArrowRight size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+            {!isGlobalSearch && (
+                <section className="relative h-[300px] md:h-[400px] lg:h-[450px] overflow-hidden group w-full bg-stone-900 border-b border-brand-gold/20">
+                    {banners.map((url, index) => (
+                        <div
+                            key={index}
+                            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentBanner ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+                        >
+                            <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
                         </div>
+                    ))}
 
-                        {/* Carousel Controls */}
-                        {banners.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prevBanner}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-brand-gold hover:border-brand-gold transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                                <button
-                                    onClick={nextBanner}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-brand-gold hover:border-brand-gold transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-
-                                {/* Progress Indicators */}
-                                <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 md:gap-3">
-                                    {banners.map((_, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setCurrentBanner(index)}
-                                            className={`h-0.5 md:h-1 transition-all duration-500 rounded-full ${index === currentBanner ? 'w-6 md:w-10 bg-brand-gold' : 'w-1.5 md:w-2 bg-white/30 hover:bg-white/50'
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </section>
-
-                    {/* Wrapped Content - Standardized width and less spacing */}
-                    <div className="max-w-7xl mx-auto px-4 space-y-12 md:space-y-16 mt-8 md:mt-12">
-                        {/* Showcase Highlights / Destaques */}
-                        {featuredProducts.length > 0 && (
-                            <section className="animate-fade-in-up">
-                                <div className="flex items-center gap-3 mb-4 md:mb-6">
-                                    <div className="text-brand-gold">
-                                        <Sparkles size={20} className="md:size-6" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg md:text-xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.15em]">Destaques</h2>
-                                        <p className="text-[7px] md:text-[8px] text-stone-400 font-bold uppercase tracking-[0.3em] mt-0.5">Curadoria Especial</p>
-                                    </div>
-                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-4 md:ml-6" />
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
-                                    {featuredProducts.slice(0, 12).map(p => (
-                                        <ProductCard key={`${p.id}-featured`} product={p} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Flash Deals / Promo Section */}
-                        {promoProducts.length > 0 && (
-                            <section ref={offersRef} className="animate-fade-in-up">
-                                <div className="flex items-center gap-3 mb-4 md:mb-6">
-                                    <div className="text-brand-gold">
-                                        <Gift size={20} className="md:size-6" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg md:text-xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.15em]">Ofertas</h2>
-                                        <p className="text-[7px] md:text-[8px] text-brand-gold font-bold uppercase tracking-[0.3em] mt-0.5">Oportunidades Únicas</p>
-                                    </div>
-                                    <div className="h-px flex-1 bg-brand-cotton-dark dark:bg-stone-800 ml-4 md:ml-6" />
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
-                                    {promoProducts.slice(0, 12).map(p => (
-                                        <ProductCard key={`${p.id}-promo`} product={p} />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </div>
-                </>
-            )}
-
-            {/* Main Product Grid Wrapped */}
-            <div className="max-w-7xl mx-auto px-4 space-y-12 md:space-y-16 mt-12 md:mt-20">
-                <section className="animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-8 md:mb-12">
-                        <div className="flex items-center gap-3">
-                            <div className="text-brand-gold">
-                                <Compass size={20} className="md:size-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.15em]">
-                                    {isFiltered ? (urlSearch ? `Resultados para "${urlSearch}"` : urlCategory) : 'Catálogo'}
-                                </h2>
-                                <p className="text-[7px] md:text-[8px] text-stone-400 font-bold uppercase tracking-[0.3em] mt-1">
-                                    {isFiltered ? 'Filtrado com Devoção' : 'Navegue em nossa Seleção Divina'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {loading ? (
-                        <div className="text-center py-20 animate-pulse text-brand-gold font-display text-xl tracking-[0.3em] uppercase">Elevando orações...</div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
-                            {filtered.map(p => (
-                                <ProductCard key={p.id} product={p} />
-                            ))}
-                        </div>
-                    )}
-
-                    {!loading && filtered.length === 0 && (
-                        <div className="text-center py-24 md:py-32 bg-white dark:bg-stone-900 border border-brand-cotton-dark dark:border-stone-800 rounded-sm shadow-soft max-w-4xl mx-auto">
-                            <div className="text-6xl md:text-8xl mb-6 md:mb-8 opacity-20">🕊️</div>
-                            <h3 className="text-2xl md:text-4xl font-display font-medium text-stone-800 dark:text-stone-100 mb-4 md:mb-6 uppercase tracking-widest">Tesouro Não Encontrado</h3>
-                            <p className="text-stone-400 max-w-md mx-auto mb-8 md:mb-12 font-light text-base md:text-xl italic leading-relaxed">Que tal tentar uma busca diferente ou navegar pelas nossas categorias de devoção?</p>
-                            <button
-                                onClick={() => window.location.href = '/'}
-                                className="inline-flex items-center gap-3 bg-brand-gold text-brand-wood hover:bg-brand-wood hover:text-white px-8 py-4 md:px-12 md:py-5 rounded-sm font-black text-[10px] md:text-xs transition-all shadow-xl hover:-translate-y-1 active:scale-95 border-none uppercase tracking-[0.2em]"
-                            >
-                                Recomeçar Busca <ArrowRight size={18} />
+                    <div className="absolute inset-0 flex items-center z-10 px-4 md:px-8 max-w-7xl mx-auto w-full">
+                        <div className="max-w-2xl text-white space-y-4 md:space-y-6">
+                            <h1 className="text-2xl md:text-5xl font-display font-medium uppercase tracking-tighter">
+                                {settings.hero_title || 'Encontre Paz e Devoção'}
+                            </h1>
+                            <p className="text-xs md:text-xl opacity-90 font-light italic">
+                                {settings.hero_subtitle || 'Artigos religiosos selecionados com amor.'}
+                            </p>
+                            <button onClick={() => offersRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-brand-gold text-brand-wood font-black py-2.5 px-6 md:py-4 md:px-12 rounded-sm text-[10px] md:text-xs uppercase tracking-[0.2em] flex items-center gap-3">
+                                Ver Ofertas <ArrowRight size={16} />
                             </button>
                         </div>
-                    )}
+                    </div>
                 </section>
+            )}
 
-                {/* Blog Section */}
-                {!isFiltered && (
-                    <section className="animate-fade-in-up py-16 md:py-24 border-t border-brand-cotton-dark dark:border-stone-800">
-                        <div className="flex items-center justify-between mb-8 md:mb-12">
-                            <div className="flex items-center gap-3">
-                                <div className="text-brand-gold">
-                                    <Feather size={20} className="md:size-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl md:text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-[0.15em]">Blog de Fé</h2>
-                                    <p className="text-[7px] md:text-[8px] text-stone-400 font-bold uppercase tracking-[0.3em] mt-1">Mensagens Diárias</p>
+            <div className="max-w-7xl mx-auto px-4 w-full pt-12 md:pt-20">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    <ProductFilters
+                        categories={categories}
+                        materials={materials}
+                        colors={colors}
+                        onFilterChange={setActiveFilters}
+                        totalResults={filteredProducts.length}
+                    />
+
+                    <main className="flex-1 space-y-16">
+                        {!isGlobalSearch && (
+                            <>
+                                {featuredProducts.length > 0 && (
+                                    <section>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <Sparkles size={20} className="text-brand-gold" />
+                                            <h2 className="text-lg font-display font-medium text-stone-800 uppercase tracking-widest">Destaques</h2>
+                                            <div className="h-px flex-1 bg-gray-200" />
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                            {featuredProducts.slice(0, 10).map(p => (
+                                                <ProductCard key={`${p.id}-featured`} product={p} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {promoProducts.length > 0 && (
+                                    <section ref={offersRef}>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <Gift size={20} className="text-brand-gold" />
+                                            <h2 className="text-lg font-display font-medium text-stone-800 uppercase tracking-widest">Ofertas</h2>
+                                            <div className="h-px flex-1 bg-gray-200" />
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                            {promoProducts.slice(0, 10).map(p => (
+                                                <ProductCard key={`${p.id}-promo`} product={p} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+                            </>
+                        )}
+
+                        <section>
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-3">
+                                    <Compass size={20} className="text-brand-gold" />
+                                    <div>
+                                        <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">
+                                            {isGlobalSearch ? 'Resultados da Busca' : 'Catálogo Completo'}
+                                        </h2>
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1">
+                                            {filteredProducts.length} produtos encontrados
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <Link to="/blog" className="hidden md:flex items-center gap-2 text-brand-gold font-black text-[9px] uppercase tracking-wider hover:gap-4 transition-all border-b border-brand-gold pb-1">
-                                Ver Tudo <ArrowRight size={14} />
-                            </Link>
-                        </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
-                            {featuredPosts.slice(0, 12).map(post => (
+                            {loading ? (
+                                <div className="text-center py-20 text-brand-gold font-display text-xl tracking-[0.3em] uppercase animate-pulse">
+                                    Sincronizando com o céu...
+                                </div>
+                            ) : filteredProducts.length > 0 ? (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-20">
+                                    {filteredProducts.map(p => (
+                                        <ProductCard key={p.id} product={p} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-32 bg-white rounded-3xl border border-dashed border-gray-200">
+                                    <span className="text-6xl mb-6 block">🕊️</span>
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Nenhum tesouro encontrado</h3>
+                                    <p className="text-gray-400 mb-8">Tente ajustar seus filtros ou buscar por outro termo.</p>
+                                    <button onClick={() => window.location.reload()} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
+                                        Limpar Filtros
+                                    </button>
+                                </div>
+                            )}
+                        </section>
+                    </main>
+                </div>
+
+                {!isGlobalSearch && featuredPosts.length > 0 && (
+                    <section className="py-20 border-t border-gray-100">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-3">
+                                <Feather size={20} className="text-brand-gold" />
+                                <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">Blog de Fé</h2>
+                            </div>
+                            <Link to="/blog" className="text-brand-gold font-bold text-xs uppercase border-b-2 border-brand-gold pb-1">Ver tudo</Link>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {featuredPosts.map(post => (
                                 <BlogCard key={post.id} post={post} />
                             ))}
                         </div>

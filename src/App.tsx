@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 import { BlogProvider } from './context/BlogContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { HelmetProvider } from 'react-helmet-async';
 import { lazy, Suspense, useState } from 'react';
 import { MessageCircle, Sparkles } from 'lucide-react';
@@ -18,6 +19,7 @@ import { Toaster } from 'react-hot-toast';
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
 const ProductDetail = lazy(() => import('./pages/ProductDetail').then(m => ({ default: m.ProductDetail })));
 const Cart = lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })));
+const Wishlist = lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
 const BlogList = lazy(() => import('./pages/BlogList').then(m => ({ default: m.BlogList })));
 const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
@@ -110,37 +112,40 @@ function App() {
                     <AuthProvider>
                         <BlogProvider>
                             <ProductProvider>
-                                <CartProvider>
-                                    <BrowserRouter>
-                                        <ScrollToTop />
-                                        <Toaster position="top-right" />
-                                        <Suspense fallback={<LoadingFallback />}>
-                                            <Routes>
-                                                {/* Public Routes */}
-                                                <Route path="/" element={<Layout><Home /></Layout>} />
-                                                <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
-                                                <Route path="/cart" element={<Layout><Cart /></Layout>} />
-                                                <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
-                                                <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
+                                <WishlistProvider>
+                                    <CartProvider>
+                                        <BrowserRouter>
+                                            <ScrollToTop />
+                                            <Toaster position="top-right" />
+                                            <Suspense fallback={<LoadingFallback />}>
+                                                <Routes>
+                                                    {/* Public Routes */}
+                                                    <Route path="/" element={<Layout><Home /></Layout>} />
+                                                    <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
+                                                    <Route path="/cart" element={<Layout><Cart /></Layout>} />
+                                                    <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
+                                                    <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+                                                    <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
 
-                                                {/* Blog Routes */}
-                                                <Route path="/blog" element={<Layout><BlogList /></Layout>} />
-                                                <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
+                                                    {/* Blog Routes */}
+                                                    <Route path="/blog" element={<Layout><BlogList /></Layout>} />
+                                                    <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
 
-                                                {/* Auth Routes */}
-                                                <Route path="/login" element={<Layout><Identification /></Layout>} />
-                                                <Route path="/admin-login" element={<Login />} />
+                                                    {/* Auth Routes */}
+                                                    <Route path="/login" element={<Layout><Identification /></Layout>} />
+                                                    <Route path="/admin-login" element={<Login />} />
 
-                                                {/* Secure Routes */}
-                                                <Route path="/admin/*" element={<AdminLayout />} />
+                                                    {/* Secure Routes */}
+                                                    <Route path="/admin/*" element={<AdminLayout />} />
 
-                                                {/* Catch All */}
-                                                <Route path="*" element={<Navigate to="/" replace />} />
-                                            </Routes>
-                                        </Suspense>
-                                        <ChatBot />
-                                    </BrowserRouter>
-                                </CartProvider>
+                                                    {/* Catch All */}
+                                                    <Route path="*" element={<Navigate to="/" replace />} />
+                                                </Routes>
+                                            </Suspense>
+                                            <ChatBot />
+                                        </BrowserRouter>
+                                    </CartProvider>
+                                </WishlistProvider>
                             </ProductProvider>
                         </BlogProvider>
                     </AuthProvider>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
-
 import { ChevronLeft, Check, Loader2, Image as ImageIcon, Trash2, Plus, X } from 'lucide-react';
 
 export function EditProduct() {
@@ -32,16 +31,13 @@ export function EditProduct() {
             setExtraImages(product.images || []);
             setStock(product.stock.toString());
             setCode(product.code || '');
-            setActive(product.active);
-        } else {
-            // Redirect or show error if not found
+            setActive(product.active ?? true);
         }
     }, [id, products]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (id) {
@@ -130,9 +126,7 @@ export function EditProduct() {
             </div>
 
             <div className="grid grid-cols-12 gap-6">
-                {/* Left Column: Details */}
                 <div className="col-span-12 md:col-span-8 space-y-4">
-                    {/* Basic Info Card */}
                     <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
@@ -142,7 +136,7 @@ export function EditProduct() {
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold focus:border-brand-gold transition-colors"
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                                 />
                             </div>
 
@@ -152,7 +146,7 @@ export function EditProduct() {
                                     type="text"
                                     value={code}
                                     onChange={e => setCode(e.target.value)}
-                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                                 />
                             </div>
 
@@ -180,7 +174,7 @@ export function EditProduct() {
                                     step="0.01"
                                     value={price}
                                     onChange={e => setPrice(e.target.value)}
-                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                                 />
                             </div>
                             <div>
@@ -190,7 +184,7 @@ export function EditProduct() {
                                     required
                                     value={stock}
                                     onChange={e => setStock(e.target.value)}
-                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold font-mono"
+                                    className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                                 />
                             </div>
                         </div>
@@ -210,69 +204,56 @@ export function EditProduct() {
                                 onClick={() => setActive(!active)}
                                 className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${active ? 'bg-emerald-500' : 'bg-stone-300'}`}
                             >
-                                <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${active ? 'left-4.5' : 'left-0.5'}`} style={{ left: active ? '18px' : '2px' }} />
+                                <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all`} style={{ left: active ? '18px' : '2px' }} />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{active ? 'Produto Ativo na Loja' : 'Produto Oculto'}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{active ? 'Ativo' : 'Inativo'}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Right Column: Media */}
                 <div className="col-span-12 md:col-span-4 space-y-4">
-                    <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800 h-full">
+                    <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800">
                         <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-3">Imagem Principal</label>
-
-                        <div className="relative group w-full aspect-square bg-stone-50 dark:bg-stone-800 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex flex-col items-center justify-center cursor-pointer hover:border-brand-gold transition-colors overflow-hidden">
+                        <div className="relative group w-full aspect-square bg-stone-50 dark:bg-stone-800 border-2 border-dashed border-stone-200 rounded-sm flex flex-col items-center justify-center cursor-pointer overflow-hidden">
                             {image ? (
-                                <>
-                                    <img src={image} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <p className="text-white text-[10px] uppercase font-bold tracking-widest">Alterar Imagem</p>
-                                    </div>
-                                </>
+                                <img src={image} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="text-center p-4">
-                                    <div className="w-10 h-10 bg-stone-100 dark:bg-stone-700 rounded-full flex items-center justify-center mx-auto mb-2 text-stone-400">
-                                        <ImageIcon size={18} />
-                                    </div>
-                                    <p className="text-[10px] text-stone-400 uppercase font-bold">Clique para upload</p>
-                                </div>
+                                <ImageIcon size={18} className="text-stone-300" />
                             )}
                             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
                         </div>
+                    </div>
 
-                        {/* Extra Images Gallery */}
-                        <div className="mt-6 border-t border-stone-100 dark:border-stone-800 pt-4">
-                            <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-3 flex justify-between items-center">
-                                Galeria (Outros Ângulos)
-                                <span className="text-[8px] font-normal">{extraImages.length} fotos</span>
-                            </label>
+                    <div className="bg-white dark:bg-stone-900 p-5 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800">
+                        <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-3 flex justify-between items-center">
+                            Galeria (Outros Ângulos)
+                            <span className="text-[8px] font-normal">{extraImages.length} fotos</span>
+                        </label>
 
-                            <div className="grid grid-cols-3 gap-2">
-                                {extraImages.map((img, idx) => (
-                                    <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-stone-100 dark:border-stone-800 group/extra">
-                                        <img src={img} className="w-full h-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeExtraImage(idx)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/extra:opacity-100 transition-opacity"
-                                        >
-                                            <X size={10} />
-                                        </button>
-                                    </div>
-                                ))}
+                        <div className="grid grid-cols-3 gap-2">
+                            {extraImages.map((img, idx) => (
+                                <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-stone-100 dark:border-stone-800 group/extra">
+                                    <img src={img} className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeExtraImage(idx)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/extra:opacity-100 transition-opacity"
+                                    >
+                                        <X size={10} />
+                                    </button>
+                                </div>
+                            ))}
 
-                                {extraImages.length < 5 && (
-                                    <div className="relative aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex items-center justify-center hover:border-brand-gold transition-colors cursor-pointer group/add">
-                                        <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" />
-                                    </div>
-                                )}
-                            </div>
+                            {extraImages.length < 5 && (
+                                <div className="relative aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex items-center justify-center hover:border-brand-gold transition-colors cursor-pointer group/add">
+                                    <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
+                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </form >
+        </form>
     );
 }
