@@ -89,22 +89,22 @@ export function Categories() {
                 {/* Lista de Categorias (Grid Densa) */}
                 <div className="md:col-span-2 grid grid-cols-2 lg:grid-cols-3 gap-3 content-start">
                     {categories.map((category) => {
-                        const productCount = products.filter(p => p.category === category.name).length;
+                        const productCount = products.filter(p => p.category === category).length;
                         return (
                             <div
-                                key={category.id}
+                                key={category}
                                 className="group bg-white dark:bg-stone-900 p-3 rounded-sm border border-stone-100 dark:border-stone-800 hover:border-brand-gold/30 transition-all flex justify-between items-center relative overflow-hidden"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
                                     <Tag size={12} className="text-stone-300 flex-shrink-0" />
                                     <div className="min-w-0">
-                                        <h3 className="font-bold text-xs text-stone-700 dark:text-stone-200 truncate">{category.name}</h3>
+                                        <h3 className="font-bold text-xs text-stone-700 dark:text-stone-200 truncate">{category}</h3>
                                         <p className="text-[9px] text-stone-400 font-mono uppercase tracking-widest">{productCount} items</p>
                                     </div>
                                 </div>
 
                                 <button
-                                    onClick={() => handleDelete(category.name)}
+                                    onClick={() => handleDelete(category)}
                                     className="p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors opacity-0 group-hover:opacity-100"
                                     title="Excluir Categoria"
                                 >

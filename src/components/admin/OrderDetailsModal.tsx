@@ -1,13 +1,14 @@
-import { X, Phone, Mail, MapPin, Copy, MessageCircle, Package } from 'lucide-react';
+import { X, Phone, Mail, MapPin, Copy, MessageCircle, Package, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
 interface OrderDetailsModalProps {
     order: any;
     onClose: () => void;
+    onStatusUpdate?: (orderId: string, newStatus: any) => Promise<void>;
 }
 
-export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
+export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetailsModalProps) {
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
         toast.success(`${label} copiado!`, {
@@ -36,19 +37,35 @@ export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
                             <h2 className="text-xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-tight">
                                 Pedido #{order.orderNumber || order.id.slice(0, 8)}
                             </h2>
-                            <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mt-1 flex items-center gap-2">
-                                {new Date(order.createdAt).toLocaleDateString('pt-BR', {
-                                    day: '2-digit',
-                                    month: 'long',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                                <span className="w-1 h-1 rounded-full bg-stone-300"></span>
-                                <span className={`${order.status === 'paid' || order.status === 'delivered' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                    {order.status === 'paid' ? 'Pago' : order.status === 'delivered' ? 'Entregue' : 'Pendente'}
-                                </span>
-                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                                <p className="text-xs font-bold uppercase tracking-widest text-stone-400 flex items-center gap-2">
+                                    {new Date(order.createdAt).toLocaleDateString('pt-BR', {
+                                        day: '2-digit',
+                                        month: 'long',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </p>
+
+                                {/* Status Actions */}
+                                {onStatusUpdate && (
+                                    <select
+                                        value={order.status}
+                                        onChange={(e) => onStatusUpdate(order.id, e.target.value)}
+                                        className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-stone-100 border-none focus:ring-1 focus:ring-brand-gold cursor-pointer ${order.status === 'paid' ? 'text-emerald-600 bg-emerald-50' :
+                                            order.status === 'delivered' ? 'text-blue-600 bg-blue-50' :
+                                                order.status === 'cancelled' ? 'text-red-600 bg-red-50' :
+                                                    'text-amber-600 bg-amber-50'
+                                            }`}
+                                    >
+                                        <option value="pending">Pendente</option>
+                                        <option value="paid">Pago</option>
+                                        <option value="delivered">Entregue</option>
+                                        <option value="cancelled">Cancelado</option>
+                                    </select>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <button

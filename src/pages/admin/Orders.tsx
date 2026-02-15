@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import type { Order } from '../../types';
 import { formatCurrency } from '../../lib/utils';
-import { RefreshCw, CheckCircle2, XCircle, Clock, Package, Eye, Bell, User, Calendar, ShoppingBag, TrendingUp } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Clock, Package, ShoppingBag } from 'lucide-react';
 import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal';
 import { toast } from 'react-hot-toast';
 
@@ -97,8 +97,8 @@ export function Orders() {
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all ${filter === f
-                                    ? 'bg-stone-800 text-white shadow-md'
-                                    : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                                ? 'bg-stone-800 text-white shadow-md'
+                                : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
                                 }`}
                         >
                             {f === 'all' ? 'Todos' : f === 'paid' ? 'Pagos' : f === 'pending' ? 'Pendentes' : 'Entregues'}
@@ -152,8 +152,8 @@ export function Orders() {
                                         </td>
                                         <td className="px-4 py-2">
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-stone-700 dark:text-stone-200">{order.customer.name}</span>
-                                                <span className="text-[9px] text-stone-400">{order.customer.email}</span>
+                                                <span className="text-xs font-bold text-stone-700 dark:text-stone-200">{order.customerName}</span>
+                                                <span className="text-[9px] text-stone-400">{order.customerEmail || 'N/A'}</span>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-center text-[10px] text-stone-500">
