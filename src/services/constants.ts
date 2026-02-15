@@ -10,7 +10,8 @@ export const INITIAL_PRODUCTS: Product[] = [
         images: ['https://images.unsplash.com/photo-1621360841013-c768371e93cf?auto=format&fit=crop&q=80&w=1000'],
         category: 'Terços',
         stock: 10,
-        isFeatured: true
+        isFeatured: true,
+        active: true
     },
     {
         id: '2',
@@ -22,7 +23,8 @@ export const INITIAL_PRODUCTS: Product[] = [
         images: ['https://images.unsplash.com/photo-1548625361-ec880bb23bc1?auto=format&fit=crop&q=80&w=1000'],
         category: 'Imagens',
         stock: 5,
-        isFeatured: true
+        isFeatured: true,
+        active: true
     },
     {
         id: '3',
@@ -33,7 +35,8 @@ export const INITIAL_PRODUCTS: Product[] = [
         images: ['https://images.unsplash.com/photo-1590895318723-52467b72db56?auto=format&fit=crop&q=80&w=1000'],
         category: 'Bíblias',
         stock: 20,
-        isFeatured: false
+        isFeatured: false,
+        active: true
     },
     {
         id: '4',
@@ -44,6 +47,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         images: ['https://images.unsplash.com/photo-1518176258769-f227c798150e?auto=format&fit=crop&q=80&w=1000'],
         category: 'Imagens',
         stock: 3,
-        isFeatured: false
+        isFeatured: false,
+        active: true
     },
 ];

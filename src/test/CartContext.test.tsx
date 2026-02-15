@@ -21,6 +21,7 @@ const mockProduct: Product = {
     image: '/test.jpg',
     category: 'Terço',
     stock: 10,
+    active: true,
 };
 
 describe('CartContext', () => {

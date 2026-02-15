@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
-import { api } from '../../services/api';
+
 import { ChevronLeft, Check, Loader2, Image as ImageIcon, Trash2, Plus, X } from 'lucide-react';
 
 export function EditProduct() {
