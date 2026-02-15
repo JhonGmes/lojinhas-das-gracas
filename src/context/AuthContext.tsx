@@ -91,29 +91,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('✅ [AuthContext] Usuário auth criado com sucesso:', data.user.id);
 
         // Create profile in usuarios table
-        const { error: profileError } = await supabase
+        const insertData = {
+            auth_id: data.user.id,
+            email: email,
+            nome: name,
+            telefone: whatsapp,
+            endereco: address,
+            nivel: 'customer'
+        };
+
+        console.log('📝 [AuthContext] Dados que serão inseridos na tabela usuarios:', insertData);
+
+        const { data: insertResult, error: profileError } = await supabase
             .from('usuarios')
-            .insert([
-                {
-                    auth_id: data.user.id,
-                    email: email,
-                    nome: name,
-                    telefone: whatsapp,
-                    endereco: address,
-                    nivel: 'customer'
-                }
-            ])
+            .insert([insertData])
+            .select();
+
+        console.log('📤 [AuthContext] Resultado do INSERT:', { insertResult, profileError });
 
         if (profileError) {
             console.error('❌ [AuthContext] Erro ao salvar perfil na tabela usuarios:', profileError);
-            console.error('Dados que tentamos inserir:', {
-                auth_id: data.user.id,
-                email,
-                nome: name,
-                telefone: whatsapp,
-                endereco: address,
-                nivel: 'customer'
-            });
+            console.error('Dados que tentamos inserir:', insertData);
             return { success: false, message: 'Conta criada, mas erro ao salvar perfil. Contate o suporte.' }
         }
 
