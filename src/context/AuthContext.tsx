@@ -103,6 +103,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Error creating profile:', profileError)
         }
 
+        // If email confirmation is disabled in Supabase, we get a session immediately
+        if (data.session) {
+            setUser({
+                id: data.user.id,
+                email: email,
+                name: name,
+                whatsapp: whatsapp,
+                address: address,
+                role: 'customer'
+            })
+        }
+
         return { success: true }
     }
 

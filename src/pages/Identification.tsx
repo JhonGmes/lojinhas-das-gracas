@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, UserPlus, ArrowRight, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
@@ -17,13 +17,19 @@ export function Identification() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login, signUp, resetPassword } = useAuth();
+    const { login, signUp, resetPassword, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     // Get redirect path from query params, default to '/'
     const queryParams = new URLSearchParams(location.search);
     const redirectPath = queryParams.get('redirect') || '/';
+
+    useEffect(() => {
+        if (user) {
+            navigate(redirectPath);
+        }
+    }, [user, navigate, redirectPath]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,14 +62,14 @@ export function Identification() {
             address: registerAddress
         });
         if (res.success) {
-            setSuccess('Cadastro realizado com sucesso! Você já pode fazer login com sua conta.');
+            setSuccess('Cadastro concluído com sucesso!');
+            // Se o Supabase estiver configurado para não confirmar e-mail,
+            // o setContext já terá logado o usuário e o useEffect acima redirecionará.
             setRegisterEmail('');
             setRegisterPass('');
             setRegisterName('');
             setRegisterPhone('');
             setRegisterAddress('');
-            // Optional: Auto-fill login email
-            setLoginEmail(registerEmail);
         } else {
             setError(res.message || 'Erro ao realizar cadastro.');
         }
@@ -157,21 +163,21 @@ export function Identification() {
 
     return (
         <div className="min-h-screen bg-stone-50 dark:bg-stone-950 py-12 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 {/* Header Section */}
-                <div className="mb-10 text-center md:text-left">
-                    <h1 className="text-3xl font-display font-bold text-brand-wood dark:text-stone-100 flex items-center gap-3">
+                <div className="mb-8 text-center md:text-left">
+                    <h1 className="text-2xl font-display font-bold text-brand-wood dark:text-stone-100 flex items-center gap-2">
                         <span className="text-brand-gold">Identificação</span>
                         <span className="hidden md:inline text-stone-300 dark:text-stone-700 font-light">|</span>
-                        <span className="text-lg md:text-xl font-normal text-stone-500 dark:text-stone-400">Faça seu login ou crie uma conta</span>
+                        <span className="text-base md:text-lg font-normal text-stone-500 dark:text-stone-400">Login ou Cadastro</span>
                     </h1>
-                    <div className="h-1 w-20 bg-brand-gold mt-4 rounded-full hidden md:block"></div>
+                    <div className="h-1 w-16 bg-brand-gold mt-2 rounded-full hidden md:block"></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                     {/* Login Column */}
-                    <div className="glass-card premium-shadow rounded-[2rem] p-8 md:p-10 space-y-8 relative overflow-hidden group">
+                    <div className="glass-card premium-shadow rounded-[1.5rem] p-6 md:p-8 space-y-6 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                             <User size={120} className="text-brand-gold" />
                         </div>
@@ -197,7 +203,7 @@ export function Identification() {
                                             required
                                             value={loginEmail}
                                             onChange={e => setLoginEmail(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                             placeholder="seu@email.com"
                                         />
                                     </div>
@@ -212,7 +218,7 @@ export function Identification() {
                                             required
                                             value={loginPass}
                                             onChange={e => setLoginPass(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -233,7 +239,7 @@ export function Identification() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-brand-wood hover:bg-brand-brown text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+                                className="w-full bg-brand-wood hover:bg-brand-brown text-white py-3 px-6 rounded-xl font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {loading ? 'Entrando...' : (
                                     <>
@@ -245,7 +251,7 @@ export function Identification() {
                     </div>
 
                     {/* Registration Column */}
-                    <div className="glass-card premium-shadow rounded-[2rem] p-8 md:p-10 space-y-8 relative overflow-hidden group">
+                    <div className="glass-card premium-shadow rounded-[1.5rem] p-6 md:p-8 space-y-6 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                             <UserPlus size={120} className="text-brand-gold" />
                         </div>
@@ -271,7 +277,7 @@ export function Identification() {
                                             required
                                             value={registerName}
                                             onChange={e => setRegisterName(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                             placeholder="Seu nome completo"
                                         />
                                     </div>
@@ -286,7 +292,7 @@ export function Identification() {
                                             required
                                             value={registerEmail}
                                             onChange={e => setRegisterEmail(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                             placeholder="exemplo@email.com"
                                         />
                                     </div>
@@ -294,7 +300,7 @@ export function Identification() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">WhatsApp / Celular</label>
+                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">WhatsApp</label>
                                         <div className="relative">
                                             <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
                                             <input
@@ -302,7 +308,7 @@ export function Identification() {
                                                 required
                                                 value={registerPhone}
                                                 onChange={e => setRegisterPhone(e.target.value)}
-                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                                 placeholder="(00) 00000-0000"
                                             />
                                         </div>
@@ -317,8 +323,8 @@ export function Identification() {
                                                 required
                                                 value={registerPass}
                                                 onChange={e => setRegisterPass(e.target.value)}
-                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
-                                                placeholder="Mínimo 6 caracteres"
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
+                                                placeholder="Mínimo 6 chars"
                                             />
                                         </div>
                                     </div>
@@ -333,7 +339,7 @@ export function Identification() {
                                             required
                                             value={registerAddress}
                                             onChange={e => setRegisterAddress(e.target.value)}
-                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
                                             placeholder="Rua, Número, Bairro, Cidade - Estado"
                                         />
                                     </div>
@@ -343,7 +349,7 @@ export function Identification() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-brand-gold hover:bg-amber-500 text-white py-4 rounded-2xl font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+                                className="w-full bg-brand-gold hover:bg-amber-500 text-white py-3 px-6 rounded-xl font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {loading ? 'Cadastrando...' : (
                                     <>
