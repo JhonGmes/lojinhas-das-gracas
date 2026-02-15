@@ -129,7 +129,7 @@ export function AdminLayout() {
                 </div>
 
                 {/* Navigation - Fixed & Compacted */}
-                <nav className="flex-1 overflow-hidden py-4 px-0 space-y-2">
+                <nav className="flex-1 overflow-y-auto py-4 px-0 space-y-2 scrollbar-hide">
                     {navGroups.map((group, idx) => (
                         <div key={idx}>
                             <h3 className="px-6 text-[9px] font-black text-stone-500 uppercase tracking-widest mb-2 opacity-70 flex items-center gap-2">
