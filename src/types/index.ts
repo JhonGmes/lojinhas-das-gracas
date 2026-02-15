@@ -46,6 +46,8 @@ export interface User {
     id: string;
     email: string;
     name?: string;
+    whatsapp?: string;
+    address?: string;
     role: 'admin' | 'customer';
 }
 

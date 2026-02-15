@@ -565,5 +565,20 @@ export const api = {
                 localStorage.setItem('ljg_waitlist', JSON.stringify(filtered));
             }
         }
+    },
+    usuarios: {
+        list: async (): Promise<any[]> => {
+            try {
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Erro ao listar usuários:', err);
+                return [];
+            }
+        }
     }
 };

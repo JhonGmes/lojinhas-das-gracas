@@ -8,6 +8,9 @@ export function Identification() {
     const [loginPass, setLoginPass] = useState('');
     const [registerEmail, setRegisterEmail] = useState('');
     const [registerPass, setRegisterPass] = useState('');
+    const [registerName, setRegisterName] = useState('');
+    const [registerPhone, setRegisterPhone] = useState('');
+    const [registerAddress, setRegisterAddress] = useState('');
     const [resetEmail, setResetEmail] = useState('');
     const [showResetPassword, setShowResetPassword] = useState(false);
     const [error, setError] = useState('');
@@ -45,11 +48,22 @@ export function Identification() {
         setLoading(true);
         setError('');
         setSuccess(''); // Clear success message on new attempt
-        const res = await signUp(registerEmail, registerPass);
+        const res = await signUp({
+            email: registerEmail,
+            pass: registerPass,
+            name: registerName,
+            whatsapp: registerPhone,
+            address: registerAddress
+        });
         if (res.success) {
-            setSuccess('Cadastro realizado! Verifique seu e-mail ou faça login.');
+            setSuccess('Cadastro realizado com sucesso! Você já pode fazer login com sua conta.');
             setRegisterEmail('');
             setRegisterPass('');
+            setRegisterName('');
+            setRegisterPhone('');
+            setRegisterAddress('');
+            // Optional: Auto-fill login email
+            setLoginEmail(registerEmail);
         } else {
             setError(res.message || 'Erro ao realizar cadastro.');
         }
@@ -249,6 +263,21 @@ export function Identification() {
                         <form onSubmit={handleRegister} className="space-y-6">
                             <div className="space-y-4">
                                 <div>
+                                    <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Nome Completo</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                                        <input
+                                            type="text"
+                                            required
+                                            value={registerName}
+                                            onChange={e => setRegisterName(e.target.value)}
+                                            className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                            placeholder="Seu nome completo"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
                                     <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">E-mail para cadastro</label>
                                     <div className="relative">
                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
@@ -263,17 +292,49 @@ export function Identification() {
                                     </div>
                                 </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">WhatsApp / Celular</label>
+                                        <div className="relative">
+                                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={registerPhone}
+                                                onChange={e => setRegisterPhone(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                                placeholder="(00) 00000-0000"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Senha</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                                            <input
+                                                type="password"
+                                                required
+                                                value={registerPass}
+                                                onChange={e => setRegisterPass(e.target.value)}
+                                                className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
+                                                placeholder="Mínimo 6 caracteres"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Escolha uma senha</label>
+                                    <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">Endereço de Entrega</label>
                                     <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                                        <ArrowRight className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
                                         <input
-                                            type="password"
+                                            type="text"
                                             required
-                                            value={registerPass}
-                                            onChange={e => setRegisterPass(e.target.value)}
+                                            value={registerAddress}
+                                            onChange={e => setRegisterAddress(e.target.value)}
                                             className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-stone-800 dark:text-stone-200"
-                                            placeholder="Mínimo 6 caracteres"
+                                            placeholder="Rua, Número, Bairro, Cidade - Estado"
                                         />
                                     </div>
                                 </div>

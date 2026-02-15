@@ -5,7 +5,7 @@ import type { User } from '../types'
 interface AuthContextType {
     user: User | null
     login: (email: string, pass: string) => Promise<boolean>
-    signUp: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>
+    signUp: (data: { email: string; pass: string; name: string; whatsapp: string; address: string }) => Promise<{ success: boolean; message?: string }>
     resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
     logout: () => Promise<void>
 }
@@ -37,6 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser({
                 id: usuario.id,
                 email: usuario.email,
+                name: usuario.nome,
+                whatsapp: usuario.telefone,
+                address: usuario.endereco,
                 role: usuario.nivel
             })
         }
@@ -58,16 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!usuario) return false
 
-        setUser({
-            id: usuario.id,
-            email: usuario.email,
-            role: usuario.nivel
-        })
+        if (usuario) {
+            setUser({
+                id: usuario.id,
+                email: usuario.email,
+                name: usuario.nome,
+                whatsapp: usuario.telefone,
+                address: usuario.endereco,
+                role: usuario.nivel
+            })
+        }
 
         return true
     }
 
-    async function signUp(email: string, pass: string) {
+    async function signUp({ email, pass, name, whatsapp, address }: { email: string; pass: string; name: string; whatsapp: string; address: string }) {
         const { data, error } = await supabase.auth.signUp({
             email,
             password: pass
@@ -84,15 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 {
                     auth_id: data.user.id,
                     email: email,
+                    nome: name,
+                    telefone: whatsapp,
+                    endereco: address,
                     nivel: 'cliente'
                 }
             ])
 
         if (profileError) {
-            console.error('Error creating profile:', JSON.stringify(profileError, null, 2))
-            // Even if profile creation fails, the auth user is created.
-            // We return success if it's just a duplicate profile error,
-            // but let's be strict for now and just log it.
+            console.error('Error creating profile:', profileError)
         }
 
         return { success: true }

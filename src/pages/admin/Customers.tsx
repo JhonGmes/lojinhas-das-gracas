@@ -12,64 +12,93 @@ interface CustomerSummary {
     email: string;
     name: string;
     phone: string;
+    address?: string;
     orderCount: number;
     totalSpent: number;
     lastPurchase: string;
     orders: Order[];
-    tier: 'VIP' | 'Recorrente' | 'Novo';
+    tier: 'VIP' | 'Recorrente' | 'Novo' | 'Prospecto';
 }
 
 export function Customers() {
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [customers, setCustomers] = useState<CustomerSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<CustomerSummary | null>(null);
 
     useEffect(() => {
-        const fetchOrders = async () => {
+        const fetchData = async () => {
             setLoading(true);
-            const data = await api.orders.list();
-            setOrders(data);
-            setLoading(false);
+            try {
+                const [ordersData, usersData] = await Promise.all([
+                    api.orders.list(),
+                    api.usuarios.list()
+                ]);
+
+                // Process customers map
+                const map: Record<string, CustomerSummary> = {};
+
+                // Add users first (they are our "base")
+                usersData.forEach((u: any) => {
+                    if (u.nivel === 'admin') return;
+                    const email = u.email.toLowerCase();
+                    map[email] = {
+                        email: u.email,
+                        name: u.nome || 'Cliente sem nome',
+                        phone: u.telefone || 'N/A',
+                        address: u.endereco,
+                        orderCount: 0,
+                        totalSpent: 0,
+                        lastPurchase: u.created_at,
+                        orders: [],
+                        tier: 'Prospecto'
+                    };
+                });
+
+                // Add orders data
+                ordersData.forEach((order: any) => {
+                    const email = (order.customerEmail || 'no-email@undefined.com').toLowerCase();
+                    if (!map[email]) {
+                        map[email] = {
+                            email: order.customerEmail || email,
+                            name: order.customerName,
+                            phone: order.customerPhone || 'N/A',
+                            orderCount: 0,
+                            totalSpent: 0,
+                            lastPurchase: order.createdAt,
+                            orders: [],
+                            tier: 'Novo'
+                        };
+                    }
+
+                    const customer = map[email];
+                    customer.orderCount += 1;
+                    customer.totalSpent += order.total;
+                    customer.orders.push(order);
+
+                    if (new Date(order.createdAt) > new Date(customer.lastPurchase)) {
+                        customer.lastPurchase = order.createdAt;
+                    }
+                });
+
+                // Apply tiers and sorting
+                const finalCustomers = Object.values(map).map(c => {
+                    if (c.orderCount === 0) c.tier = 'Prospecto';
+                    else if (c.totalSpent > 500 || c.orderCount > 5) c.tier = 'VIP';
+                    else if (c.orderCount > 2) c.tier = 'Recorrente';
+                    else c.tier = 'Novo';
+                    return c;
+                }).sort((a, b) => b.totalSpent - a.totalSpent);
+
+                setCustomers(finalCustomers);
+            } catch (err) {
+                console.error('Erro ao carregar dados do CRM:', err);
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchOrders();
+        fetchData();
     }, []);
-
-    // Agrupar pedidos por cliente (usando email como chave primária)
-    const customerMap = orders.reduce((acc, order) => {
-        const email = order.customerEmail || 'no-email@undefined.com';
-        if (!acc[email]) {
-            acc[email] = {
-                email,
-                name: order.customerName,
-                phone: order.customerPhone || 'N/A',
-                orderCount: 0,
-                totalSpent: 0,
-                lastPurchase: order.createdAt,
-                orders: [],
-                tier: 'Novo'
-            };
-        }
-
-        acc[email].orderCount += 1;
-        acc[email].totalSpent += order.total;
-        acc[email].orders.push(order);
-
-        // Atualiza para a data mais recente se necessário
-        if (new Date(order.createdAt) > new Date(acc[email].lastPurchase)) {
-            acc[email].lastPurchase = order.createdAt;
-        }
-
-        return acc;
-    }, {} as Record<string, CustomerSummary>);
-
-    // Aplicar lógica de tiers
-    const customers = Object.values(customerMap).map(c => {
-        if (c.totalSpent > 500 || c.orderCount > 5) c.tier = 'VIP';
-        else if (c.orderCount > 2) c.tier = 'Recorrente';
-        else c.tier = 'Novo';
-        return c;
-    }).sort((a, b) => b.totalSpent - a.totalSpent);
 
     const filteredCustomers = customers.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,8 +113,10 @@ export function Customers() {
 
     const handleContact = (customer: any) => {
         const text = customer.tier === 'VIP'
-            ? `A Paz de Cristo, ${customer.name}! Passando para agradecer sua fidelidade à Lojinha das Graças. Você é um de nossos clientes VIPs e preparamos um mimo especial para sua próxima compra: use o cupom GRACAVIP para 15% OFF! 🙏✨`
-            : `A Paz, ${customer.name}! Tudo bem? Vimos que faz um tempinho que você não nos visita. Temos novidades lindas na Lojinha das Graças esperando por você! 🙏`;
+            ? `A Paz de Cristo, ${customer.name}! Passando para agradecer sua fidelidade à Lojinha das Graças. Você é um de nossos clientes VIPs e preparamos um mimo especial para sua próxima compra! 🙏✨`
+            : customer.tier === 'Prospecto'
+                ? `A Paz, ${customer.name}! Seja bem-vindo(a) à Lojinha das Graças. Vimos que você se cadastrou em nosso portal. Se precisar de ajuda para escolher um item especial, estou à disposição! 🙏`
+                : `A Paz, ${customer.name}! Tudo bem? Vimos sua última compra conosco. Temos novidades lindas na Lojinha das Graças esperando por você! 🙏`;
 
         let phone = customer.phone.replace(/\D/g, '');
         if (phone.length === 11 && !phone.startsWith('55')) phone = '55' + phone;
@@ -213,7 +244,8 @@ export function Customers() {
                                     <td className="px-4 py-2 text-center">
                                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${customer.tier === 'VIP' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                                             customer.tier === 'Recorrente' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                                                'bg-stone-100 text-stone-600 border border-stone-200'
+                                                customer.tier === 'Prospecto' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                                    'bg-stone-100 text-stone-600 border border-stone-200'
                                             }`}>
                                             {customer.tier}
                                         </span>
@@ -271,7 +303,8 @@ export function Customers() {
                                 </button>
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${selectedCustomer.tier === 'VIP' ? 'bg-amber-500 text-white' :
                                     selectedCustomer.tier === 'Recorrente' ? 'bg-blue-500 text-white' :
-                                        'bg-stone-500 text-white'
+                                        selectedCustomer.tier === 'Prospecto' ? 'bg-emerald-500 text-white' :
+                                            'bg-stone-500 text-white'
                                     }`}>
                                     {selectedCustomer.tier}
                                 </span>
@@ -281,8 +314,22 @@ export function Customers() {
                         {/* Modal Body */}
                         <div className="p-6 overflow-y-auto max-h-[60vh]">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-4 flex items-center gap-2">
-                                <Clock size={14} /> Histórico de Pedidos
+                                <Clock size={14} /> {selectedCustomer.tier === 'Prospecto' ? 'Resumo do Cadastro' : 'Histórico de Pedidos'}
                             </h4>
+
+                            {selectedCustomer.tier === 'Prospecto' && (
+                                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg">
+                                    <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+                                        Este cliente ainda não realizou compras, mas já completou o cadastro.
+                                    </p>
+                                    <div className="mt-4 space-y-2">
+                                        <div className="text-[10px] text-stone-500 uppercase font-bold tracking-widest">Endereço Registrado:</div>
+                                        <div className="text-sm text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 p-3 rounded-md border border-stone-200 dark:border-stone-700">
+                                            {selectedCustomer.address || 'Não informado'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-3">
                                 {selectedCustomer.orders.map(order => (
@@ -318,7 +365,7 @@ export function Customers() {
                                 <strong className="text-stone-600 dark:text-stone-300">Total Acumulado:</strong> {formatCurrency(selectedCustomer.totalSpent)}
                             </div>
                             <div className="text-[10px] text-stone-400">
-                                <strong className="text-stone-600 dark:text-stone-300">Membro desde:</strong> {new Date(selectedCustomer.orders[selectedCustomer.orders.length - 1].createdAt).toLocaleDateString()}
+                                <strong className="text-stone-600 dark:text-stone-300">Membro desde:</strong> {selectedCustomer.orders.length > 0 ? new Date(selectedCustomer.orders[selectedCustomer.orders.length - 1].createdAt).toLocaleDateString() : new Date(selectedCustomer.lastPurchase).toLocaleDateString()}
                             </div>
                         </div>
                     </div>

@@ -39,6 +39,7 @@ create table if not exists usuarios (
 
 -- Adicionar colunas se não existirem
 alter table usuarios add column if not exists telefone text;
+alter table usuarios add column if not exists endereco text;
 
 -- Policies para Usuários
 alter table usuarios enable row level security;
