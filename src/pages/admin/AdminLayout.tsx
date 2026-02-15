@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import {
     LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft,
     Settings as SettingsIcon, FolderTree, BookOpen,
-    User, ChevronRight, Menu, Camera, Users, Ticket, Clock
+    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X
 } from 'lucide-react';
 import { Dashboard } from './Dashboard';
 import { Inventory } from './Inventory';
@@ -30,6 +30,7 @@ export function AdminLayout() {
     // Avatar State (Local Persistence)
     const [avatar, setAvatar] = useState<string | null>(localStorage.getItem('admin_avatar'));
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const fetchPendingCount = async () => {
         const orders = await api.orders.list();
@@ -55,12 +56,15 @@ export function AdminLayout() {
             reader.readAsDataURL(file);
         }
     };
-
     useEffect(() => {
         if (!user || user.role !== 'admin') {
             navigate('/admin-login');
         }
-    }, [user, navigate]);
+    }, [user, navigate, location]);
+
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location]);
 
     if (!user) return null;
 
@@ -90,8 +94,16 @@ export function AdminLayout() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F7F7F7] dark:bg-stone-950 font-sans">
-            {/* Sidebar Moderno - Ajustes Finos (Fonte Display, Less Yellow, Avatar Upload) */}
-            <aside className="w-64 h-full bg-[#2A3F54] text-stone-300 hidden md:flex flex-col shadow-2xl z-20 font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden">
+            {/* Backdrop for Mobile */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Sidebar Moderno */}
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Brand Header - Compacted */}
                 <div className="h-16 flex items-center px-6 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
@@ -100,6 +112,9 @@ export function AdminLayout() {
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-xl" /> : storeInitials}
                     </div>
                     <span className="font-display font-bold text-xs text-white tracking-widest uppercase truncate drop-shadow-sm">{settings.store_name}</span>
+                    <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
+                        <X size={20} />
+                    </button>
                 </div>
 
                 {/* User Profile Section with Upload - Compacted */}
@@ -195,12 +210,19 @@ export function AdminLayout() {
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto relative bg-[#F7F7F7] dark:bg-stone-900 scrollbar-hide">
                 {/* Mobile Header */}
-                <div className="md:hidden bg-[#2A3F54] text-white p-4 flex items-center justify-between shadow-md mb-6 sticky top-0 z-30">
-                    <span className="font-display font-medium uppercase tracking-widest">{settings.store_name}</span>
-                    <button className="p-2"><Menu size={24} /></button>
+                <div className="md:hidden bg-[#2A3F54] text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-30">
+                    <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 bg-brand-gold rounded-lg flex items-center justify-center text-white font-bold text-[10px]">
+                            {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
+                        </div>
+                        <span className="font-display font-medium uppercase tracking-widest text-[10px]">{settings.store_name}</span>
+                    </div>
+                    <button className="p-2 text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(true)}>
+                        <Menu size={24} />
+                    </button>
                 </div>
 
-                <div className="p-8 pb-20 max-w-[1600px] mx-auto">
+                <div className="p-4 md:p-8 pb-20 max-w-[1600px] mx-auto">
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/inventory" element={<Inventory />} />
