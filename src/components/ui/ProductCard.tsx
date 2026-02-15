@@ -90,6 +90,9 @@ export const ProductCard = memo(function ProductCard({ product }: { product: Pro
                         <div className="bg-brand-gold text-brand-wood text-[8px] font-bold px-1.5 py-0.5 rounded-sm shadow-sm uppercase tracking-wider">
                             Oferta
                         </div>
+                        <div className="bg-white/90 backdrop-blur-sm text-brand-gold text-[10px] font-black px-1.5 py-0.5 rounded-sm shadow-sm border border-brand-gold/20">
+                            -{Math.round(((product.price - product.promotionalPrice) / product.price) * 100)}%
+                        </div>
                     </div>
                 )}
             </Link>

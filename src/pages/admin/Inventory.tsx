@@ -14,6 +14,7 @@ export function Inventory() {
     const [promoModalOpen, setPromoModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [promoPriceInput, setPromoPriceInput] = useState('');
+    const [promoPercentInput, setPromoPercentInput] = useState('');
 
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -22,15 +23,39 @@ export function Inventory() {
 
     const handlePromotionToggle = (product: Product) => {
         if (product.promotionalPrice) {
-            // Se já tem promoção, desativa (remove o preço promocional)
             if (window.confirm(`Deseja remover a promoção de "${product.name}"?`)) {
                 updateProduct({ ...product, promotionalPrice: undefined });
             }
         } else {
-            // Se não tem, abre modal para definir
             setSelectedProduct(product);
-            setPromoPriceInput(product.price.toString()); // Sugere o preço atual
+            const initialPrice = (product.price * 0.9).toFixed(2); // Sugere 10% de desconto
+            setPromoPriceInput(initialPrice);
+            setPromoPercentInput('10');
             setPromoModalOpen(true);
+        }
+    };
+
+    const handlePriceChange = (value: string) => {
+        setPromoPriceInput(value);
+        if (!selectedProduct) return;
+        const price = parseFloat(value.replace(',', '.'));
+        if (!isNaN(price) && price > 0) {
+            const percent = ((selectedProduct.price - price) / selectedProduct.price) * 100;
+            setPromoPercentInput(percent.toFixed(0));
+        } else {
+            setPromoPercentInput('');
+        }
+    };
+
+    const handlePercentChange = (value: string) => {
+        setPromoPercentInput(value);
+        if (!selectedProduct) return;
+        const percent = parseFloat(value);
+        if (!isNaN(percent) && percent >= 0 && percent < 100) {
+            const price = selectedProduct.price * (1 - percent / 100);
+            setPromoPriceInput(price.toFixed(2));
+        } else {
+            setPromoPriceInput('');
         }
     };
 
@@ -56,6 +81,7 @@ export function Inventory() {
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             {/* Header */}
+            {/* ... (keep existing header) */}
             <div className="flex justify-between items-end border-b border-stone-200 dark:border-stone-800 pb-4">
                 <div>
                     <h1 className="text-sm font-bold text-stone-700 dark:text-stone-200 uppercase tracking-widest flex items-center gap-2">
@@ -146,7 +172,11 @@ export function Inventory() {
                                                     }`}
                                             />
                                         </button>
-                                        <div className="text-[8px] text-stone-400 mt-0.5">{product.promotionalPrice ? 'Ativa' : 'Inativa'}</div>
+                                        <div className="text-[8px] text-stone-400 mt-0.5">
+                                            {product.promotionalPrice
+                                                ? `${Math.round(((product.price - product.promotionalPrice) / product.price) * 100)}% OFF`
+                                                : 'Inativa'}
+                                        </div>
                                     </td>
 
                                     <td className="px-4 py-2 text-center">
@@ -237,7 +267,7 @@ export function Inventory() {
 
                         <div className="space-y-4">
                             <div className="text-xs text-stone-500">
-                                Definindo preço promocional para: <br />
+                                Definindo promoção para: <br />
                                 <strong className="text-stone-800 dark:text-stone-200">{selectedProduct.name}</strong>
                             </div>
 
@@ -246,25 +276,43 @@ export function Inventory() {
                                 <div className="text-sm font-bold text-stone-600 line-through">{formatCurrency(selectedProduct.price)}</div>
                             </div>
 
-                            <div>
-                                <label className="block text-[10px] uppercase font-bold text-stone-400 mb-1">Novo Preço Promocional (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    autoFocus
-                                    className="w-full px-3 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded text-sm font-bold focus:ring-2 focus:ring-brand-gold outline-none"
-                                    value={promoPriceInput}
-                                    onChange={(e) => setPromoPriceInput(e.target.value)}
-                                    placeholder="0,00"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold text-stone-400 mb-1">Desconto (%)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            className="w-full pl-3 pr-7 py-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded text-sm font-bold focus:ring-2 focus:ring-brand-gold outline-none"
+                                            value={promoPercentInput}
+                                            onChange={(e) => handlePercentChange(e.target.value)}
+                                            placeholder="0"
+                                            min="0"
+                                            max="99"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs font-bold">%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold text-stone-400 mb-1">Preço Promo (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded text-sm font-bold focus:ring-2 focus:ring-brand-gold outline-none"
+                                        value={promoPriceInput}
+                                        onChange={(e) => handlePriceChange(e.target.value)}
+                                        placeholder="0,00"
+                                    />
+                                </div>
                             </div>
 
-                            <button
-                                onClick={savePromotion}
-                                className="w-full bg-brand-gold text-white font-bold py-3 rounded text-xs uppercase tracking-widest hover:bg-brand-gold-dark transition-colors"
-                            >
-                                Salvar Promoção
-                            </button>
+                            <div className="pt-2">
+                                <button
+                                    onClick={savePromotion}
+                                    className="w-full bg-brand-gold text-white font-bold py-3 rounded text-xs uppercase tracking-widest hover:bg-brand-gold-dark transition-colors shadow-md"
+                                >
+                                    Salvar Promoção
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
