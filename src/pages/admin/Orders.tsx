@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
+import { useStore } from '../../context/StoreContext';
 import type { Order } from '../../types';
-import { formatCurrency } from '../../lib/utils';
-import { RefreshCw, CheckCircle2, XCircle, Clock, Package, ShoppingBag } from 'lucide-react';
+import { formatCurrency, exportToCSV } from '../../lib/utils';
+import { RefreshCw, CheckCircle2, XCircle, Clock, Package, ShoppingBag, Download } from 'lucide-react';
 import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal';
 import { toast } from 'react-hot-toast';
 
 export function Orders() {
     const [orders, setOrders] = useState<Order[]>([]);
+    const { settings } = useStore();
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [newOrdersCount, setNewOrdersCount] = useState(0);
+
+    const playNotificationSound = () => {
+        // Voz da Gracinha (Customizável nas Configurações)
+        const audio = new Audio(settings.notification_sound_url || 'https://assets.mixkit.co/active_storage/sfx/2042/2042-preview.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+    };
     const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'delivered' | 'cancelled'>('all');
 
     const loadOrders = async (silent = false) => {
@@ -21,7 +29,7 @@ export function Orders() {
             // Detectar novos pedidos
             if (orders.length > 0 && data.length > orders.length) {
                 const newCount = data.length - orders.length;
-                setNewOrdersCount(newCount);
+                playNotificationSound();
                 toast.success(`${newCount} ${newCount === 1 ? 'novo pedido' : 'novos pedidos'}!`, {
                     icon: '🔔',
                     duration: 5000,
@@ -92,6 +100,12 @@ export function Orders() {
                     <p className="text-[10px] text-stone-400 mt-0.5">Gerencie os pedidos da loja</p>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => exportToCSV(orders, 'pedidos-lojinha')}
+                        className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all border border-stone-200 dark:border-stone-700 hover:bg-stone-50 text-stone-600 flex items-center gap-2"
+                    >
+                        <Download size={12} /> Exportar
+                    </button>
                     {(['all', 'pending', 'paid', 'delivered'] as const).map((f) => (
                         <button
                             key={f}

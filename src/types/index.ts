@@ -10,6 +10,7 @@ export interface Product {
     stock: number;
     code?: string;
     isFeatured?: boolean;
+    active: boolean;
 }
 
 export interface CartItem extends Product {
@@ -59,4 +60,16 @@ export interface BlogPost {
     category: string;
     isFeatured?: boolean;
     isPublished: boolean;
+}
+
+export interface Coupon {
+    id: string;
+    code: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    minSpend?: number;
+    usageLimit?: number;
+    usageCount: number;
+    expiryDate?: string;
+    isActive: boolean;
 }

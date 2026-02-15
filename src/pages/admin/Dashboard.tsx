@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useProducts } from '../../context/ProductContext';
+import { useStore } from '../../context/StoreContext';
 import type { Order } from '../../types';
 import { formatCurrency } from '../../lib/utils';
-import { TrendingUp, DollarSign, Package, AlertTriangle, ArrowUpRight, Clock, User, ArrowUp, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, DollarSign, Package, AlertTriangle, ArrowUpRight, Clock, User, ArrowUp, CheckCircle2, Award } from 'lucide-react';
 
 interface HoverState {
     x: number;
@@ -16,6 +17,7 @@ interface HoverState {
 export function Dashboard() {
     const navigate = useNavigate();
     const { products } = useProducts();
+    const { settings } = useStore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [hoveredPoint, setHoveredPoint] = useState<HoverState | null>(null);
@@ -61,6 +63,33 @@ export function Dashboard() {
             .reduce((acc, o) => acc + o.total, 0);
         return { date, total };
     });
+
+    // CRM Analytics
+    const customerTiersMap = orders.reduce((acc, o) => {
+        const email = o.customerEmail || 'anonimo';
+        if (!acc[email]) acc[email] = { total: 0, count: 0 };
+        if (o.status === 'paid' || o.status === 'delivered') {
+            acc[email].total += o.total;
+            acc[email].count += 1;
+        }
+        return acc;
+    }, {} as Record<string, { total: number, count: number }>);
+
+    const tierStats = Object.values(customerTiersMap).reduce((acc, c) => {
+        let tier: 'VIP' | 'Recorrente' | 'Novo' = 'Novo';
+        if (c.total > 500 || c.count > 5) tier = 'VIP';
+        else if (c.count > 2) tier = 'Recorrente';
+
+        acc[tier].revenue += c.total;
+        acc[tier].count += 1;
+        return acc;
+    }, {
+        'VIP': { revenue: 0, count: 0 },
+        'Recorrente': { revenue: 0, count: 0 },
+        'Novo': { revenue: 0, count: 0 }
+    });
+
+    const maxTierRevenue = Math.max(tierStats.VIP.revenue, tierStats.Recorrente.revenue, tierStats.Novo.revenue, 1);
 
     const maxVal = Math.max(...chartData.map(d => d.total), 100);
 
@@ -131,7 +160,7 @@ export function Dashboard() {
                             {formatCurrency(salesMonth)}
                         </div>
                         <div className="text-[9px] font-bold text-stone-300">
-                            Meta: R$ 5k
+                            Meta: {formatCurrency(settings.monthly_revenue_goal || 5000)}
                         </div>
                     </div>
 
@@ -249,6 +278,57 @@ export function Dashboard() {
                             {new Date(d.date).toLocaleDateString('pt-BR', { weekday: 'short' })}
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* CRM Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white dark:bg-stone-900 p-6 rounded-sm shadow-sm border border-stone-100 dark:border-stone-800">
+                    <h3 className="text-sm font-display uppercase tracking-widest text-stone-700 dark:text-stone-200 mb-6">
+                        Receita por Segmentação CRM
+                    </h3>
+
+                    <div className="space-y-6">
+                        {(['VIP', 'Recorrente', 'Novo'] as const).map(tier => (
+                            <div key={tier} className="space-y-2">
+                                <div className="flex justify-between items-end">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${tier === 'VIP' ? 'bg-amber-400' : tier === 'Recorrente' ? 'bg-blue-400' : 'bg-stone-300'}`} />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{tier}</span>
+                                        <span className="text-[9px] text-stone-400">({tierStats[tier].count} clientes)</span>
+                                    </div>
+                                    <span className="text-xs font-bold text-stone-700 dark:text-stone-200">{formatCurrency(tierStats[tier].revenue)}</span>
+                                </div>
+                                <div className="h-2 bg-stone-50 dark:bg-stone-800 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ${tier === 'VIP' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]' : tier === 'Recorrente' ? 'bg-blue-400' : 'bg-stone-300'}`}
+                                        style={{ width: `${(tierStats[tier].revenue / maxTierRevenue) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-[#1A1A1A] p-6 rounded-sm shadow-xl flex flex-col justify-center border border-white/5 relative overflow-hidden">
+                    <div className="relative z-10 space-y-4">
+                        <div className="p-3 bg-white/5 rounded-sm border border-white/10">
+                            <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-1">Ticket Médio VIP</h4>
+                            <p className="text-xl font-display text-white">
+                                {formatCurrency(tierStats.VIP.revenue / (tierStats.VIP.count || 1))}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-white/5 rounded-sm border border-white/10">
+                            <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-blue-400 mb-1">Taxa de Retenção</h4>
+                            <p className="text-xl font-display text-white">
+                                {Math.round(((tierStats.VIP.count + tierStats.Recorrente.count) / (Object.keys(customerTiersMap).length || 1)) * 100)}%
+                            </p>
+                        </div>
+                    </div>
+                    {/* Decorative element */}
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <Award size={80} className="text-white" />
+                    </div>
                 </div>
             </div>
 

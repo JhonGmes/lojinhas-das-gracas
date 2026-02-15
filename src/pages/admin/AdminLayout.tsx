@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
+import { api } from '../../services/api';
 import {
     LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft,
     Settings as SettingsIcon, FolderTree, BookOpen,
-    User, ChevronRight, Menu, Camera
+    User, ChevronRight, Menu, Camera, Users, Ticket, Clock
 } from 'lucide-react';
 import { Dashboard } from './Dashboard';
 import { Inventory } from './Inventory';
@@ -15,6 +16,10 @@ import { EditProduct } from './EditProduct';
 import { Settings } from './Settings';
 import { Categories } from './Categories';
 import { BlogAdmin } from './BlogAdmin';
+import { Customers } from './Customers';
+import { Coupons } from './Coupons';
+import { Waitlist } from './Waitlist';
+
 
 export function AdminLayout() {
     const { user, logout } = useAuth();
@@ -24,6 +29,19 @@ export function AdminLayout() {
 
     // Avatar State (Local Persistence)
     const [avatar, setAvatar] = useState<string | null>(localStorage.getItem('admin_avatar'));
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+
+    const fetchPendingCount = async () => {
+        const orders = await api.orders.list();
+        const pending = orders.filter((o: any) => o.status === 'pending').length;
+        setPendingOrdersCount(pending);
+    };
+
+    useEffect(() => {
+        fetchPendingCount();
+        const interval = setInterval(fetchPendingCount, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -52,13 +70,17 @@ export function AdminLayout() {
             items: [
                 { path: '/admin', label: 'Resumo Executivo', icon: LayoutDashboard },
                 { path: '/admin/orders', label: 'Vendas & Pedidos', icon: ShoppingBag },
+                { path: '/admin/customers', label: 'Clientes (CRM)', icon: Users },
+                { path: '/admin/waitlist', label: 'Lista de Espera', icon: Clock },
             ]
         },
+
         {
             title: 'Gestão da Loja',
             items: [
                 { path: '/admin/inventory', label: 'Catálogo de Produtos', icon: Package },
                 { path: '/admin/categories', label: 'Categorias', icon: FolderTree },
+                { path: '/admin/coupons', label: 'Cupons de Desconto', icon: Ticket },
                 { path: '/admin/blog', label: 'Blog de Fé', icon: BookOpen },
             ]
         }
@@ -131,8 +153,15 @@ export function AdminLayout() {
                                             <item.icon size={18} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                                             <span className={`text-sm tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
 
+                                            {/* Badge for Orders */}
+                                            {item.path === '/admin/orders' && pendingOrdersCount > 0 && (
+                                                <span className="ml-auto bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
+                                                    {pendingOrdersCount}
+                                                </span>
+                                            )}
+
                                             {/* Chevron Highlight */}
-                                            {isActive && <ChevronRight size={14} className="ml-auto opacity-100 text-brand-gold/50" />}
+                                            {isActive && !(item.path === '/admin/orders' && pendingOrdersCount > 0) && <ChevronRight size={14} className="ml-auto opacity-100 text-brand-gold/50" />}
                                         </Link>
                                     )
                                 })}
@@ -177,11 +206,15 @@ export function AdminLayout() {
                         <Route path="/inventory" element={<Inventory />} />
                         <Route path="/categories" element={<Categories />} />
                         <Route path="/orders" element={<Orders />} />
+                        <Route path="/customers" element={<Customers />} />
+                        <Route path="/coupons" element={<Coupons />} />
                         <Route path="/blog" element={<BlogAdmin />} />
                         <Route path="/add-product" element={<AddProduct />} />
                         <Route path="/edit-product/:id" element={<EditProduct />} />
+                        <Route path="/waitlist" element={<Waitlist />} />
                         <Route path="/settings" element={<Settings />} />
                     </Routes>
+
                 </div>
             </main>
         </div>

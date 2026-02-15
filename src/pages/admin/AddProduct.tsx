@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
-import { ChevronLeft, Upload, Check, Loader2, Image as ImageIcon } from 'lucide-react';
+import { api } from '../../services/api';
+import { ChevronLeft, Check, Loader2, Image as ImageIcon, Plus, X } from 'lucide-react';
 
 export function AddProduct() {
     const navigate = useNavigate();
-    const { addProduct } = useProducts();
+    const { createProduct, categories } = useProducts();
     const [loading, setLoading] = useState(false);
 
     // Form States
@@ -14,6 +15,7 @@ export function AddProduct() {
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
     const [image, setImage] = useState('');
+    const [extraImages, setExtraImages] = useState<string[]>([]);
     const [stock, setStock] = useState('0');
     const [code, setCode] = useState('');
 
@@ -23,14 +25,16 @@ export function AddProduct() {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        addProduct({
+        createProduct({
             name,
             price: parseFloat(price.replace(',', '.')),
             description,
             category,
             image: image || 'https://via.placeholder.com/150',
+            images: extraImages,
             stock: parseInt(stock),
-            code
+            code,
+            active: true
         });
         setLoading(false);
         navigate('/admin/inventory');
@@ -45,6 +49,21 @@ export function AddProduct() {
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleExtraImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setExtraImages([...extraImages, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeExtraImage = (index: number) => {
+        setExtraImages(extraImages.filter((_, i) => i !== index));
     };
 
     return (
@@ -118,10 +137,9 @@ export function AddProduct() {
                                     className="w-full text-xs px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm focus:ring-1 focus:ring-brand-gold"
                                 >
                                     <option value="">Selecione...</option>
-                                    <option value="imagens">Imagens Sacras</option>
-                                    <option value="tercos">Terços</option>
-                                    <option value="livros">Livros</option>
-                                    <option value="acessorios">Acessórios</option>
+                                    {categories.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -188,6 +206,36 @@ export function AddProduct() {
                                 </div>
                             )}
                             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
+                        </div>
+
+                        {/* Extra Images Gallery */}
+                        <div className="mt-6 border-t border-stone-100 dark:border-stone-800 pt-4">
+                            <label className="block text-[9px] font-bold uppercase tracking-widest text-stone-400 mb-3 flex justify-between items-center">
+                                Galeria (Outros Ângulos)
+                                <span className="text-[8px] font-normal">{extraImages.length} fotos</span>
+                            </label>
+
+                            <div className="grid grid-cols-3 gap-2">
+                                {extraImages.map((img, idx) => (
+                                    <div key={idx} className="relative aspect-square rounded-sm overflow-hidden border border-stone-100 dark:border-stone-800 group/extra">
+                                        <img src={img} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExtraImage(idx)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/extra:opacity-100 transition-opacity"
+                                        >
+                                            <X size={10} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {extraImages.length < 5 && (
+                                    <div className="relative aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex items-center justify-center hover:border-brand-gold transition-colors cursor-pointer group/add">
+                                        <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { CartItem, Product, Order } from '../types';
+import type { CartItem, Product, Order, Coupon } from '../types';
 import { api } from '../services/api';
 import { useStore } from './StoreContext';
 import { toast } from 'react-hot-toast';
@@ -11,6 +11,10 @@ interface CartContextType {
     clearCart: () => void;
     updateQuantity: (productId: string, quantity: number) => void;
     total: number;
+    couponDiscount: number;
+    appliedCoupon: Coupon | null;
+    applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
+    removeCoupon: () => void;
     checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'card') => Promise<{ success: boolean; message?: string; whatsappUrl?: string; orderId?: string }>;
 }
 
@@ -22,6 +26,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const stored = localStorage.getItem('cart');
         return stored ? JSON.parse(stored) : [];
     });
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(items));
@@ -78,6 +83,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return acc + (price * item.quantity);
     }, 0);
 
+    const couponDiscount = appliedCoupon ? (
+        appliedCoupon.type === 'percentage'
+            ? total * (appliedCoupon.value / 100)
+            : appliedCoupon.value
+    ) : 0;
+
+    const applyCoupon = async (code: string) => {
+        const coupons = await api.coupons.list();
+        const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.isActive);
+
+        if (!coupon) return { success: false, message: 'Cupom inválido ou expirado.' };
+
+        if (coupon.minSpend && total < coupon.minSpend) {
+            return { success: false, message: `O valor mínimo para este cupom é R$ ${coupon.minSpend}` };
+        }
+
+        if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+            return { success: false, message: 'Este cupom já atingiu o limite de uso.' };
+        }
+
+        if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+            return { success: false, message: 'Este cupom expirou.' };
+        }
+
+        setAppliedCoupon(coupon);
+        return { success: true, message: 'Cupom aplicado!' };
+    };
+
+    const removeCoupon = () => setAppliedCoupon(null);
+
     const checkout = async (customerName: string, notes?: string, paymentMethod: 'pix' | 'card' = 'card') => {
         // 1. Validate Stock
         const freshProducts = await api.products.list();
@@ -92,13 +127,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        const discount = paymentMethod === 'pix' ? total * 0.05 : 0;
-        const finalTotal = total - discount;
+        const pixDiscount = paymentMethod === 'pix' ? (total - couponDiscount) * 0.05 : 0;
+        const finalTotal = total - couponDiscount - pixDiscount;
 
-        // 2. Deduct Stock
+        // 2. Deduct Stock & Increment Coupon
         for (const item of items) {
             const productInStock = freshProducts.find(p => p.id === item.id)!;
             await api.products.updateStock(item.id, productInStock.stock - item.quantity);
+        }
+
+        if (appliedCoupon) {
+            await api.coupons.update({ ...appliedCoupon, usageCount: appliedCoupon.usageCount + 1 });
         }
 
         // 3. Create Order
@@ -126,9 +165,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
             message += `${item.quantity}x ${item.name} - R$ ${(price * item.quantity).toFixed(2)}\n`;
         });
         message += `----------------\n`;
-        if (discount > 0) {
-            message += `Subtotal: R$ ${total.toFixed(2)}\n`;
-            message += `Desconto Pix (5%): -R$ ${discount.toFixed(2)}\n`;
+        if (couponDiscount > 0) {
+            message += `Cupom (${appliedCoupon?.code}): -R$ ${couponDiscount.toFixed(2)}\n`;
+        }
+        if (pixDiscount > 0) {
+            message += `Desconto Pix (5%): -R$ ${pixDiscount.toFixed(2)}\n`;
         }
         message += `*Total Final: R$ ${finalTotal.toFixed(2)}*\n`;
         message += `Forma de Pagamento: ${paymentMethod === 'pix' ? 'PIX' : 'Cartão'}\n`;
@@ -145,7 +186,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, total, checkout }}>
+        <CartContext.Provider value={{
+            items, addToCart, removeFromCart, updateQuantity,
+            clearCart, total, couponDiscount, appliedCoupon,
+            applyCoupon, removeCoupon, checkout
+        }}>
             {children}
         </CartContext.Provider>
     );

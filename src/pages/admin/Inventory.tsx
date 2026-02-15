@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
-import { formatCurrency } from '../../lib/utils';
-import { Plus, Search, Edit2, Trash2, Package, Minus, Tag, X } from 'lucide-react';
+import { formatCurrency, exportToCSV } from '../../lib/utils';
+import { Plus, Search, Edit2, Trash2, Package, Minus, Tag, X, Download } from 'lucide-react';
 import type { Product } from '../../types';
 
 export function Inventory() {
@@ -90,12 +90,20 @@ export function Inventory() {
                     </h1>
                     <p className="text-[10px] text-stone-400 mt-0.5">Gerencie seu estoque com eficiência</p>
                 </div>
-                <button
-                    onClick={() => navigate('/admin/add-product')}
-                    className="bg-stone-800 hover:bg-stone-700 text-white px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
-                >
-                    <Plus size={12} /> Adicionar Novo
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => exportToCSV(products, 'estoque-lojinha')}
+                        className="bg-white hover:bg-stone-50 text-stone-600 px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all border border-stone-200 flex items-center gap-2 shadow-sm"
+                    >
+                        <Download size={12} /> Exportar
+                    </button>
+                    <button
+                        onClick={() => navigate('/admin/add-product')}
+                        className="bg-stone-800 hover:bg-stone-700 text-white px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+                    >
+                        <Plus size={12} /> Adicionar Novo
+                    </button>
+                </div>
             </div>
 
             {/* Actions Bar */}

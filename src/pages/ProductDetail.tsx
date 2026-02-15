@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 
-import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check, Loader2 } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, Truck, CreditCard, Banknote, Check, Loader2, X, Send, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../lib/utils';
 import { Helmet } from 'react-helmet-async';
@@ -24,6 +24,10 @@ export function ProductDetail() {
     const [shippingCost, setShippingCost] = useState<number | null>(null);
     const [shippingLoading, setShippingLoading] = useState(false);
     const [addressInfo, setAddressInfo] = useState<{ city: string; state: string } | null>(null);
+    const [showNotifyModal, setShowNotifyModal] = useState(false);
+    const [notifyForm, setNotifyForm] = useState({ name: '', email: '', whatsapp: '' });
+    const [isSubmittingNotify, setIsSubmittingNotify] = useState(false);
+
 
     const handleCalculateShipping = async () => {
         const cleanCEP = cep.replace(/\D/g, '');
@@ -110,9 +114,42 @@ export function ProductDetail() {
 
     const handleAddToCart = () => {
         if (product) {
-            addToCart(product, quantity);
+            if (product.stock > 0) {
+                addToCart(product, quantity);
+            } else {
+                setShowNotifyModal(true);
+            }
         }
     }
+
+    const handleSubmitNotify = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!notifyForm.name || (!notifyForm.email && !notifyForm.whatsapp)) {
+            toast.error('Preencha seu nome e pelo menos um contato.');
+            return;
+        }
+
+        setIsSubmittingNotify(true);
+        try {
+            await api.waitingList.create({
+                product_id: product!.id,
+                customer_name: notifyForm.name,
+                customer_email: notifyForm.email || undefined,
+                customer_whatsapp: notifyForm.whatsapp || undefined
+            });
+            toast.success('Prontinho! Avisaremos você assim que o estoque brilhar novamente. 🙏✨', {
+                duration: 5000,
+                icon: '🙌'
+            });
+            setShowNotifyModal(false);
+            setNotifyForm({ name: '', email: '', whatsapp: '' });
+        } catch (error) {
+            toast.error('Ocorreu um erro ao salvar seu contato.');
+        } finally {
+            setIsSubmittingNotify(false);
+        }
+    };
+
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -236,7 +273,6 @@ export function ProductDetail() {
 
                         <button
                             onClick={handleAddToCart}
-                            disabled={product.stock <= 0}
                             className="w-full h-11 bg-brand-gold text-brand-wood font-black text-[10px] uppercase tracking-[0.2em] rounded-sm shadow-soft hover:bg-brand-wood hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
                         >
                             <ShoppingCart size={16} />
@@ -310,6 +346,84 @@ export function ProductDetail() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal Avise-me */}
+            {showNotifyModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-stone-900 w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-scale-in relative border border-brand-cotton-dark dark:border-stone-800">
+                        <button
+                            onClick={() => setShowNotifyModal(false)}
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="p-8">
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center text-brand-gold mb-4">
+                                    <ShoppingCart size={32} />
+                                </div>
+                                <h2 className="text-xl font-display font-medium text-stone-800 dark:text-white uppercase tracking-wider">Avise-me quando chegar!</h2>
+                                <p className="text-xs text-stone-500 mt-2">Gostou deste item? Deixe seus dados e entraremos em contato assim que o estoque for reposto. 🙏</p>
+                            </div>
+
+                            <form onSubmit={handleSubmitNotify} className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={notifyForm.name}
+                                        onChange={e => setNotifyForm({ ...notifyForm, name: e.target.value })}
+                                        className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm px-4 py-3 text-sm focus:border-brand-gold outline-none transition-colors"
+                                        placeholder="Como devemos te chamar?"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                                            <Mail size={10} /> Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={notifyForm.email}
+                                            onChange={e => setNotifyForm({ ...notifyForm, email: e.target.value })}
+                                            className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm px-4 py-3 text-sm focus:border-brand-gold outline-none transition-colors"
+                                            placeholder="seu@paraiso.com"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                                            <MessageCircle size={10} /> WhatsApp
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={notifyForm.whatsapp}
+                                            onChange={e => setNotifyForm({ ...notifyForm, whatsapp: e.target.value.replace(/\D/g, '') })}
+                                            className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm px-4 py-3 text-sm focus:border-brand-gold outline-none transition-colors font-mono"
+                                            placeholder="5599999999999"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingNotify}
+                                    className="w-full h-12 bg-brand-gold text-brand-wood font-black text-xs uppercase tracking-[0.2em] rounded-sm shadow-lg hover:bg-stone-800 hover:text-white transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 mt-4"
+                                >
+                                    {isSubmittingNotify ? <Loader2 size={18} className="animate-spin" /> : (
+                                        <>
+                                            <Send size={18} /> QUERO SER AVISADO
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

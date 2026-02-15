@@ -1,24 +1,45 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/utils';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Loader2, Tag } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 export function Cart() {
-    const { items, removeFromCart, updateQuantity, total, checkout } = useCart();
+    const {
+        items, removeFromCart, updateQuantity, total,
+        couponDiscount, appliedCoupon, applyCoupon,
+        removeCoupon, checkout
+    } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState(user?.email?.split('@')[0] || '');
     const [notes, setNotes] = useState('');
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
+    const [couponCode, setCouponCode] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card'>('pix');
-    const discount = paymentMethod === 'pix' ? total * 0.05 : 0;
-    const finalTotal = total - discount;
+
+    const pixDiscount = paymentMethod === 'pix' ? (total - couponDiscount) * 0.05 : 0;
+    const finalTotal = total - couponDiscount - pixDiscount;
 
     const { settings } = useStore();
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode) return;
+        setCouponLoading(true);
+        const result = await applyCoupon(couponCode);
+        if (result.success) {
+            toast.success(result.message);
+            setCouponCode('');
+        } else {
+            toast.error(result.message);
+        }
+        setCouponLoading(false);
+    };
 
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -174,21 +195,66 @@ export function Cart() {
                             <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
                                 <div className="flex justify-between items-end mb-1">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total</span>
-                                    <span className={`text-2xl font-display font-medium ${discount > 0 ? 'line-through text-stone-300 text-sm mb-1' : 'text-stone-800 dark:text-stone-100'}`}>
+                                    <span className={`text-2xl font-display font-medium ${(couponDiscount > 0 || pixDiscount > 0) ? 'line-through text-stone-300 text-sm mb-1' : 'text-stone-800 dark:text-stone-100'}`}>
                                         {formatCurrency(total)}
                                     </span>
                                 </div>
 
-                                {discount > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center text-emerald-600">
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Desconto Pix (5%)</span>
-                                            <span className="text-sm font-black">-{formatCurrency(discount)}</span>
+                                {/* Coupon Section */}
+                                <div className="py-4 border-t border-stone-100 dark:border-stone-800 mt-4">
+                                    {!appliedCoupon ? (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="CUPOM DE DESCONTO"
+                                                className="flex-1 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-3 py-2 text-[10px] font-bold uppercase tracking-widest outline-none focus:border-brand-gold"
+                                                value={couponCode}
+                                                onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={couponLoading}
+                                                onClick={handleApplyCoupon}
+                                                className="bg-stone-800 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-50"
+                                            >
+                                                Aplicar
+                                            </button>
                                         </div>
-                                        <div className="flex justify-between items-end pt-3 border-t border-stone-100 dark:border-stone-800 mt-2">
-                                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-stone-800 dark:text-stone-100">Total Final</span>
-                                            <span className="text-3xl font-display font-medium text-brand-gold">{formatCurrency(finalTotal)}</span>
+                                    ) : (
+                                        <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 p-2 rounded-sm">
+                                            <div className="flex items-center gap-2">
+                                                <Tag size={12} className="text-emerald-600" />
+                                                <span className="text-[10px] font-black text-emerald-700 uppercase">{appliedCoupon.code}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={removeCoupon}
+                                                className="text-[9px] font-black text-emerald-700 hover:text-red-500 uppercase underline"
+                                            >
+                                                Remover
+                                            </button>
                                         </div>
+                                    )}
+                                </div>
+
+                                {couponDiscount > 0 && (
+                                    <div className="flex justify-between items-center text-emerald-600 mt-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Desconto Cupom</span>
+                                        <span className="text-sm font-black">-{formatCurrency(couponDiscount)}</span>
+                                    </div>
+                                )}
+
+                                {pixDiscount > 0 && (
+                                    <div className="flex justify-between items-center text-emerald-600 mt-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Desconto Pix (5%)</span>
+                                        <span className="text-sm font-black">-{formatCurrency(pixDiscount)}</span>
+                                    </div>
+                                )}
+
+                                {(couponDiscount > 0 || pixDiscount > 0) && (
+                                    <div className="flex justify-between items-end pt-3 border-t border-stone-100 dark:border-stone-800 mt-4">
+                                        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-stone-800 dark:text-stone-100">Total Final</span>
+                                        <span className="text-3xl font-display font-medium text-brand-gold">{formatCurrency(finalTotal)}</span>
                                     </div>
                                 )}
                             </div>

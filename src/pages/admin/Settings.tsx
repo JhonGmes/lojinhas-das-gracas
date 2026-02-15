@@ -185,6 +185,38 @@ export function Settings() {
                     </div>
                 </div>
 
+                {/* CRM & Alertas */}
+                <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="text-emerald-500" size={20} />
+                        <h2 className="font-bold text-stone-700 dark:text-stone-200">CRM & Desempenho</h2>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Meta de Faturamento Mensal (R$)</label>
+                        <input
+                            type="number"
+                            value={formData.monthly_revenue_goal || 5000}
+                            onChange={e => setFormData({ ...formData, monthly_revenue_goal: Number(e.target.value) })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors font-mono"
+                            placeholder="5000"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">URL do Som de Notificação (Gracinha IA)</label>
+                        <input
+                            type="text"
+                            value={formData.notification_sound_url || ''}
+                            onChange={e => setFormData({ ...formData, notification_sound_url: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors font-mono"
+                            placeholder="https://sua-voz.com/alerta.mp3"
+                        />
+                        <p className="text-[9px] text-stone-400 italic">O som tocado quando um novo pedido é detectado.</p>
+                    </div>
+                </div>
+
+
                 {/* Logotipo da Loja */}
                 <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
                     <div className="flex items-center gap-2 mb-2">

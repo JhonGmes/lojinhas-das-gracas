@@ -62,7 +62,8 @@ export const api = {
                     images: product.images || [],
                     promotional_price: product.promotionalPrice ?? null,
                     is_featured: product.isFeatured ?? false,
-                    code: product.code
+                    code: product.code,
+                    active: product.active
                 }
                 const { error } = await supabase
                     .from('products')
@@ -112,7 +113,8 @@ export const api = {
                     image: product.image,
                     images: product.images || [],
                     is_featured: product.isFeatured ?? false,
-                    code: product.code
+                    code: product.code,
+                    active: product.active
                 }
 
                 if (product.promotionalPrice) {
@@ -457,6 +459,110 @@ export const api = {
                 const posts = JSON.parse(localStorage.getItem('ljg_blog') || '[]');
                 const filtered = posts.filter((p: any) => p.id !== id);
                 localStorage.setItem('ljg_blog', JSON.stringify(filtered));
+            }
+        }
+    },
+    coupons: {
+        list: async (): Promise<any[]> => {
+            try {
+                const { data, error } = await supabase.from('coupons').select('*');
+                if (error) throw error;
+                return data;
+            } catch {
+                const stored = localStorage.getItem('ljg_coupons');
+                return stored ? JSON.parse(stored) : [];
+            }
+        },
+        create: async (coupon: any): Promise<void> => {
+            try {
+                const { error } = await supabase.from('coupons').insert([coupon]);
+                if (error) throw error;
+            } catch {
+                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
+                coupons.push({ ...coupon, id: crypto.randomUUID(), usageCount: 0 });
+                localStorage.setItem('ljg_coupons', JSON.stringify(coupons));
+            }
+        },
+        update: async (coupon: any): Promise<void> => {
+            try {
+                const { error } = await supabase.from('coupons').update(coupon).eq('id', coupon.id);
+                if (error) throw error;
+            } catch {
+                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
+                const idx = coupons.findIndex((c: any) => c.id === coupon.id);
+                if (idx !== -1) {
+                    coupons[idx] = coupon;
+                    localStorage.setItem('ljg_coupons', JSON.stringify(coupons));
+                }
+            }
+        },
+        delete: async (id: string): Promise<void> => {
+            try {
+                const { error } = await supabase.from('coupons').delete().eq('id', id);
+                if (error) throw error;
+            } catch {
+                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
+                const filtered = coupons.filter((c: any) => c.id !== id);
+                localStorage.setItem('ljg_coupons', JSON.stringify(filtered));
+            }
+        }
+    },
+    waitingList: {
+        create: async (data: {
+            product_id: string;
+            customer_name: string;
+            customer_email?: string;
+            customer_whatsapp?: string;
+        }): Promise<void> => {
+            try {
+                const { error } = await supabase.from('waiting_list').insert([data]);
+                if (error) throw error;
+            } catch (err: any) {
+                console.warn('⚠️ Fallback LocalStorage (Waitlist):', err.message);
+                const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
+                waitlist.push({ ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), notified: false });
+                localStorage.setItem('ljg_waitlist', JSON.stringify(waitlist));
+            }
+        },
+        list: async (): Promise<any[]> => {
+            try {
+                const { data, error } = await supabase
+                    .from('waiting_list')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch {
+                return JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
+            }
+        },
+        update: async (id: string, data: any): Promise<void> => {
+            try {
+                const { error } = await supabase
+                    .from('waiting_list')
+                    .update(data)
+                    .eq('id', id);
+                if (error) throw error;
+            } catch {
+                const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
+                const idx = waitlist.findIndex((w: any) => w.id === id);
+                if (idx !== -1) {
+                    waitlist[idx] = { ...waitlist[idx], ...data };
+                    localStorage.setItem('ljg_waitlist', JSON.stringify(waitlist));
+                }
+            }
+        },
+        delete: async (id: string): Promise<void> => {
+            try {
+                const { error } = await supabase
+                    .from('waiting_list')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+            } catch {
+                const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
+                const filtered = waitlist.filter((w: any) => w.id !== id);
+                localStorage.setItem('ljg_waitlist', JSON.stringify(filtered));
             }
         }
     }

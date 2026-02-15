@@ -103,3 +103,34 @@ export function generatePixPayload(key: string, amount: number, merchantName: st
 
     return payloadWithoutCRC + crc.toString(16).toUpperCase().padStart(4, '0');
 }
+
+export function exportToCSV(data: any[], filename: string) {
+    if (!data.length) return;
+
+    // Extract headers
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+        headers.join(','), // Header row
+        ...data.map(row =>
+            headers.map(header => {
+                let cell = row[header];
+                if (cell === null || cell === undefined) cell = '';
+                // Handle objects/arrays
+                if (typeof cell === 'object') cell = JSON.stringify(cell);
+                // Handle commas/quotes in strings
+                return `"${String(cell).replace(/"/g, '""')}"`;
+            }).join(',')
+        )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
