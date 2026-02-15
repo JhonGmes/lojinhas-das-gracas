@@ -46,8 +46,8 @@ export function BlogAdmin() {
         <div className="space-y-10 animate-fade-in-up pb-10">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-brand-cotton-dark dark:border-stone-800">
                 <div>
-                    <h1 className="text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Gestão de Fé</h1>
-                    <p className="text-stone-400 font-medium mt-2">Compartilhe sabedoria, orações e mensagens com sua comunidade.</p>
+                    <h1 className="text-lg font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Gestão de Fé</h1>
+                    <p className="text-stone-400 font-medium mt-1 text-xs">Compartilhe sabedoria, orações e mensagens com sua comunidade.</p>
                 </div>
                 <button
                     onClick={() => { setEditingPost({ author: 'Assistente das Graças' }); setShowForm(true); }}
@@ -97,7 +97,7 @@ export function BlogAdmin() {
                                             </span>
                                         )}
                                     </div>
-                                    <h3 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-wide leading-tight group-hover:text-brand-gold transition-colors">{post.title}</h3>
+                                    <h3 className="text-base font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-wide leading-tight group-hover:text-brand-gold transition-colors">{post.title}</h3>
                                     <p className="text-sm text-stone-400 font-light line-clamp-2 max-w-3xl leading-relaxed italic">"{post.excerpt}"</p>
                                 </div>
 
@@ -158,7 +158,7 @@ export function BlogAdmin() {
                                     <FileText className="text-brand-gold" size={24} />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">
+                                    <h2 className="text-lg font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">
                                         {editingPost?.id ? 'Refinar Mensagem' : 'Nova Sabedoria'}
                                     </h2>
                                     <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">Editor de Conteúdo Espiritual</p>

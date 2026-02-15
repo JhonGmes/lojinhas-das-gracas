@@ -65,8 +65,8 @@ export function Settings() {
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-10">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Configurações da Loja</h1>
-                    <p className="text-stone-400 text-sm">Personalize o visual e as informações do seu SaaS</p>
+                    <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Configurações da Loja</h1>
+                    <p className="text-stone-400 text-xs">Personalize o visual e as informações do seu SaaS</p>
                 </div>
                 <button
                     onClick={handleSave}

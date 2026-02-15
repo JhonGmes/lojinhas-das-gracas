@@ -44,7 +44,7 @@ export function Categories() {
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up pb-10">
             <div>
-                <h1 className="text-xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Gestão de Categorias</h1>
+                <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">Gestão de Categorias</h1>
                 <p className="text-stone-400 text-xs">Crie e organize as linhas de produtos do seu SaaS</p>
             </div>
 

@@ -97,7 +97,7 @@ export function AddProduct() {
 
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
-            <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">
+            <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-widest">
                 Cadastrar Produto
             </h1>
 

@@ -114,7 +114,7 @@ export function Orders() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
+                    <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
                         Histórico de Vendas
                     </h1>
                     {newOrdersCount > 0 && (
@@ -142,7 +142,7 @@ export function Orders() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total</span>
                         <ShoppingBag size={16} className="text-stone-400" />
                     </div>
-                    <p className="text-3xl font-display font-bold text-stone-800 dark:text-stone-100">{stats.total}</p>
+                    <p className="text-xl font-display font-bold text-stone-800 dark:text-stone-100">{stats.total}</p>
                 </div>
 
                 <div className="bg-white dark:bg-stone-900 p-6 rounded-sm border border-amber-200 dark:border-amber-900/30 shadow-sm">
@@ -150,7 +150,7 @@ export function Orders() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Pendentes</span>
                         <Clock size={16} className="text-amber-500" />
                     </div>
-                    <p className="text-3xl font-display font-bold text-amber-700 dark:text-amber-400">{stats.pending}</p>
+                    <p className="text-xl font-display font-bold text-amber-700 dark:text-amber-400">{stats.pending}</p>
                 </div>
 
                 <div className="bg-white dark:bg-stone-900 p-6 rounded-sm border border-emerald-200 dark:border-emerald-900/30 shadow-sm">
@@ -158,7 +158,7 @@ export function Orders() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Pagos</span>
                         <CheckCircle2 size={16} className="text-emerald-500" />
                     </div>
-                    <p className="text-3xl font-display font-bold text-emerald-700 dark:text-emerald-400">{stats.paid}</p>
+                    <p className="text-xl font-display font-bold text-emerald-700 dark:text-emerald-400">{stats.paid}</p>
                 </div>
 
                 <div className="bg-white dark:bg-stone-900 p-6 rounded-sm border border-blue-200 dark:border-blue-900/30 shadow-sm">
@@ -166,7 +166,7 @@ export function Orders() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Entregues</span>
                         <Package size={16} className="text-blue-500" />
                     </div>
-                    <p className="text-3xl font-display font-bold text-blue-700 dark:text-blue-400">{stats.delivered}</p>
+                    <p className="text-xl font-display font-bold text-blue-700 dark:text-blue-400">{stats.delivered}</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-brand-gold/10 to-amber-50 dark:from-brand-gold/5 dark:to-stone-900 p-6 rounded-sm border border-brand-gold/30 shadow-sm">
@@ -174,7 +174,7 @@ export function Orders() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-brand-gold">Receita</span>
                         <TrendingUp size={16} className="text-brand-gold" />
                     </div>
-                    <p className="text-2xl font-display font-bold text-brand-gold">{formatCurrency(stats.revenue)}</p>
+                    <p className="text-xl font-display font-bold text-brand-gold">{formatCurrency(stats.revenue)}</p>
                 </div>
             </div>
 
@@ -185,8 +185,8 @@ export function Orders() {
                         key={status}
                         onClick={() => setFilter(status)}
                         className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === status
-                                ? 'bg-brand-gold text-brand-wood shadow-md'
-                                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
+                            ? 'bg-brand-gold text-brand-wood shadow-md'
+                            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
                             }`}
                     >
                         {status === 'all' ? 'Todos' : getStatusConfig(status).label}

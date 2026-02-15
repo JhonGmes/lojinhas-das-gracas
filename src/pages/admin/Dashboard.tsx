@@ -71,8 +71,8 @@ export function Dashboard() {
     return (
         <div className="space-y-10 animate-fade-in-up pb-10">
             <header>
-                <h1 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest">Resumo Executivo</h1>
-                <p className="text-stone-400 font-medium mt-2 text-sm">Visão geral do desempenho e saúde da sua loja sagrada.</p>
+                <h1 className="text-lg font-display uppercase tracking-widest text-stone-700 dark:text-stone-200">Resumo Executivo</h1>
+                <p className="text-stone-400 font-medium mt-1 text-xs">Visão geral do desempenho e saúde da sua loja sagrada.</p>
             </header>
 
             {/* Main Stats */}
@@ -109,7 +109,7 @@ export function Dashboard() {
                 {/* Performance Chart */}
                 <div className="lg:col-span-2 bg-white dark:bg-stone-800 p-10 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700">
                     <div className="flex items-center justify-between mb-10">
-                        <h3 className="font-display text-xl font-medium uppercase tracking-widest text-stone-800 dark:text-stone-100">Performance de Vendas (7 Dias)</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-stone-700 dark:text-stone-200">Performance de Vendas (7 Dias)</h3>
                         <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full uppercase tracking-tighter">
                             <ArrowUpRight size={14} /> Crescimento Saudável
                         </div>
@@ -166,7 +166,7 @@ export function Dashboard() {
 
                 {/* Stock Alerts Column */}
                 <div className="bg-white dark:bg-stone-800 p-10 rounded-sm shadow-soft border border-brand-cotton-dark dark:border-stone-700 flex flex-col">
-                    <h3 className="font-display text-xl font-medium uppercase tracking-widest text-stone-800 dark:text-stone-100 mb-8 flex items-center gap-3">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-stone-700 dark:text-stone-200 mb-8 flex items-center gap-3">
                         <AlertTriangle className="text-brand-gold" size={20} /> Alertar Itens
                     </h3>
 
@@ -225,7 +225,7 @@ function StatCard({ title, value, icon, subtitle, trend, alert }: { title: strin
             </div>
             <div>
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mb-1">{title}</p>
-                <h3 className="text-2xl font-display font-medium text-stone-800 dark:text-stone-100">{value}</h3>
+                <h3 className="text-xl font-display font-medium text-stone-800 dark:text-stone-100">{value}</h3>
                 {subtitle && <p className="text-[10px] text-stone-400 font-medium italic mt-2 opacity-60">{subtitle}</p>}
             </div>
             {/* Subtle decorative background element */}

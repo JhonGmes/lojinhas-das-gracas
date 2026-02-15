@@ -135,7 +135,7 @@ export function EditProduct() {
                 >
                     <ArrowLeft size={24} className="text-stone-600" />
                 </button>
-                <h1 className="text-2xl font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
+                <h1 className="text-lg font-display font-bold text-stone-800 dark:text-stone-100 uppercase tracking-wider">
                     Editar Produto
                 </h1>
             </div>
