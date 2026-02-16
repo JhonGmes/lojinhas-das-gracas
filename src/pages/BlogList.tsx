@@ -2,7 +2,7 @@ import { useBlog } from '../context/BlogContext';
 import { BlogCard } from '../components/ui/BlogCard';
 import { BookOpen, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 
 export function BlogList() {
     const { posts, loading } = useBlog();
@@ -16,10 +16,10 @@ export function BlogList() {
 
     return (
         <div className="pb-24">
-            <Helmet>
-                <title>Blog de Fé - Lojinha das Graças</title>
-                <meta name="description" content="Leia mensagens de fé, orações e reflita com nossa sabedoria diária na Lojinha das Graças." />
-            </Helmet>
+            <SEO
+                title="Blog de Fé - Mensagens e Orações"
+                description="Leia mensagens de fé, orações poderosas e reflita com nossa sabedoria diária na Lojinha das Graças. Um espaço para fortalecer seu espírito."
+            />
             {/* Header */}
             <header className="bg-brand-wood py-24 text-center">
                 <div className="container mx-auto px-4">

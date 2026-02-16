@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext';
 import { ShoppingCart, ArrowLeft, Banknote, CreditCard, Truck, Star, Mail, MessageCircle, X, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../lib/utils';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import WishlistButton from '../components/WishlistButton';
 import ReviewStars from '../components/ReviewStars';
 import { ReviewCard, ReviewSummary } from '../components/ReviewComponents';
@@ -182,10 +182,37 @@ export function ProductDetail() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 animate-fade-in-up">
-            <Helmet>
-                <title>{product.name} - Lojinha das Graças</title>
-                <meta name="description" content={product.description} />
-            </Helmet>
+            <SEO
+                title={product.name}
+                description={product.description}
+                image={product.image}
+                type="product"
+                jsonLd={{
+                    "@context": "https://schema.org",
+                    "@type": "Product",
+                    "name": product.name,
+                    "image": [product.image, ...(product.images || [])],
+                    "description": product.description,
+                    "sku": product.code || product.id,
+                    "brand": {
+                        "@type": "Brand",
+                        "name": "Lojinha das Graças"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": window.location.href,
+                        "priceCurrency": "BRL",
+                        "price": product.promotionalPrice || product.price,
+                        "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                        "itemCondition": "https://schema.org/NewCondition"
+                    },
+                    "aggregateRating": reviews.length > 0 ? {
+                        "@type": "AggregateRating",
+                        "ratingValue": product.average_rating || 5,
+                        "reviewCount": reviews.length
+                    } : undefined
+                }}
+            />
 
             <button onClick={() => navigate(-1)} className="flex items-center text-stone-400 hover:text-brand-gold mb-4 transition-colors font-bold uppercase text-[8px] tracking-[0.2em] group">
                 <ArrowLeft size={12} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar

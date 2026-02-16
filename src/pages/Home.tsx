@@ -8,7 +8,7 @@ import { BlogCard } from '../components/ui/BlogCard';
 import ProductFilters, { type FilterState } from '../components/ProductFilters';
 
 import { useBlog } from '../context/BlogContext';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 
 export function Home() {
     const { products, loading } = useProducts();
@@ -115,10 +115,44 @@ export function Home() {
 
     return (
         <div className="flex flex-col w-full bg-gray-50/30">
-            <Helmet>
-                <title>{settings.store_name} - Artigos Religiosos e Presentes de Fé</title>
-                <meta name="description" content={`Bem-vindo à ${settings.store_name}. Encontre os melhores artigos religiosos, terços, imagens e presentes para fortalecer sua fé.`} />
-            </Helmet>
+            <SEO
+                title={settings.store_name}
+                description={`A maior e mais completa loja de artigos religiosos. Encontre terços, bustos, crucifixos e presentes da fé selecionados com amor em ${settings.store_name}.`}
+                jsonLd={[
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "Organization",
+                        "name": settings.store_name,
+                        "url": window.location.origin,
+                        "logo": settings.logo_url,
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "telephone": settings.whatsapp_number,
+                            "contactType": "customer service"
+                        },
+                        "sameAs": [
+                            settings.instagram_url
+                        ].filter(Boolean)
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "LocalBusiness",
+                        "name": settings.store_name,
+                        "image": settings.logo_url || settings.hero_image_url,
+                        "@id": window.location.origin,
+                        "url": window.location.origin,
+                        "telephone": settings.whatsapp_number,
+                        "address": {
+                            "@type": "PostalAddress",
+                            "streetAddress": "Venda Online",
+                            "addressLocality": "São Luís",
+                            "addressRegion": "MA",
+                            "postalCode": "65000-000",
+                            "addressCountry": "BR"
+                        }
+                    }
+                ]}
+            />
 
             {!isGlobalSearch && (
                 <section className="relative h-[300px] md:h-[400px] lg:h-[450px] overflow-hidden group w-full bg-stone-900 border-b border-brand-gold/20">

@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useBlog } from '../context/BlogContext';
 import { useStore } from '../context/StoreContext';
 import { Calendar, User, ChevronLeft, Share2, Instagram, Smartphone, Send, Feather } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { useState } from 'react';
 import { api } from '../services/api';
 import { generateStoryCard } from '../services/storyGenerator';
@@ -147,30 +147,29 @@ export function BlogDetail() {
 
     return (
         <div className="pb-24">
-            <Helmet>
-                <title>{post.title} - Blog de Fé</title>
-                <meta name="description" content={post.excerpt} />
-                <meta property="og:title" content={post.title} />
-                <meta property="og:image" content={post.image} />
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "BlogPosting",
-                        "headline": post.title,
-                        "image": post.image,
-                        "author": {
-                            "@type": "Person",
-                            "name": post.author
-                        },
-                        "publisher": {
-                            "@type": "Organization",
-                            "name": "Lojinha das Graças"
-                        },
-                        "datePublished": post.date,
-                        "description": post.excerpt
-                    })}
-                </script>
-            </Helmet>
+            <SEO
+                title={post.title}
+                description={post.excerpt}
+                image={post.image}
+                type="article"
+                jsonLd={{
+                    "@context": "https://schema.org",
+                    "@type": "BlogPosting",
+                    "headline": post.title,
+                    "image": post.image,
+                    "author": {
+                        "@type": "Person",
+                        "name": post.author
+                    },
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "Lojinha das Graças"
+                    },
+                    "datePublished": post.date,
+                    "description": post.excerpt,
+                    "articleBody": post.content
+                }}
+            />
             {/* Header Hero */}
             <header className="relative h-[400px] md:h-[500px]">
                 <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
