@@ -27,6 +27,7 @@ const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login }
 const Identification = lazy(() => import('./pages/Identification').then(m => ({ default: m.Identification })));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
+const SuperAdmin = lazy(() => import('./pages/admin/SuperAdmin').then(m => ({ default: m.SuperAdmin })));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-brand-cotton">
@@ -136,6 +137,8 @@ function App() {
                                                     <Route path="/admin-login" element={<Login />} />
 
                                                     {/* Secure Routes */}
+                                                    <Route path="/admin" element={<AdminLayout />} />
+                                                    <Route path="/admin/super" element={<SuperAdmin />} />
                                                     <Route path="/admin/*" element={<AdminLayout />} />
 
                                                     {/* Catch All */}

@@ -23,12 +23,17 @@ interface StoreSettings {
 interface StoreContextType {
     settings: StoreSettings;
     loading: boolean;
+    currentStoreId: string;
+    setStore: (id: string) => void;
     updateSettings: (newSettings: Partial<StoreSettings>) => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+export const DEFAULT_STORE_ID = '00000000-0000-0000-0000-000000000001';
+
 export function StoreProvider({ children }: { children: ReactNode }) {
+    const [currentStoreId, setCurrentStoreId] = useState<string>(DEFAULT_STORE_ID);
     const [settings, setSettings] = useState<StoreSettings>({
         id: '',
         store_name: 'Lojinha das Graças',
@@ -48,7 +53,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const loadSettings = async () => {
         try {
-            const data = await api.settings.get();
+            // No futuro aqui detectamos o store_id via URL/Domínio
+            // Por enquanto, forçamos o DEFAULT para não quebrar a Lojinha das Graças
+            const data = await api.settings.getByStoreId(currentStoreId);
             if (data) setSettings(data);
         } catch (error) {
             console.error("Failed to fetch settings", error);
@@ -59,7 +66,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         loadSettings();
-    }, []);
+    }, [currentStoreId]);
 
     // Apply primary color to CSS variables
     useEffect(() => {
@@ -78,7 +85,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <StoreContext.Provider value={{ settings, loading, updateSettings }}>
+        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore: setCurrentStoreId, updateSettings }}>
             {children}
         </StoreContext.Provider>
     );

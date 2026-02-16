@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { BlogPost } from '../types';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
+import { useStore } from './StoreContext';
 
 interface BlogContextType {
     posts: BlogPost[];
@@ -53,18 +54,19 @@ const INITIAL_BLOG: Omit<BlogPost, 'id'>[] = [
 
 
 export function BlogProvider({ children }: { children: ReactNode }) {
+    const { currentStoreId } = useStore();
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
 
     const refreshPosts = async () => {
         try {
-            const data = await api.blog.list();
+            const data = await api.blog.list(currentStoreId);
             if (data.length === 0) {
                 // Initialize if empty (for demo)
                 for (const p of INITIAL_BLOG) {
-                    await api.blog.create(p);
+                    await api.blog.create(p, currentStoreId);
                 }
-                const firstData = await api.blog.list();
+                const firstData = await api.blog.list(currentStoreId);
                 setPosts(firstData);
             } else {
                 setPosts(data);
@@ -78,10 +80,10 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         refreshPosts();
-    }, []);
+    }, [currentStoreId]);
 
     const createPost = async (post: Omit<BlogPost, 'id'>) => {
-        await api.blog.create(post);
+        await api.blog.create(post, currentStoreId);
         await refreshPosts();
     };
 

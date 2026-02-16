@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Product } from '../types';
 import { api } from '../services/api';
+import { useStore } from './StoreContext';
 
 interface ProductContextType {
     products: Product[];
@@ -19,13 +20,14 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
+    const { currentStoreId } = useStore();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
     const refreshProducts = async () => {
         try {
-            const data = await api.products.list();
+            const data = await api.products.list(currentStoreId);
             setProducts(data);
         } catch (error) {
             console.error("Failed to fetch products", error);
@@ -46,7 +48,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         refreshProducts();
         refreshCategories();
-    }, []);
+    }, [currentStoreId]);
 
     const updateProduct = async (product: Product) => {
         await api.products.update(product);
@@ -59,7 +61,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     }
 
     const createProduct = async (product: Omit<Product, 'id'>) => {
-        await api.products.create(product);
+        await api.products.create(product, currentStoreId);
         await refreshProducts();
     }
 

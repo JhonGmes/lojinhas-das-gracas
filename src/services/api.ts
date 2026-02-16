@@ -21,11 +21,12 @@ const getLocalOrders = (): Order[] => {
 
 export const api = {
     products: {
-        list: async (): Promise<Product[]> => {
+        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Product[]> => {
             try {
                 const { data, error } = await supabase
                     .from('products')
                     .select('*')
+                    .eq('store_id', storeId)
                     .order('name')
 
                 if (error) throw error
@@ -102,7 +103,7 @@ export const api = {
             }
         },
 
-        create: async (product: Omit<Product, 'id'>): Promise<void> => {
+        create: async (product: Omit<Product, 'id'>, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
             try {
                 const payload: any = {
                     name: product.name,
@@ -114,7 +115,8 @@ export const api = {
                     images: product.images || [],
                     is_featured: product.isFeatured ?? false,
                     code: product.code,
-                    active: product.active
+                    active: product.active,
+                    store_id: storeId
                 }
 
                 if (product.promotionalPrice) {
@@ -155,11 +157,12 @@ export const api = {
     },
 
     categories: {
-        list: async (): Promise<string[]> => {
+        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<string[]> => {
             try {
                 const { data, error } = await supabase
                     .from('categories')
                     .select('name')
+                    .eq('store_id', storeId)
                     .order('name');
                 if (error) throw error;
                 return data.map(c => c.name);
@@ -176,7 +179,7 @@ export const api = {
     },
 
     orders: {
-        create: async (order: Order): Promise<Order | any> => {
+        create: async (order: Order, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Order | any> => {
             try {
                 // Tentativa direta no Supabase com nomes de colunas exatos
                 const { data, error } = await supabase
@@ -186,7 +189,8 @@ export const api = {
                         total: order.total,
                         status: order.status,
                         items: order.items,
-                        notes: order.notes
+                        notes: order.notes,
+                        store_id: storeId
                     })
                     .select()
                     .single();
@@ -279,11 +283,12 @@ export const api = {
             }
         },
 
-        list: async (): Promise<Order[]> => {
+        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Order[]> => {
             try {
                 const { data, error } = await supabase
                     .from('orders')
                     .select('*')
+                    .eq('store_id', storeId)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -317,45 +322,38 @@ export const api = {
         }
     },
     settings: {
-        get: async (): Promise<any> => {
+        get: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<any> => {
             try {
                 const { data, error } = await supabase
                     .from('store_settings')
                     .select('*')
-                    .limit(1);
+                    .eq('store_id', storeId)
+                    .single();
 
                 if (error) throw error;
-
-                const storeData = (data && data.length > 0) ? data[0] : {
-                    store_name: 'Lojinha das Graças',
-                    whatsapp_number: '5598984095956',
-                    primary_color: '#D4AF37'
-                };
-
-                // Recupera a chave pix do localStorage (fallback)
-                const localPix = localStorage.getItem('ljg_pix_key');
-                if (localPix) {
-                    storeData.pix_key = localPix;
-                }
-
-                const localInfinite = localStorage.getItem('ljg_infinitepay_handle');
-                if (localInfinite) {
-                    storeData.infinitepay_handle = localInfinite;
-                }
-
-                const localInsta = localStorage.getItem('ljg_instagram_url');
-                if (localInsta) {
-                    storeData.instagram_url = localInsta;
-                }
-
-                return storeData;
+                return data;
             } catch (err) {
-                console.warn('⚠️ Erro ao buscar settings, usando padrões');
+                console.warn('⚠️ Erro ao buscar settings da loja, usando padrões');
                 return {
                     store_name: 'Lojinha das Graças',
                     whatsapp_number: '5598984095956',
                     primary_color: '#D4AF37'
                 };
+            }
+        },
+        getByStoreId: async (storeId: string): Promise<any> => {
+            try {
+                const { data, error } = await supabase
+                    .from('store_settings')
+                    .select('*')
+                    .eq('store_id', storeId)
+                    .maybeSingle();
+
+                if (error) throw error;
+                return data;
+            } catch (err) {
+                console.error('Erro ao buscar settings por ID:', err);
+                return null;
             }
         },
         update: async (settings: any): Promise<void> => {
@@ -397,11 +395,12 @@ export const api = {
         }
     },
     blog: {
-        list: async (): Promise<BlogPost[]> => {
+        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<BlogPost[]> => {
             try {
                 const { data, error } = await supabase
                     .from('blog_posts')
                     .select('*')
+                    .eq('store_id', storeId)
                     .order('date', { ascending: false });
 
                 if (error) throw error;
@@ -419,12 +418,13 @@ export const api = {
                 return stored ? JSON.parse(stored) : [];
             }
         },
-        create: async (post: Omit<BlogPost, 'id'>): Promise<void> => {
+        create: async (post: Omit<BlogPost, 'id'>, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
             try {
                 const mapped = {
                     ...post,
                     is_featured: post.isFeatured,
-                    is_published: post.isPublished
+                    is_published: post.isPublished,
+                    store_id: storeId
                 };
                 delete (mapped as any).isFeatured;
                 delete (mapped as any).isPublished;
@@ -472,9 +472,12 @@ export const api = {
         }
     },
     coupons: {
-        list: async (): Promise<any[]> => {
+        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<any[]> => {
             try {
-                const { data, error } = await supabase.from('coupons').select('*');
+                const { data, error } = await supabase
+                    .from('coupons')
+                    .select('*')
+                    .eq('store_id', storeId);
                 if (error) throw error;
                 return data;
             } catch {

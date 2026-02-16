@@ -21,7 +21,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-    const { settings } = useStore();
+    const { settings, currentStoreId } = useStore();
     const [items, setItems] = useState<CartItem[]>(() => {
         try {
             const stored = localStorage.getItem('cart');
@@ -123,7 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const checkout = async (customerName: string, notes?: string, paymentMethod: 'pix' | 'card' = 'card') => {
         // 1. Validate Stock
-        const freshProducts = await api.products.list();
+        const freshProducts = await api.products.list(currentStoreId);
 
         for (const item of items) {
             const productInStock = freshProducts.find(p => p.id === item.id);
@@ -159,7 +159,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             notes: `${notes || ''} | Pagamento: ${paymentMethod}`
         };
 
-        const createdOrder = await api.orders.create(order);
+        const createdOrder = await api.orders.create(order, currentStoreId);
         const displayId = createdOrder && 'orderNumber' in createdOrder
             ? String(createdOrder.orderNumber).padStart(4, '0')
             : order.id;

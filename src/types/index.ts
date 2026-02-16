@@ -18,6 +18,7 @@ export interface Product {
     tags?: string[]
     total_reviews?: number
     average_rating?: number
+    store_id?: string
 }
 
 export interface Review {
@@ -73,6 +74,7 @@ export interface Order {
     };
     transactionNsu?: string;
     infinitepayData?: any;
+    store_id?: string;
 }
 
 export interface User {
@@ -95,6 +97,7 @@ export interface BlogPost {
     category: string;
     isFeatured?: boolean;
     isPublished: boolean;
+    store_id?: string;
 }
 
 export interface Coupon {
