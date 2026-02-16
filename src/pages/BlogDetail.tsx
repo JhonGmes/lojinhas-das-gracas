@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { api } from '../services/api';
 import { generateStoryCard } from '../services/storyGenerator';
 import toast from 'react-hot-toast';
-import { Download, X as CloseIcon, Loader2, Sparkles } from 'lucide-react';
+import { X as CloseIcon, Loader2, Sparkles } from 'lucide-react';
 
 export function BlogDetail() {
     const { id } = useParams();
