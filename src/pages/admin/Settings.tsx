@@ -108,6 +108,17 @@ export function Settings() {
                             placeholder="contato@loja.com"
                         />
                     </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">URL do Instagram da Loja</label>
+                        <input
+                            type="text"
+                            value={formData.instagram_url || ''}
+                            onChange={e => setFormData({ ...formData, instagram_url: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                            placeholder="https://instagram.com/loja"
+                        />
+                    </div>
                 </div>
 
                 {/* Vendas & WhatsApp */}

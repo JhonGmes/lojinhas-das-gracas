@@ -14,6 +14,7 @@ interface StoreSettings {
     hero_image_url?: string;
     hero_banners?: string[];
     pix_key?: string;
+    instagram_url?: string;
     infinitepay_handle?: string;
     monthly_revenue_goal?: number;
     notification_sound_url?: string;
@@ -39,6 +40,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
         hero_banners: [],
         pix_key: 'suachave@pix.com',
+        instagram_url: 'https://instagram.com/lojinhadasgracas',
         monthly_revenue_goal: 5000,
         notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2042/2042-preview.mp3'
     });

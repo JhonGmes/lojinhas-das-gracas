@@ -343,6 +343,11 @@ export const api = {
                     storeData.infinitepay_handle = localInfinite;
                 }
 
+                const localInsta = localStorage.getItem('ljg_instagram_url');
+                if (localInsta) {
+                    storeData.instagram_url = localInsta;
+                }
+
                 return storeData;
             } catch (err) {
                 console.warn('⚠️ Erro ao buscar settings, usando padrões');
@@ -365,6 +370,9 @@ export const api = {
                 if (payload.infinitepay_handle) {
                     localStorage.setItem('ljg_infinitepay_handle', payload.infinitepay_handle);
                 }
+                if (payload.instagram_url) {
+                    localStorage.setItem('ljg_instagram_url', payload.instagram_url);
+                }
 
                 // Se o ID for inválido ou a string "undefined", removemos para o Supabase gerar um novo
                 if (!payload.id || payload.id === 'undefined' || payload.id === '') {
@@ -375,6 +383,7 @@ export const api = {
                 const dbPayload = { ...payload };
                 delete dbPayload.pix_key;
                 delete dbPayload.infinitepay_handle;
+                delete dbPayload.instagram_url;
 
                 const { error } = await supabase
                     .from('store_settings')
@@ -675,6 +684,18 @@ export const api = {
         updateNotifications: async (id: string, options: { notify_on_sale?: boolean; notify_on_stock?: boolean }): Promise<void> => {
             const { error } = await supabase.from('wishlists').update(options).eq('id', id);
             if (error) throw error;
+        }
+    },
+    newsletter: {
+        subscribe: async (email: string): Promise<void> => {
+            try {
+                const { error } = await supabase
+                    .from('newsletters')
+                    .insert([{ email, active: true }]);
+                if (error) throw error;
+            } catch (err) {
+                console.warn('Erro ao salvar email na newsletter:', err);
+            }
         }
     }
 };

@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useProducts } from '../../context/ProductContext';
 import { WhatsAppWidget } from '../ui/WhatsAppWidget';
 import { useState, useRef, useEffect } from 'react';
+import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 
 export function Layout({ children }: { children: React.ReactNode }) {
     const { items: cartItems } = useCart();
@@ -238,13 +240,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                     <p className="text-[10px] opacity-60">Receba orações e novidades</p>
                                 </div>
                             </div>
-                            <form className="flex-1 max-w-xs w-full flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
+                            <form
+                                className="flex-1 max-w-xs w-full flex items-center gap-2"
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const emailInput = e.currentTarget.querySelector('input') as HTMLInputElement;
+                                    const email = emailInput.value;
+                                    if (!email) return;
+                                    try {
+                                        await api.newsletter.subscribe(email);
+                                        toast.success('Inscrito com sucesso! 🙏');
+                                        emailInput.value = '';
+                                    } catch {
+                                        toast.error('Ocorreu um erro.');
+                                    }
+                                }}
+                            >
                                 <input
                                     type="email"
+                                    required
                                     placeholder="Seu e-mail"
                                     className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 outline-none focus:bg-white/10 focus:border-brand-gold transition-all text-[11px]"
                                 />
-                                <button className="bg-brand-gold text-brand-wood p-2 rounded-full hover:bg-white hover:text-brand-gold transition-all shadow-lg">
+                                <button type="submit" className="bg-brand-gold text-brand-wood p-2 rounded-full hover:bg-white hover:text-brand-gold transition-all shadow-lg">
                                     <Send size={14} />
                                 </button>
                             </form>

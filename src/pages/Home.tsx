@@ -1,9 +1,9 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ui/ProductCard';
 import { Sparkles, ArrowRight, Feather, Compass, Gift } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
 import ProductFilters, { type FilterState } from '../components/ProductFilters';
 
@@ -16,15 +16,30 @@ export function Home() {
     const { posts } = useBlog();
     const offersRef = useRef<HTMLDivElement>(null);
 
+    const [searchParams] = useSearchParams();
+    const location = useLocation();
+
     // Filter states
     const [activeFilters, setActiveFilters] = useState<FilterState>({
-        search: '',
-        category: [],
+        search: searchParams.get('q') || '',
+        category: searchParams.get('cat') ? [searchParams.get('cat')!] : [],
         priceRange: [0, 1000],
         materials: [],
         colors: [],
         sortBy: 'newest'
     });
+
+    // Update filters when URL params change
+    useEffect(() => {
+        const cat = searchParams.get('cat');
+        const q = searchParams.get('q');
+
+        setActiveFilters(prev => ({
+            ...prev,
+            category: cat ? [cat] : [],
+            search: q || ''
+        }));
+    }, [location.search]);
 
     // Carousel State
     const [currentBanner] = useState(0);
@@ -39,28 +54,7 @@ export function Home() {
         return cats.sort();
     }, [products]);
 
-    const materials = useMemo(() => {
-        const mats = Array.from(new Set(products.map(p => p.material).filter(Boolean)));
-        return mats.sort() as string[];
-    }, [products]);
 
-    const colors = useMemo(() => {
-        const colorMap: Record<string, string> = {
-            'Dourado': '#D4AF37',
-            'Marrom': '#8B4513',
-            'Branco': '#FFFFFF',
-            'Prata': '#C0C0C0',
-            'Preto': '#1a1a1a',
-            'Azul': '#4A90E2',
-            'Vermelho': '#E24A4A',
-            'Rosa': '#E291A8',
-            'Verde': '#4AE290',
-            'Bege': '#F5F5DC',
-            'Multicolor': 'linear-gradient(to right, red, yellow, green, blue)'
-        };
-        const uniqueColors = Array.from(new Set(products.map(p => p.color).filter(Boolean)));
-        return uniqueColors.map(c => ({ name: c as string, hex: colorMap[c as string] || '#CCCCCC' }));
-    }, [products]);
 
     // Internal filtering logic
     const filteredProducts = useMemo(() => {
@@ -75,7 +69,11 @@ export function Home() {
         }
 
         if (activeFilters.category.length > 0) {
-            result = result.filter(p => activeFilters.category.includes(p.category));
+            result = result.filter(p =>
+                activeFilters.category.some(cat =>
+                    p.category.toLowerCase() === cat.toLowerCase()
+                )
+            );
         }
 
         result = result.filter(p => {
@@ -92,13 +90,13 @@ export function Home() {
         }
 
         switch (activeFilters.sortBy) {
-            case 'price-asc':
+            case 'price_asc':
                 result.sort((a, b) => (a.promotionalPrice || a.price) - (b.promotionalPrice || b.price));
                 break;
-            case 'price-desc':
+            case 'price_desc':
                 result.sort((a, b) => (b.promotionalPrice || b.price) - (a.promotionalPrice || a.price));
                 break;
-            case 'rating':
+            case 'best_rated':
                 result.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
                 break;
             case 'newest':
@@ -111,7 +109,7 @@ export function Home() {
 
     const promoProducts = useMemo(() => products.filter(p => p.promotionalPrice && p.stock > 0), [products]);
     const featuredProducts = useMemo(() => products.filter(p => p.isFeatured && p.stock > 0), [products]);
-    const featuredPosts = useMemo(() => posts.filter(p => p.isFeatured && p.isPublished).slice(0, 3), [posts]);
+    const featuredPosts = useMemo(() => posts.filter(p => p.isFeatured && p.isPublished).slice(0, 4), [posts]);
 
     const isGlobalSearch = activeFilters.search !== '' || activeFilters.category.length > 0 || activeFilters.colors.length > 0 || activeFilters.materials.length > 0;
 
@@ -151,99 +149,99 @@ export function Home() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 w-full pt-12 md:pt-20">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    <ProductFilters
-                        categories={categories}
-                        materials={materials}
-                        colors={colors}
-                        onFilterChange={setActiveFilters}
-                        totalResults={filteredProducts.length}
-                    />
-
-                    <main className="flex-1 space-y-16">
-                        {!isGlobalSearch && (
-                            <>
-                                {featuredProducts.length > 0 && (
-                                    <section>
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <Sparkles size={20} className="text-brand-gold" />
-                                            <h2 className="text-lg font-display font-medium text-stone-800 uppercase tracking-widest">Destaques</h2>
-                                            <div className="h-px flex-1 bg-gray-200" />
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                            {featuredProducts.slice(0, 10).map(p => (
-                                                <ProductCard key={`${p.id}-featured`} product={p} />
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {promoProducts.length > 0 && (
-                                    <section ref={offersRef}>
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <Gift size={20} className="text-brand-gold" />
-                                            <h2 className="text-lg font-display font-medium text-stone-800 uppercase tracking-widest">Ofertas</h2>
-                                            <div className="h-px flex-1 bg-gray-200" />
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                            {promoProducts.slice(0, 10).map(p => (
-                                                <ProductCard key={`${p.id}-promo`} product={p} />
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-                            </>
-                        )}
-
-                        <section>
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="flex items-center gap-3">
-                                    <Compass size={20} className="text-brand-gold" />
-                                    <div>
-                                        <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">
-                                            {isGlobalSearch ? 'Resultados da Busca' : 'Catálogo Completo'}
-                                        </h2>
-                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1">
-                                            {filteredProducts.length} produtos encontrados
-                                        </p>
+                <main className="space-y-16">
+                    {!isGlobalSearch && (
+                        <>
+                            {featuredProducts.length > 0 && (
+                                <section>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <Sparkles size={16} className="text-brand-gold" />
+                                        <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Destaques</h2>
+                                        <div className="h-px flex-1 bg-stone-100" />
                                     </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                        {featuredProducts.slice(0, 8).map(p => (
+                                            <ProductCard key={`${p.id}-featured`} product={p} />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {promoProducts.length > 0 && (
+                                <section ref={offersRef}>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <Gift size={16} className="text-brand-gold" />
+                                        <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Ofertas de Bênção</h2>
+                                        <div className="h-px flex-1 bg-stone-100" />
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                        {promoProducts.slice(0, 8).map(p => (
+                                            <ProductCard key={`${p.id}-promo`} product={p} />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </>
+                    )}
+
+                    <section className="pb-20">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 border-b border-stone-100 pb-6">
+                            <div className="flex items-center gap-3">
+                                <Compass size={18} className="text-brand-gold" />
+                                <div>
+                                    <h2 className="text-lg font-display font-medium text-stone-800 uppercase tracking-widest">
+                                        {isGlobalSearch ? 'Resultados da Busca' : 'Nossos Tesouros'}
+                                    </h2>
+                                    <p className="text-[8px] text-stone-400 font-bold uppercase tracking-[0.4em] mt-1">
+                                        {filteredProducts.length} itens encontrados
+                                    </p>
                                 </div>
                             </div>
 
-                            {loading ? (
-                                <div className="text-center py-20 text-brand-gold font-display text-xl tracking-[0.3em] uppercase animate-pulse">
-                                    Sincronizando com o céu...
-                                </div>
-                            ) : filteredProducts.length > 0 ? (
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-20">
-                                    {filteredProducts.map(p => (
-                                        <ProductCard key={p.id} product={p} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-32 bg-white rounded-3xl border border-dashed border-gray-200">
-                                    <span className="text-6xl mb-6 block">🕊️</span>
-                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Nenhum tesouro encontrado</h3>
-                                    <p className="text-gray-400 mb-8">Tente ajustar seus filtros ou buscar por outro termo.</p>
-                                    <button onClick={() => window.location.reload()} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
-                                        Limpar Filtros
-                                    </button>
-                                </div>
-                            )}
-                        </section>
-                    </main>
-                </div>
+                            <ProductFilters
+                                categories={categories}
+                                onFilterChange={setActiveFilters}
+                                activeFilters={activeFilters}
+                                totalResults={filteredProducts.length}
+                            />
+                        </div>
+
+                        {loading ? (
+                            <div className="text-center py-20 text-brand-gold/40 font-display text-sm tracking-[0.5em] uppercase animate-pulse">
+                                Sincronizando com o céu...
+                            </div>
+                        ) : filteredProducts.length > 0 ? (
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                {filteredProducts.map(p => (
+                                    <ProductCard key={p.id} product={p} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-32 bg-white rounded-sm border border-dashed border-stone-200">
+                                <span className="text-4xl mb-6 block">🕊️</span>
+                                <h3 className="text-sm font-black text-stone-800 uppercase tracking-widest mb-2">Nenhum tesouro encontrado</h3>
+                                <p className="text-[10px] text-stone-400 uppercase tracking-widest mb-8">Tente ajustar seus filtros para encontrar sua graça.</p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="bg-brand-gold text-brand-wood px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-soft"
+                                >
+                                    Limpar Filtros
+                                </button>
+                            </div>
+                        )}
+                    </section>
+                </main>
 
                 {!isGlobalSearch && featuredPosts.length > 0 && (
-                    <section className="py-20 border-t border-gray-100">
-                        <div className="flex items-center justify-between mb-8">
+                    <section className="py-24 border-t border-stone-100">
+                        <div className="flex items-center justify-between mb-12">
                             <div className="flex items-center gap-3">
                                 <Feather size={20} className="text-brand-gold" />
                                 <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">Blog de Fé</h2>
                             </div>
-                            <Link to="/blog" className="text-brand-gold font-bold text-xs uppercase border-b-2 border-brand-gold pb-1">Ver tudo</Link>
+                            <Link to="/blog" className="text-brand-gold font-bold text-[10px] uppercase tracking-widest border-b border-brand-gold/30 pb-1 hover:border-brand-gold transition-colors">Ver tudo</Link>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {featuredPosts.map(post => (
                                 <BlogCard key={post.id} post={post} />
                             ))}

@@ -89,6 +89,7 @@ create table if not exists store_settings (
   hero_subtitle text,
   hero_button_text text,
   hero_image_url text,
+  instagram_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
@@ -118,6 +119,18 @@ create table if not exists blog_posts (
 alter table blog_posts enable row level security;
 drop policy if exists "Acesso Total Blog" on blog_posts;
 create policy "Acesso Total Blog" on blog_posts for all to public using (true) with check (true);
+
+-- 7. TABELA DE NEWSLETTER
+create table if not exists newsletters (
+  id uuid default gen_random_uuid() primary key,
+  email text not null unique,
+  active boolean default true,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+-- Permissões
+alter table newsletters enable row level security;
+drop policy if exists "Acesso Total Newsletter" on newsletters;
+create policy "Acesso Total Newsletter" on newsletters for all to public using (true) with check (true);
 ```
 
 ## Storage (Imagens)

@@ -13,31 +13,27 @@ export interface FilterState {
 interface ProductFiltersProps {
     onFilterChange: (filters: FilterState) => void;
     categories: string[];
-    materials: string[];
-    colors: { name: string; hex: string }[];
+    activeFilters: FilterState;
     totalResults?: number;
 }
 
 export default function ProductFilters({
     onFilterChange,
     categories,
-    materials,
-    colors,
+    activeFilters,
     totalResults
 }: ProductFiltersProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [filters, setFilters] = useState<FilterState>({
-        search: '',
-        category: [],
-        priceRange: [0, 1000],
-        materials: [],
-        colors: [],
-        sortBy: 'newest'
-    });
+    const [filters, setFilters] = React.useState<FilterState>(activeFilters);
+
+    // Sync internal filters with props (URL changes)
+    React.useEffect(() => {
+        setFilters(activeFilters);
+    }, [activeFilters]);
 
     const [expandedSections, setExpandedSections] = useState({
         categories: true,
-        price: true,
+        price: false,
         materials: false,
         colors: false
     });
@@ -77,70 +73,68 @@ export default function ProductFilters({
     };
 
     return (
-        <div className="relative">
-            {/* Botão Mobile */}
+        <div className="flex items-center gap-3">
+            {/* Botão Discreto */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="lg:hidden fixed bottom-6 right-6 z-40 bg-brand-wood text-brand-gold p-4 rounded-full shadow-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest border border-brand-gold/30"
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-sm text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400 hover:border-brand-gold hover:text-brand-gold transition-all shadow-sm"
             >
-                <div className="relative">
-                    <Filter size={20} />
-                    {totalResults !== undefined && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                            {totalResults}
-                        </span>
-                    )}
-                </div>
-                Filtros
+                <Filter size={14} />
+                Filtrar Tesouros
+                {totalResults !== undefined && (
+                    <span className="ml-1 bg-brand-gold/10 text-brand-gold px-1.5 py-0.5 rounded-sm">
+                        {totalResults}
+                    </span>
+                )}
             </button>
 
-            {/* Overlay Mobile */}
+            {/* Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 lg:hidden transition-opacity"
+                    className="fixed inset-0 bg-stone-900/40 backdrop-blur-[2px] z-[100] transition-opacity"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
-            {/* Sidebar / Drawer */}
+            {/* Drawer Lateral - Sempre Drawer para ser discreto */}
             <aside className={`
-                fixed inset-y-0 right-0 w-80 bg-white dark:bg-stone-900 z-50 transform transition-transform duration-500 shadow-2xl overflow-y-auto
-                lg:static lg:w-full lg:shadow-none lg:translate-x-0 lg:z-0 lg:rounded-sm lg:border lg:border-stone-100 dark:lg:border-stone-800
+                fixed inset-y-0 right-0 w-80 bg-white dark:bg-stone-900 z-[101] transform transition-transform duration-500 shadow-2xl overflow-y-auto
                 ${isOpen ? 'translate-x-0' : 'translate-x-full'}
             `}>
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-8 lg:hidden">
+                <div className="p-8">
+                    <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-xl font-black text-stone-800 uppercase tracking-tight">Filtros</h2>
-                            {totalResults !== undefined && <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{totalResults} tesouros encontrados</p>}
+                            <h2 className="text-xl font-black text-stone-800 dark:text-stone-100 uppercase tracking-tight">Refinar Busca</h2>
+                            <div className="h-1 w-10 bg-brand-gold mt-1" />
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="p-2 text-stone-400 hover:text-stone-600">
+                        <button onClick={() => setIsOpen(false)} className="p-2 text-stone-300 hover:text-brand-gold transition-colors">
                             <X size={24} />
                         </button>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                         {/* Busca Rápida */}
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 group-focus-within:text-brand-gold transition-colors" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar nos tesouros..."
-                                value={filters.search}
-                                onChange={handleSearchChange}
-                                className="w-full bg-stone-50 border-none rounded-sm pl-10 pr-4 py-3 text-xs font-bold outline-none ring-1 ring-stone-100 focus:ring-brand-gold transition-all"
-                            />
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Palavra-chave</label>
+                            <div className="relative group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-300 group-focus-within:text-brand-gold transition-colors" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="O que procura?"
+                                    value={filters.search}
+                                    onChange={handleSearchChange}
+                                    className="w-full bg-stone-50 dark:bg-stone-800/50 border-none rounded-sm pl-10 pr-4 py-3 text-xs font-bold outline-none ring-1 ring-stone-100 dark:ring-stone-800 focus:ring-brand-gold transition-all"
+                                />
+                            </div>
                         </div>
 
                         {/* Order By */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 flex items-center justify-between">
-                                Ordenar por
-                            </label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Ordenar por</label>
                             <select
                                 value={filters.sortBy}
                                 onChange={handleSortChange}
-                                className="w-full bg-white border border-stone-200 rounded-sm px-4 py-2.5 text-[10px] font-bold outline-none focus:border-brand-gold transition-colors"
+                                className="w-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-sm px-4 py-3 text-[10px] font-black uppercase outline-none focus:border-brand-gold transition-colors"
                             >
                                 <option value="newest">Mais Recentes</option>
                                 <option value="price_asc">Menor Preço</option>
@@ -153,21 +147,20 @@ export default function ProductFilters({
                         <div className="space-y-4">
                             <button
                                 onClick={() => toggleSection('categories')}
-                                type="button"
-                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold"
+                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-brand-gold border-b border-brand-gold/10 pb-2"
                             >
                                 Categorias
                                 {expandedSections.categories ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>
                             {expandedSections.categories && (
-                                <div className="flex flex-wrap gap-2 animate-fade-in text-[10px] font-black uppercase tracking-widest">
+                                <div className="flex flex-wrap gap-2 animate-fade-in">
                                     {categories.map((cat: string) => (
                                         <button
                                             key={cat}
                                             onClick={() => toggleFilter('category', cat)}
-                                            className={`px-3 py-1.5 rounded-sm transition-all ${filters.category.includes(cat)
-                                                ? 'bg-brand-gold text-brand-wood shadow-soft'
-                                                : 'bg-stone-50 text-stone-500 hover:bg-stone-100'
+                                            className={`px-3 py-2 rounded-sm text-[9px] font-black uppercase tracking-widest transition-all ${filters.category.includes(cat)
+                                                ? 'bg-brand-gold text-brand-wood shadow-sm'
+                                                : 'bg-stone-50 dark:bg-stone-800 text-stone-500 hover:bg-stone-100'
                                                 }`}
                                         >
                                             {cat}
@@ -181,14 +174,13 @@ export default function ProductFilters({
                         <div className="space-y-4">
                             <button
                                 onClick={() => toggleSection('price')}
-                                type="button"
-                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold"
+                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-brand-gold border-b border-brand-gold/10 pb-2"
                             >
                                 Faixa de Preço
                                 {expandedSections.price ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>
                             {expandedSections.price && (
-                                <div className="space-y-4 animate-fade-in">
+                                <div className="space-y-5 animate-fade-in pt-2">
                                     <input
                                         type="range"
                                         min="0"
@@ -196,69 +188,12 @@ export default function ProductFilters({
                                         step="10"
                                         value={filters.priceRange[1]}
                                         onChange={handlePriceChange}
-                                        className="w-full h-1 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-brand-gold"
+                                        className="w-full h-1 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer accent-brand-gold"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">R$ 0</span>
-                                        <span className="text-xs font-black text-stone-800 bg-brand-gold/10 px-2 py-1 rounded-sm">Até R$ {filters.priceRange[1]}</span>
+                                        <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">R$ 0</span>
+                                        <span className="text-[10px] font-black text-stone-800 dark:text-stone-100 bg-brand-gold/10 px-3 py-1.5 rounded-sm">Até R$ {filters.priceRange[1]}</span>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Materiais */}
-                        <div className="space-y-4">
-                            <button
-                                onClick={() => toggleSection('materials')}
-                                type="button"
-                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold"
-                            >
-                                Materiais
-                                {expandedSections.materials ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            </button>
-                            {expandedSections.materials && (
-                                <div className="flex flex-wrap gap-2 animate-fade-in">
-                                    {materials.map((mat: string) => (
-                                        <button
-                                            key={mat}
-                                            onClick={() => toggleFilter('materials', mat)}
-                                            className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${filters.materials.includes(mat)
-                                                ? 'bg-brand-gold text-brand-wood'
-                                                : 'bg-stone-50 text-stone-500'
-                                                }`}
-                                        >
-                                            {mat}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Cores */}
-                        <div className="space-y-4">
-                            <button
-                                onClick={() => toggleSection('colors')}
-                                type="button"
-                                className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold"
-                            >
-                                Cores
-                                {expandedSections.colors ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            </button>
-                            {expandedSections.colors && (
-                                <div className="flex flex-wrap gap-3 animate-fade-in">
-                                    {colors.map((color: { name: string; hex: string }) => (
-                                        <button
-                                            key={color.name}
-                                            onClick={() => toggleFilter('colors', color.name)}
-                                            className={`w-6 h-6 rounded-full border-2 transition-all p-0.5 ${filters.colors.includes(color.name) ? 'border-brand-gold scale-125 shadow-soft' : 'border-transparent'}`}
-                                            title={color.name}
-                                        >
-                                            <div
-                                                className="w-full h-full rounded-full shadow-inner"
-                                                style={{ backgroundColor: color.hex }}
-                                            />
-                                        </button>
-                                    ))}
                                 </div>
                             )}
                         </div>
@@ -277,7 +212,7 @@ export default function ProductFilters({
                                 setFilters(reset);
                                 onFilterChange(reset);
                             }}
-                            className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-stone-300 hover:text-brand-gold transition-colors"
+                            className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-stone-300 hover:text-brand-gold transition-colors border-t border-stone-100 dark:border-stone-800 mt-10"
                         >
                             Limpar Filtros
                         </button>
