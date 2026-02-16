@@ -23,8 +23,16 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
     const { settings } = useStore();
     const [items, setItems] = useState<CartItem[]>(() => {
-        const stored = localStorage.getItem('cart');
-        return stored ? JSON.parse(stored) : [];
+        try {
+            const stored = localStorage.getItem('cart');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (error) {
+            console.error('Erro ao ler carrinho do localStorage:', error);
+        }
+        return [];
     });
     const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
