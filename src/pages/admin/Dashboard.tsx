@@ -126,7 +126,13 @@ export function Dashboard() {
             {/* Header Clean */}
             <div className="flex justify-between items-end border-b border-stone-200 dark:border-stone-800 pb-4">
                 <div>
-                    <h1 className="text-lg font-display font-medium text-stone-700 dark:text-stone-200 uppercase tracking-widest">Resumo Executivo</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-lg font-display font-medium text-stone-700 dark:text-stone-200 uppercase tracking-widest">Resumo Executivo</h1>
+                        <div className="px-3 py-1 bg-brand-gold/10 border border-brand-gold/20 rounded-full flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-pulse" />
+                            <span className="text-[10px] font-bold text-brand-gold uppercase tracking-widest">{settings.store_name}</span>
+                        </div>
+                    </div>
                     <p className="text-stone-400 text-xs mt-1">Visão geral do desempenho em tempo real</p>
                 </div>
                 <div className="text-[10px] text-stone-400 font-mono">
