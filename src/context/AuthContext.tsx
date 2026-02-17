@@ -5,7 +5,7 @@ import type { User } from '../types'
 interface AuthContextType {
     user: User | null
     login: (email: string, pass: string) => Promise<boolean>
-    signUp: (data: { email: string; pass: string; name: string; whatsapp: string; address: string }) => Promise<{ success: boolean; message?: string }>
+    signUp: (data: { email: string; pass: string; name: string; whatsapp: string; address: string; storeId?: string }) => Promise<{ success: boolean; message?: string }>
     resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
     logout: () => Promise<void>
 }
@@ -40,7 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 name: usuario.nome,
                 whatsapp: usuario.telefone,
                 address: usuario.endereco,
-                role: usuario.nivel
+                role: usuario.nivel,
+                store_id: usuario.store_id
             })
         }
     }
@@ -68,15 +69,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 name: usuario.nome,
                 whatsapp: usuario.telefone,
                 address: usuario.endereco,
-                role: usuario.nivel
+                role: usuario.nivel,
+                store_id: usuario.store_id
             })
         }
 
         return true
     }
 
-    async function signUp({ email, pass, name, whatsapp, address }: { email: string; pass: string; name: string; whatsapp: string; address: string }) {
-        console.log('🚀 [AuthContext] Iniciando signUp com dados:', { email, name, whatsapp, address });
+    async function signUp({ email, pass, name, whatsapp, address, storeId = '00000000-0000-0000-0000-000000000001' }: { email: string; pass: string; name: string; whatsapp: string; address: string, storeId?: string }) {
+        console.log('🚀 [AuthContext] Iniciando signUp com dados:', { email, name, whatsapp, address, storeId });
 
         const { data, error } = await supabase.auth.signUp({
             email,
@@ -97,7 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             nome: name,
             telefone: whatsapp,
             endereco: address,
-            nivel: 'customer'
+            nivel: 'customer',
+            store_id: storeId
         };
 
         console.log('📝 [AuthContext] Dados que serão inseridos na tabela usuarios:', insertData);
@@ -125,7 +128,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 name: name,
                 whatsapp: whatsapp,
                 address: address,
-                role: 'customer'
+                role: 'customer',
+                store_id: storeId
             })
             console.log('✅ [AuthContext] Sessão criada e usuário setado no contexto');
         }

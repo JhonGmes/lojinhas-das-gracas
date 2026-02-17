@@ -649,10 +649,11 @@ export const api = {
         }
     },
     wishlist: {
-        list: async (sessionId: string, userEmail?: string): Promise<WishlistItem[]> => {
+        list: async (sessionId: string, storeId: string = '00000000-0000-0000-0000-000000000001', userEmail?: string): Promise<WishlistItem[]> => {
             let query = supabase
                 .from('wishlists')
                 .select('*, product:products(*)')
+                .eq('store_id', storeId)
 
             if (userEmail) {
                 query = query.or(`session_id.eq.${sessionId},user_email.eq.${userEmail}`);
@@ -664,8 +665,8 @@ export const api = {
             if (error) throw error;
             return data || [];
         },
-        add: async (item: Omit<WishlistItem, 'id' | 'added_at'>): Promise<void> => {
-            const { error } = await supabase.from('wishlists').insert([item]);
+        add: async (item: Omit<WishlistItem, 'id' | 'added_at'>, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
+            const { error } = await supabase.from('wishlists').insert([{ ...item, store_id: storeId }]);
             if (error) throw error;
         },
         remove: async (sessionId: string, productId: string): Promise<void> => {
@@ -690,11 +691,11 @@ export const api = {
         }
     },
     newsletter: {
-        subscribe: async (email: string): Promise<void> => {
+        subscribe: async (email: string, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
             try {
                 const { error } = await supabase
                     .from('newsletters')
-                    .insert([{ email, active: true }]);
+                    .insert([{ email, active: true, store_id: storeId }]);
                 if (error) throw error;
             } catch (err) {
                 console.warn('Erro ao salvar email na newsletter:', err);

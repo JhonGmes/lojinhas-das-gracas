@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import {
     LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft,
     Settings as SettingsIcon, FolderTree, BookOpen,
-    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star
+    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star, Shield
 } from 'lucide-react';
 import { Dashboard } from './Dashboard';
 import { Inventory } from './Inventory';
@@ -206,6 +206,23 @@ export function AdminLayout() {
                     <Link to="/" className="flex items-center gap-2 px-4 py-2 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors mt-2 border-t border-white/5 pt-2 justify-center">
                         <ArrowLeft size={10} /> Ir para Loja
                     </Link>
+
+                    {/* Managed Store Indicator & Secret Access for Jhon */}
+                    <div className="mt-4 px-4 py-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                        <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            Ambiente de Loja
+                        </p>
+                        <p className="text-[10px] font-bold text-white truncate">{settings.store_name}</p>
+
+                        {user.email === 'lojinhadasgracas18@gmail.com' && (
+                            <Link
+                                to="/admin/super"
+                                className="mt-3 flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-red-900/40"
+                            >
+                                <Shield size={12} /> Super Admin
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </aside>
 

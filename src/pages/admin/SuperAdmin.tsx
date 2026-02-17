@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { Shield, Plus, Building2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -14,6 +16,8 @@ interface Store {
 }
 
 export function SuperAdmin() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const { setStore, currentStoreId } = useStore();
     const [stores, setStores] = useState<Store[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -30,8 +34,17 @@ export function SuperAdmin() {
     };
 
     useEffect(() => {
+        // Trava de Segurança Mestre: Apenas Jhon acessa o Super Admin
+        const JHON_EMAIL = 'lojinhadasgracas18@gmail.com';
+
+        if (!user || user.email !== JHON_EMAIL) {
+            toast.error('Acesso restrito ao Administrador Geral do Sistema.');
+            navigate('/');
+            return;
+        }
+
         fetchStores();
-    }, []);
+    }, [user, navigate]);
 
     const handleCreateStore = async (e: React.FormEvent) => {
         e.preventDefault();

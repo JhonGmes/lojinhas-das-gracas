@@ -15,7 +15,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const { items: cartItems } = useCart();
     const { items: wishlistItems } = useWishlist();
     const { theme, toggleTheme } = useTheme();
-    const { settings } = useStore();
+    const { settings, currentStoreId } = useStore();
     const { user, logout } = useAuth();
     const { categories } = useProducts();
     const navigate = useNavigate();
@@ -248,7 +248,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                     const email = emailInput.value;
                                     if (!email) return;
                                     try {
-                                        await api.newsletter.subscribe(email);
+                                        await api.newsletter.subscribe(email, currentStoreId);
                                         toast.success('Inscrito com sucesso! 🙏');
                                         emailInput.value = '';
                                     } catch {

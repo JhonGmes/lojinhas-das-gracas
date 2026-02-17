@@ -137,7 +137,6 @@ function App() {
                                                     <Route path="/admin-login" element={<Login />} />
 
                                                     {/* Secure Routes */}
-                                                    <Route path="/admin" element={<AdminLayout />} />
                                                     <Route path="/admin/super" element={<SuperAdmin />} />
                                                     <Route path="/admin/*" element={<AdminLayout />} />
 

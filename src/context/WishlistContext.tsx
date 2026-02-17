@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useStore } from './StoreContext';
 import type { WishlistItem } from '../types';
 import { toast } from 'react-hot-toast';
 
@@ -17,6 +18,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 const LS_SESSION_ID = 'ljg_wishlist_session';
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { currentStoreId } = useStore();
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [sessionId, setSessionId] = useState<string>('');
@@ -28,12 +30,12 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             localStorage.setItem(LS_SESSION_ID, id);
         }
         setSessionId(id);
-        loadWishlist(id);
-    }, []);
+        loadWishlist(id, currentStoreId);
+    }, [currentStoreId]);
 
-    const loadWishlist = async (id: string) => {
+    const loadWishlist = async (id: string, storeId: string) => {
         try {
-            const data = await api.wishlist.list(id);
+            const data = await api.wishlist.list(id, storeId);
             setItems(data);
         } catch (error) {
             console.error('Erro ao carregar wishlist:', error);
@@ -51,9 +53,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 product_id: productId,
                 notify_on_sale: false,
                 notify_on_stock: false
-            });
+            }, currentStoreId);
 
-            await loadWishlist(sessionId);
+            await loadWishlist(sessionId, currentStoreId);
         } catch (error) {
             console.error('Erro ao adicionar à wishlist:', error);
         }

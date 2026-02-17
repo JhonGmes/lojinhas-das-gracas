@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useStore } from '../context/StoreContext';
 import { User, UserPlus, ArrowRight, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export function Identification() {
@@ -23,6 +24,7 @@ export function Identification() {
     const [loading, setLoading] = useState(false);
 
     const { login, signUp, resetPassword, user } = useAuth();
+    const { currentStoreId } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -74,7 +76,8 @@ export function Identification() {
             pass: registerPass,
             name: registerName,
             whatsapp: registerPhone,
-            address: fullAddress
+            address: fullAddress,
+            storeId: currentStoreId
         });
 
         console.log('✅ [DEBUG] Resultado do signUp:', res);

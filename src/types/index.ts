@@ -84,6 +84,7 @@ export interface User {
     whatsapp?: string;
     address?: string;
     role: 'admin' | 'customer';
+    store_id?: string;
 }
 
 export interface BlogPost {
