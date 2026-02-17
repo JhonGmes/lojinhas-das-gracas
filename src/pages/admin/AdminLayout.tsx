@@ -214,7 +214,7 @@ export function AdminLayout() {
                         </p>
                         <p className="text-[10px] font-bold text-white truncate">{settings.store_name}</p>
 
-                        {user.email === 'lojinhadasgracas18@gmail.com' && (
+                        {user.email === 'jhongprojetos@gmail.com' && (
                             <Link
                                 to="/admin/super"
                                 className="mt-3 flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-red-900/40"

@@ -35,7 +35,7 @@ export function SuperAdmin() {
 
     useEffect(() => {
         // Trava de Segurança Mestre: Apenas Jhon acessa o Super Admin
-        const JHON_EMAIL = 'lojinhadasgracas18@gmail.com';
+        const JHON_EMAIL = 'jhongprojetos@gmail.com';
 
         if (!user || user.email !== JHON_EMAIL) {
             toast.error('Acesso restrito ao Administrador Geral do Sistema.');

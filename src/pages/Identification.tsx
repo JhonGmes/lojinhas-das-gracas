@@ -34,7 +34,11 @@ export function Identification() {
 
     useEffect(() => {
         if (user) {
-            navigate(redirectPath);
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate(redirectPath);
+            }
         }
     }, [user, navigate, redirectPath]);
 
