@@ -22,7 +22,7 @@ interface CustomerSummary {
 }
 
 export function Customers() {
-    const { currentStoreId } = useStore();
+    const { currentStoreId, settings } = useStore();
     const [customers, setCustomers] = useState<CustomerSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');

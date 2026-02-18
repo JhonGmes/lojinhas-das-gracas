@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { DEFAULT_STORE_ID } from '../context/StoreContext';
 import { api } from '../services/api';
 import { Lock, Mail, Loader2, ArrowRight, Store } from 'lucide-react';
 
@@ -15,7 +16,7 @@ export function Login() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        api.settings.get().then(setStoreSettings);
+        api.settings.get(DEFAULT_STORE_ID).then(setStoreSettings);
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {

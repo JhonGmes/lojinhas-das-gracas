@@ -98,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     ) : 0;
 
     const applyCoupon = async (code: string) => {
-        const coupons = await api.coupons.list();
+        const coupons = await api.coupons.list(currentStoreId);
         const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.isActive);
 
         if (!coupon) return { success: false, message: 'Cupom inválido ou expirado.' };
