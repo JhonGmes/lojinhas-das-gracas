@@ -21,7 +21,7 @@ const getLocalOrders = (): Order[] => {
 
 export const api = {
     products: {
-        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Product[]> => {
+        list: async (storeId: string): Promise<Product[]> => {
             try {
                 const { data, error } = await supabase
                     .from('products')
@@ -47,8 +47,28 @@ export const api = {
         },
 
         getById: async (id: string): Promise<Product | undefined> => {
-            const products = await api.products.list()
-            return products.find(p => p.id === id)
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+                if (data) {
+                    return {
+                        ...data,
+                        promotionalPrice: data.promotional_price,
+                        isFeatured: data.is_featured,
+                        createdAt: data.created_at,
+                        code: data.code
+                    };
+                }
+            } catch (err) {
+                console.warn('⚠️ Produto não encontrado no banco, buscando local');
+            }
+            const products = getLocalProducts();
+            return products.find(p => p.id === id);
         },
 
         update: async (product: Product): Promise<void> => {
@@ -103,7 +123,7 @@ export const api = {
             }
         },
 
-        create: async (product: Omit<Product, 'id'>, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
+        create: async (product: Omit<Product, 'id'>, storeId: string): Promise<void> => {
             try {
                 const payload: any = {
                     name: product.name,
@@ -157,7 +177,7 @@ export const api = {
     },
 
     categories: {
-        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<string[]> => {
+        list: async (storeId: string): Promise<string[]> => {
             try {
                 const { data, error } = await supabase
                     .from('categories')
@@ -167,11 +187,11 @@ export const api = {
                 if (error) throw error;
                 return data.map(c => c.name);
             } catch {
-                return ['Terços', 'Imagens', 'Bíblias', 'Outros'];
+                return []; // Nova loja começa sem categorias
             }
         },
-        create: async (name: string): Promise<void> => {
-            await supabase.from('categories').insert([{ name }]);
+        create: async (name: string, storeId: string): Promise<void> => {
+            await supabase.from('categories').insert([{ name, store_id: storeId }]);
         },
         delete: async (name: string): Promise<void> => {
             await supabase.from('categories').delete().eq('name', name);
@@ -179,7 +199,7 @@ export const api = {
     },
 
     orders: {
-        create: async (order: Order, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Order | any> => {
+        create: async (order: Order, storeId: string): Promise<Order | any> => {
             try {
                 // Tentativa direta no Supabase com nomes de colunas exatos
                 const { data, error } = await supabase
@@ -283,7 +303,7 @@ export const api = {
             }
         },
 
-        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<Order[]> => {
+        list: async (storeId: string): Promise<Order[]> => {
             try {
                 const { data, error } = await supabase
                     .from('orders')
@@ -322,7 +342,7 @@ export const api = {
         }
     },
     settings: {
-        get: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<any> => {
+        get: async (storeId: string): Promise<any> => {
             try {
                 const { data, error } = await supabase
                     .from('store_settings')
@@ -361,31 +381,14 @@ export const api = {
                 const payload = { ...settings };
                 delete payload.updated_at;
 
-                // Salva localmente por segurança, já que as colunas podem não existir no banco
-                if (payload.pix_key) {
-                    localStorage.setItem('ljg_pix_key', payload.pix_key);
-                }
-                if (payload.infinitepay_handle) {
-                    localStorage.setItem('ljg_infinitepay_handle', payload.infinitepay_handle);
-                }
-                if (payload.instagram_url) {
-                    localStorage.setItem('ljg_instagram_url', payload.instagram_url);
-                }
-
                 // Se o ID for inválido ou a string "undefined", removemos para o Supabase gerar um novo
                 if (!payload.id || payload.id === 'undefined' || payload.id === '') {
                     delete payload.id;
                 }
 
-                // Removemos os campos que podem não existir no banco para evitar erro SQL
-                const dbPayload = { ...payload };
-                delete dbPayload.pix_key;
-                delete dbPayload.infinitepay_handle;
-                delete dbPayload.instagram_url;
-
                 const { error } = await supabase
                     .from('store_settings')
-                    .upsert(dbPayload);
+                    .upsert(payload);
 
                 if (error) throw error;
             } catch (err: any) {
@@ -395,7 +398,7 @@ export const api = {
         }
     },
     blog: {
-        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<BlogPost[]> => {
+        list: async (storeId: string): Promise<BlogPost[]> => {
             try {
                 const { data, error } = await supabase
                     .from('blog_posts')
@@ -418,7 +421,7 @@ export const api = {
                 return stored ? JSON.parse(stored) : [];
             }
         },
-        create: async (post: Omit<BlogPost, 'id'>, storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<void> => {
+        create: async (post: Omit<BlogPost, 'id'>, storeId: string): Promise<void> => {
             try {
                 const mapped = {
                     ...post,
@@ -472,7 +475,7 @@ export const api = {
         }
     },
     coupons: {
-        list: async (storeId: string = '00000000-0000-0000-0000-000000000001'): Promise<any[]> => {
+        list: async (storeId: string): Promise<any[]> => {
             try {
                 const { data, error } = await supabase
                     .from('coupons')
@@ -536,16 +539,17 @@ export const api = {
                 localStorage.setItem('ljg_waitlist', JSON.stringify(waitlist));
             }
         },
-        list: async (): Promise<any[]> => {
+        list: async (storeId: string): Promise<any[]> => {
             try {
                 const { data, error } = await supabase
                     .from('waiting_list')
                     .select('*')
+                    .eq('store_id', storeId)
                     .order('created_at', { ascending: false });
                 if (error) throw error;
                 return data || [];
             } catch {
-                return JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
+                return [];
             }
         },
         update: async (id: string, data: any): Promise<void> => {
@@ -609,10 +613,11 @@ export const api = {
             if (error) throw error;
             return data || [];
         },
-        listAll: async (): Promise<(Review & { products: { name: string } | null })[]> => {
+        listAll: async (storeId: string): Promise<(Review & { products: { name: string } | null })[]> => {
             const { data, error } = await supabase
                 .from('reviews')
-                .select('*, products(name)')
+                .select('*, products!inner(name, store_id)')
+                .eq('products.store_id', storeId)
                 .order('created_at', { ascending: false });
             if (error) throw error;
             return data || [];

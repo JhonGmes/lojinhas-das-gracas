@@ -21,7 +21,10 @@ interface ReviewWithProduct extends Review {
     products: { name: string } | null;
 }
 
+import { useStore } from '../../context/StoreContext';
+
 export function Reviews() {
+    const { currentStoreId } = useStore();
     const [reviews, setReviews] = useState<ReviewWithProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -30,14 +33,10 @@ export function Reviews() {
     const [replyText, setReplyText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadReviews();
-    }, []);
-
     const loadReviews = async () => {
         setLoading(true);
         try {
-            const data = await api.reviews.listAll();
+            const data = await api.reviews.listAll(currentStoreId);
             setReviews(data as any);
         } catch (error) {
             toast.error('Erro ao carregar avaliações.');
@@ -45,6 +44,12 @@ export function Reviews() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (currentStoreId) {
+            loadReviews();
+        }
+    }, [currentStoreId]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Tem certeza que deseja excluir esta avaliação? Esta ação é irreversível.')) return;

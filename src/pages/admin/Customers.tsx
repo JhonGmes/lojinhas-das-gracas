@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { useStore } from '../../context/StoreContext';
 import { formatCurrency, exportToCSV } from '../../lib/utils';
 import {
     Users, Search, UserCircle, ShoppingBag,
@@ -21,6 +22,7 @@ interface CustomerSummary {
 }
 
 export function Customers() {
+    const { currentStoreId } = useStore();
     const [customers, setCustomers] = useState<CustomerSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -30,30 +32,12 @@ export function Customers() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [ordersData, usersData] = await Promise.all([
-                    api.orders.list(),
-                    api.usuarios.list()
+                const [ordersData] = await Promise.all([
+                    api.orders.list(currentStoreId)
                 ]);
 
                 // Process customers map
                 const map: Record<string, CustomerSummary> = {};
-
-                // Add users first (they are our "base")
-                usersData.forEach((u: any) => {
-                    if (u.nivel === 'admin') return;
-                    const email = u.email.toLowerCase();
-                    map[email] = {
-                        email: u.email,
-                        name: u.nome || 'Cliente sem nome',
-                        phone: u.telefone || 'N/A',
-                        address: u.endereco,
-                        orderCount: 0,
-                        totalSpent: 0,
-                        lastPurchase: u.created_at,
-                        orders: [],
-                        tier: 'Prospecto'
-                    };
-                });
 
                 // Add orders data
                 ordersData.forEach((order: any) => {
@@ -113,10 +97,10 @@ export function Customers() {
 
     const handleContact = (customer: any) => {
         const text = customer.tier === 'VIP'
-            ? `A Paz de Cristo, ${customer.name}! Passando para agradecer sua fidelidade à Lojinha das Graças. Você é um de nossos clientes VIPs e preparamos um mimo especial para sua próxima compra! 🙏✨`
+            ? `A Paz de Cristo, ${customer.name}! Passando para agradecer sua fidelidade à ${settings.store_name}. Você é um de nossos clientes VIPs e preparamos um mimo especial para sua próxima compra! 🙏✨`
             : customer.tier === 'Prospecto'
-                ? `A Paz, ${customer.name}! Seja bem-vindo(a) à Lojinha das Graças. Vimos que você se cadastrou em nosso portal. Se precisar de ajuda para escolher um item especial, estou à disposição! 🙏`
-                : `A Paz, ${customer.name}! Tudo bem? Vimos sua última compra conosco. Temos novidades lindas na Lojinha das Graças esperando por você! 🙏`;
+                ? `A Paz, ${customer.name}! Seja bem-vindo(a) à ${settings.store_name}. Vimos que você se cadastrou em nosso portal. Se precisar de ajuda para escolher um item especial, estou à disposição! 🙏`
+                : `A Paz, ${customer.name}! Tudo bem? Vimos sua última compra conosco. Temos novidades lindas na ${settings.store_name} esperando por você! 🙏`;
 
         let phone = customer.phone.replace(/\D/g, '');
         if (phone.length === 11 && !phone.startsWith('55')) phone = '55' + phone;

@@ -38,7 +38,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
 
     const refreshCategories = async () => {
         try {
-            const data = await api.categories.list();
+            const data = await api.categories.list(currentStoreId);
             setCategories(data);
         } catch (error) {
             console.error("Failed to fetch categories", error);
@@ -46,8 +46,10 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        refreshProducts();
-        refreshCategories();
+        if (currentStoreId) {
+            refreshProducts();
+            refreshCategories();
+        }
     }, [currentStoreId]);
 
     const updateProduct = async (product: Product) => {
@@ -71,7 +73,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     }
 
     const addCategory = async (name: string) => {
-        await api.categories.create(name);
+        await api.categories.create(name, currentStoreId);
         await refreshCategories();
     }
 

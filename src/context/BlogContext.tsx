@@ -16,43 +16,6 @@ interface BlogContextType {
 
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
-const INITIAL_BLOG: Omit<BlogPost, 'id'>[] = [
-    {
-        title: 'A Importância da Oração do Rosário em Família',
-        content: 'Conteúdo completo sobre o Rosário...',
-        excerpt: 'Descubra como o hábito de rezar o terço em família pode fortalecer os laços de amor e fé no seu lar.',
-        date: '05 Out, 2023',
-        author: 'Pe. João',
-        image: 'https://images.unsplash.com/photo-1544764200-d834fd210a23?auto=format&fit=crop&q=80&w=800',
-        category: 'Espiritualidade',
-        isFeatured: true,
-        isPublished: true
-    },
-    {
-        title: 'Significado das Medalhas Milagrosas',
-        content: 'Conteúdo sobre medalhas...',
-        excerpt: 'Conheça a história e os milagres atribuídos à medalha de Nossa Senhora das Graças ao longo dos séculos.',
-        date: '02 Out, 2023',
-        author: 'Irmã Maria',
-        image: 'https://images.unsplash.com/photo-1590070183884-3c6628889815?auto=format&fit=crop&q=80&w=800',
-        category: 'História',
-        isFeatured: true,
-        isPublished: true
-    },
-    {
-        title: 'Oração para um Dia de Paz e Proteção',
-        content: 'Conteúdo da oração...',
-        excerpt: 'Comece sua manhã com esta oração especial pedindo a intercessão divina para guiar seus passos.',
-        date: '28 Set, 2023',
-        author: 'Equipe das Graças',
-        image: 'https://images.unsplash.com/photo-1507434912635-59b3ee373487?auto=format&fit=crop&q=80&w=800',
-        category: 'Oração',
-        isFeatured: true,
-        isPublished: true
-    }
-];
-
-
 export function BlogProvider({ children }: { children: ReactNode }) {
     const { currentStoreId } = useStore();
     const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -61,16 +24,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     const refreshPosts = async () => {
         try {
             const data = await api.blog.list(currentStoreId);
-            if (data.length === 0) {
-                // Initialize if empty (for demo)
-                for (const p of INITIAL_BLOG) {
-                    await api.blog.create(p, currentStoreId);
-                }
-                const firstData = await api.blog.list(currentStoreId);
-                setPosts(firstData);
-            } else {
-                setPosts(data);
-            }
+            setPosts(data || []);
         } catch (error) {
             console.error("Failed to fetch blog posts", error);
         } finally {

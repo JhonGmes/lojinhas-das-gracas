@@ -34,11 +34,13 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const DEFAULT_STORE_ID = '00000000-0000-0000-0000-000000000001';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-    const [currentStoreId, setCurrentStoreId] = useState<string>(DEFAULT_STORE_ID);
+    const [currentStoreId, setCurrentStoreId] = useState<string>(() => {
+        return localStorage.getItem('managed_store_id') || DEFAULT_STORE_ID;
+    });
     const [settings, setSettings] = useState<StoreSettings>({
         id: '',
-        store_name: 'Lojinha das Graças',
-        whatsapp_number: '5598984095956',
+        store_name: 'Carregando Loja...',
+        whatsapp_number: '',
         primary_color: '#D4AF37',
         hero_title: 'Encontre Paz e Devoção',
         hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
@@ -53,11 +55,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     const loadSettings = async () => {
+        setLoading(true);
         try {
-            // No futuro aqui detectamos o store_id via URL/Domínio
-            // Por enquanto, forçamos o DEFAULT para não quebrar a Lojinha das Graças
             const data = await api.settings.getByStoreId(currentStoreId);
-            if (data) setSettings(data);
+            if (data) {
+                setSettings(data);
+            } else {
+                // Reset states for new store to avoid data leakage from previous store (e.g. Lojinha das Graças)
+                setSettings({
+                    id: '',
+                    store_name: 'Nova Loja',
+                    whatsapp_number: '',
+                    primary_color: '#D4AF37',
+                    hero_title: 'Bem-vindo',
+                    hero_subtitle: 'Configure sua nova loja no painel administrativo.',
+                    hero_button_text: 'Ver Produtos',
+                    hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
+                    hero_banners: [],
+                    pix_key: '',
+                    instagram_url: '',
+                    infinitepay_handle: ''
+                } as any);
+            }
         } catch (error) {
             console.error("Failed to fetch settings", error);
         } finally {
@@ -94,6 +113,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         detectStore();
     }, []);
 
+    const setStore = (id: string) => {
+        setCurrentStoreId(id);
+        localStorage.setItem('managed_store_id', id);
+    };
+
     useEffect(() => {
         loadSettings();
     }, [currentStoreId]);
@@ -109,13 +133,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, [settings.primary_color]);
 
     const updateSettings = async (newSettings: Partial<StoreSettings>) => {
-        const updated = { ...settings, ...newSettings };
+        const updated = {
+            ...settings,
+            ...newSettings,
+            store_id: currentStoreId
+        };
         await api.settings.update(updated);
         await loadSettings();
     };
 
     return (
-        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore: setCurrentStoreId, updateSettings }}>
+        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore, updateSettings }}>
             {children}
         </StoreContext.Provider>
     );

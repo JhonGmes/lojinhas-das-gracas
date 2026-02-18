@@ -9,7 +9,7 @@ import { toast } from 'react-hot-toast';
 
 export function Orders() {
     const [orders, setOrders] = useState<Order[]>([]);
-    const { settings } = useStore();
+    const { currentStoreId, settings } = useStore();
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -24,7 +24,7 @@ export function Orders() {
     const loadOrders = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const data = await api.orders.list();
+            const data = await api.orders.list(currentStoreId);
 
             // Detectar novos pedidos
             if (orders.length > 0 && data.length > orders.length) {
@@ -58,7 +58,7 @@ export function Orders() {
         loadOrders();
         const interval = setInterval(() => loadOrders(true), 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [currentStoreId]);
 
     const getStatusConfig = (status: Order['status']) => {
         switch (status) {

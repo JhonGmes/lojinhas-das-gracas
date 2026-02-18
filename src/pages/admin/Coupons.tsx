@@ -7,7 +7,10 @@ import {
 import type { Coupon } from '../../types';
 import { toast } from 'react-hot-toast';
 
+import { useStore } from '../../context/StoreContext';
+
 export function Coupons() {
+    const { currentStoreId } = useStore();
     const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
@@ -26,14 +29,16 @@ export function Coupons() {
 
     const loadCoupons = async () => {
         setLoading(true);
-        const data = await api.coupons.list();
+        const data = await api.coupons.list(currentStoreId);
         setCoupons(data);
         setLoading(false);
     };
 
     useEffect(() => {
-        loadCoupons();
-    }, []);
+        if (currentStoreId) {
+            loadCoupons();
+        }
+    }, [currentStoreId]);
 
     const handleOpenModal = (coupon?: Coupon) => {
         if (coupon) {
@@ -70,7 +75,8 @@ export function Coupons() {
                 await api.coupons.create({
                     ...formData,
                     usageCount: 0,
-                    isActive: true
+                    isActive: true,
+                    store_id: currentStoreId
                 });
                 toast.success('Cupom criado com sucesso!');
             }

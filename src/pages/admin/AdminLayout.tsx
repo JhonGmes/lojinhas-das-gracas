@@ -24,7 +24,7 @@ import { Reviews } from './Reviews';
 
 export function AdminLayout() {
     const { user, logout } = useAuth();
-    const { settings } = useStore();
+    const { settings, currentStoreId } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -34,16 +34,19 @@ export function AdminLayout() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const fetchPendingCount = async () => {
-        const orders = await api.orders.list();
+        if (!currentStoreId) return;
+        const orders = await api.orders.list(currentStoreId);
         const pending = orders.filter((o: any) => o.status === 'pending').length;
         setPendingOrdersCount(pending);
     };
 
     useEffect(() => {
-        fetchPendingCount();
-        const interval = setInterval(fetchPendingCount, 60000);
-        return () => clearInterval(interval);
-    }, []);
+        if (currentStoreId) {
+            fetchPendingCount();
+            const interval = setInterval(fetchPendingCount, 60000);
+            return () => clearInterval(interval);
+        }
+    }, [currentStoreId]);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -214,7 +217,7 @@ export function AdminLayout() {
                         </p>
                         <p className="text-[10px] font-bold text-white truncate">{settings.store_name}</p>
 
-                        {user.email === 'jhongprojetos@gmail.com' && (
+                        {user.role === 'admin' && (
                             <Link
                                 to="/admin/super"
                                 className="mt-3 flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-red-900/40"

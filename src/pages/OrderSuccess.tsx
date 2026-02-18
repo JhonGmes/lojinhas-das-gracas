@@ -12,7 +12,7 @@ const EXPIRATION_MINUTES = 20;
 
 export function OrderSuccess() {
     const { orderId } = useParams();
-    const { settings } = useStore();
+    const { settings, currentStoreId } = useStore();
     const { clearCart } = useCart();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ export function OrderSuccess() {
             return generatePixPayload(
                 pixKey,
                 order.total,
-                settings.store_name || 'LOJINHA DAS GRACAS',
+                settings.store_name || 'VALE SAGRADO',
                 'SAO LUIS'
             );
         } catch (e) {
@@ -42,6 +42,12 @@ export function OrderSuccess() {
             return '';
         }
     }, [order, pixKey, settings.store_name]);
+
+    const infinitepayLink = useMemo(() => {
+        if (!order || !settings.infinitepay_handle) return null;
+        // Formato mais estável para links dinâmicos da InfinitePay
+        return `https://pay.infinitepay.io/${settings.infinitepay_handle}/${order.total.toString().replace('.', ',')}`;
+    }, [order, settings.infinitepay_handle]);
 
     useEffect(() => {
         if (!order) return;
@@ -73,7 +79,7 @@ export function OrderSuccess() {
                     const urlParams = new URLSearchParams(window.location.search);
                     const transactionNsu = urlParams.get('transaction_nsu');
 
-                    const orders = await api.orders.list();
+                    const orders = await api.orders.list(currentStoreId);
                     const found = orders.find((o: any) =>
                         o.id === orderId ||
                         o.orderNumber?.toString() === orderId ||
@@ -228,6 +234,70 @@ export function OrderSuccess() {
         });
     };
 
+    const PixSection = ({ isFallback = false }: { isFallback?: boolean }) => (
+        <div className={`space-y-8 ${isFallback ? 'pt-4' : ''}`}>
+            {!isFallback && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <span className="w-8 h-8 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-xs font-black shadow-soft">1</span>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Pague com Pix</h2>
+                    </div>
+
+                    {timeLeft !== null && (
+                        <div className="flex items-center gap-4 bg-stone-50 dark:bg-stone-800/80 px-5 py-3 rounded-full border border-stone-100 dark:border-stone-700 shadow-sm">
+                            <Clock size={16} className="text-brand-gold" />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-stone-400 uppercase tracking-tighter leading-none mb-1">Expira em</span>
+                                <span className="text-sm font-mono font-black text-stone-700 dark:text-stone-100 leading-none">
+                                    {formatTime(timeLeft)}
+                                </span>
+                            </div>
+                            <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-brand-gold transition-all duration-1000"
+                                    style={{ width: `${progressPercentage}%` }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div className={`bg-stone-50 dark:bg-stone-800/30 ${isFallback ? 'p-6' : 'p-10'} rounded-sm border border-stone-100 dark:border-stone-800/50 flex flex-col items-center text-center shadow-inner`}>
+                <div className={`${isFallback ? 'mb-4' : 'mb-8'} p-3 bg-white rounded-sm border border-stone-200 shadow-md transform transition-all hover:scale-105`}>
+                    <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=${isFallback ? '160x160' : '220x220'}&data=${encodeURIComponent(pixPayload)}`}
+                        alt="QR Code Pix"
+                        className={isFallback ? "w-32 h-32" : "w-48 h-48"}
+                    />
+                </div>
+
+                <div className="w-full space-y-3 mb-8 text-left">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] text-center">Pix Copia e Cola</p>
+                    <div className="flex gap-2">
+                        <div className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 px-5 py-3 text-[10px] font-mono text-stone-400 break-all rounded-sm overflow-hidden text-ellipsis whitespace-nowrap shadow-inner">
+                            {pixPayload}
+                        </div>
+                        <button
+                            onClick={copyPix}
+                            className="bg-brand-gold text-brand-wood px-4 py-3 rounded-sm hover:bg-brand-wood hover:text-white transition-all shadow-md group"
+                            title="Copiar código Pix"
+                        >
+                            <Copy size={16} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className={`${isFallback ? 'pt-4' : 'pt-6'} border-t border-stone-200/60 dark:border-stone-700/60 w-full`}>
+                    <p className="text-[10px] font-black text-stone-500 uppercase tracking-[0.3em] mb-1">Valor Total</p>
+                    <p className={`${isFallback ? 'text-2xl' : 'text-4xl'} font-display text-brand-gold font-medium tracking-tight`}>
+                        {formatCurrency(order?.total || 0)}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
     if (loading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
             <div className="w-10 h-10 border-2 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
@@ -270,8 +340,7 @@ export function OrderSuccess() {
                     {isPaid ? (
                         <div className="text-center space-y-6">
                             <p className="text-xs font-bold uppercase tracking-widest text-stone-500 leading-relaxed max-w-sm mx-auto">
-                                Seu pagamento foi processado com sucesso via <span className="text-indigo-600 font-black">InfinitePay</span>.
-                                <br /><br />
+                                Seu pagamento foi processado com sucesso! 🙏<br /><br />
                                 Nossa equipe já foi notificada e iniciará a separação dos seus produtos imediatamente.
                             </p>
                         </div>
@@ -292,65 +361,22 @@ export function OrderSuccess() {
                             </Link>
                         </div>
                     ) : (
-                        /* Instruções Pix com Countdown */
-                        <div className="space-y-8">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                                <div className="flex items-center gap-4">
-                                    <span className="w-8 h-8 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-xs font-black shadow-soft">1</span>
-                                    <h2 className="text-sm font-black uppercase tracking-widest text-stone-700 dark:text-stone-200">Pague com Pix</h2>
-                                </div>
+                        <div className="space-y-10">
+                            <PixSection />
 
-                                {timeLeft !== null && (
-                                    <div className="flex items-center gap-4 bg-stone-50 dark:bg-stone-800/80 px-5 py-3 rounded-full border border-stone-100 dark:border-stone-700 shadow-sm">
-                                        <Clock size={16} className="text-brand-gold" />
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-tighter leading-none mb-1">Expira em</span>
-                                            <span className="text-sm font-mono font-black text-stone-700 dark:text-stone-100 leading-none">
-                                                {formatTime(timeLeft)}
-                                            </span>
-                                        </div>
-                                        <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-brand-gold transition-all duration-1000"
-                                                style={{ width: `${progressPercentage}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="bg-stone-50 dark:bg-stone-800/30 p-10 rounded-sm border border-stone-100 dark:border-stone-800/50 flex flex-col items-center text-center shadow-inner">
-                                <div className="mb-8 p-3 bg-white rounded-sm border border-stone-200 shadow-md transform transition-all hover:scale-105">
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pixPayload)}`}
-                                        alt="QR Code Pix"
-                                        className="w-48 h-48"
-                                    />
+                            {infinitepayLink && (
+                                <div className="pt-6 border-t border-stone-100 dark:border-stone-800">
+                                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest text-center mb-4">Ou se preferir, pague com Cartão:</p>
+                                    <a
+                                        href={infinitepayLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-3 w-full py-4 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100 dark:border-indigo-900/30"
+                                    >
+                                        Pagar com Cartão (InfinitePay)
+                                    </a>
                                 </div>
-
-                                <div className="w-full space-y-3 mb-8">
-                                    <p className="text-xs font-bold text-stone-400 uppercase tracking-[0.2em]">Pix Copia e Cola</p>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 px-5 py-4 text-xs font-mono text-stone-400 break-all rounded-sm overflow-hidden text-ellipsis whitespace-nowrap shadow-inner">
-                                            {pixPayload}
-                                        </div>
-                                        <button
-                                            onClick={copyPix}
-                                            className="bg-brand-gold text-brand-wood px-6 py-4 rounded-sm hover:bg-brand-wood hover:text-white transition-all shadow-md group"
-                                            title="Copiar código Pix"
-                                        >
-                                            <Copy size={20} className="group-active:scale-95" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="pt-6 border-t border-stone-200/60 dark:border-stone-700/60 w-full">
-                                    <p className="text-xs font-black text-stone-500 uppercase tracking-[0.3em] mb-2">Valor Total</p>
-                                    <p className="text-4xl font-display text-brand-gold font-medium tracking-tight">
-                                        {formatCurrency(order?.total || 0)}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
@@ -362,7 +388,7 @@ export function OrderSuccess() {
                         </div>
 
                         <a
-                            href={`https://wa.me/${settings.whatsapp_number}?text=Olá! Acabei de fazer o pedido #${orderId} e aqui está o comprovante do Pix.`}
+                            href={`https://wa.me/${settings.whatsapp_number}?text=Olá! Acabei de fazer o pedido #${orderId} e aqui está o comprovante.`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full bg-[#25D366] text-white py-5 rounded-sm font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 shadow-lg hover:bg-brand-wood hover:scale-[1.02] transition-all"

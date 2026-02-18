@@ -11,7 +11,7 @@ export function Cart() {
     const {
         items, removeFromCart, updateQuantity, total,
         couponDiscount, appliedCoupon, applyCoupon,
-        removeCoupon, checkout
+        removeCoupon, checkout, clearCart
     } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -47,42 +47,53 @@ export function Cart() {
         setError('');
         try {
             const result = await checkout(name, notes, paymentMethod);
+
             if (result.success && result.orderId) {
-                // INTEGRAÇÃO INFINITEPAY (OPÇÃO B - AUTOMÁTICO)
-                if (paymentMethod === 'pix' && settings.infinitepay_handle) {
+                // INTEGRAÇÃO DINÂMICA INFINITEPAY (API CHECKOUT INTEGRADO)
+                if (settings.infinitepay_handle) {
                     try {
                         const infinitePayPayload = {
                             handle: settings.infinitepay_handle,
                             order_nsu: result.orderId,
-                            items: items.map(item => ({
-                                quantity: item.quantity,
-                                price: Math.round((item.promotionalPrice || item.price) * 100), // Em centavos
-                                description: item.name
-                            })),
-                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}`
+                            items: [{
+                                quantity: 1,
+                                price: Math.round(finalTotal * 100), // Valor em centavos
+                                description: `Pedido #${result.orderId} - ${settings.store_name}`
+                            }],
+                            payment_methods: [paymentMethod === 'pix' ? 'pix' : 'credit_card'],
+                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}?payment=success`
                         };
 
-                        const response = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`, {
+                        // URL inteligente: Usa o proxy do Vite no local, e o proxy da Vercel na produção
+                        const isLocal = window.location.hostname === 'localhost';
+                        const endpoint = isLocal
+                            ? '/api/infinitepay/invoices/public/checkout/links'
+                            : `/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`;
+
+                        const response = await fetch(endpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(infinitePayPayload)
                         });
 
                         const data = await response.json();
+
                         if (data && data.url) {
+                            // Limpar carrinho e redirecionar para InfinitePay
+                            clearCart();
                             window.location.href = data.url;
                             return;
+                        } else {
+                            console.error("Link de checkout não retornado:", data);
                         }
                     } catch (apiErr) {
-                        console.error("InfinitePay Link via Proxy Error:", apiErr);
+                        console.error("Erro ao gerar link InfinitePay:", apiErr);
                     }
                 }
 
-                if (paymentMethod === 'card') {
-                    navigate('/checkout');
-                } else {
-                    navigate(`/pedido-confirmado/${result.orderId}`);
-                }
+                // FALLBACK: Página de Sucesso Manual (Pix Fallback)
+                clearCart();
+                navigate(`/pedido-confirmado/${result.orderId}`);
             } else {
                 setError(result.message || "Erro desconhecido");
             }

@@ -22,12 +22,15 @@ export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [hoveredPoint, setHoveredPoint] = useState<HoverState | null>(null);
 
+    const { currentStoreId } = useStore();
+
     useEffect(() => {
-        api.orders.list().then(data => {
+        setLoading(true);
+        api.orders.list(currentStoreId).then(data => {
             setOrders(data);
             setLoading(false);
         });
-    }, []);
+    }, [currentStoreId]);
 
     const lowStock = products.filter(p => p.stock <= 5);
 
@@ -45,6 +48,14 @@ export function Dashboard() {
     const salesMonth = confirmedOrders
         .filter(o => new Date(o.createdAt).getMonth() === month)
         .reduce((acc, o) => acc + o.total, 0);
+
+    const uniqueCustomers = new Set(orders.map(o => o.customerEmail).filter(Boolean)).size;
+    const uniqueCustomersToday = new Set(
+        orders
+            .filter(o => o.createdAt.startsWith(today))
+            .map(o => o.customerEmail)
+            .filter(Boolean)
+    ).size;
 
     // Chart Data (Last 7 days)
     const getLast7Days = () => {
@@ -152,9 +163,11 @@ export function Dashboard() {
                         <div className="text-2xl font-display font-medium text-stone-700 dark:text-stone-100 group-hover:text-brand-gold transition-colors">
                             {formatCurrency(salesToday)}
                         </div>
-                        <div className="text-[9px] font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            <ArrowUp size={8} /> 12% Semana Anterior
-                        </div>
+                        {salesToday > 0 && (
+                            <div className="text-[9px] font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                <ArrowUp size={8} /> Vendas Ativas
+                            </div>
+                        )}
                     </div>
 
                     {/* Stat 2 */}
@@ -176,10 +189,10 @@ export function Dashboard() {
                             <User size={12} /> Novos Clientes
                         </div>
                         <div className="text-2xl font-display font-medium text-stone-700 dark:text-stone-100 group-hover:text-brand-gold transition-colors">
-                            12
+                            {uniqueCustomers}
                         </div>
                         <div className="text-[9px] font-bold text-emerald-500 flex items-center gap-1">
-                            <ArrowUp size={8} /> 3 hoje
+                            {uniqueCustomersToday > 0 && <ArrowUp size={8} />} {uniqueCustomersToday} hoje
                         </div>
                     </div>
 

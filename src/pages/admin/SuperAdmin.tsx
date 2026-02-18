@@ -34,10 +34,8 @@ export function SuperAdmin() {
     };
 
     useEffect(() => {
-        // Trava de Segurança Mestre: Apenas Jhon acessa o Super Admin
-        const JHON_EMAIL = 'jhongprojetos@gmail.com';
-
-        if (!user || user.email !== JHON_EMAIL) {
+        // Trava de Segurança: Apenas Administradores acessam o Super Admin
+        if (!user || user.role !== 'admin') {
             toast.error('Acesso restrito ao Administrador Geral do Sistema.');
             navigate('/');
             return;
@@ -74,6 +72,7 @@ export function SuperAdmin() {
     const toggleStore = (id: string) => {
         setStore(id);
         toast.success('Ambiente de loja alterado!');
+        navigate('/admin'); // Redireciona para o Dashboard da loja escolhida
     };
 
     return (

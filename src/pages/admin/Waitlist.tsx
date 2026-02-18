@@ -9,7 +9,7 @@ import {
 import { toast } from 'react-hot-toast';
 
 export function Waitlist() {
-    const { settings } = useStore();
+    const { settings, currentStoreId } = useStore();
     const [entries, setEntries] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -18,12 +18,9 @@ export function Waitlist() {
     const loadData = async () => {
         setLoading(true);
         try {
-            // In a real scenario, we'd have api.waitingList.list()
-            // For now, let's look at the api.ts to see if I added it. I only added create.
-            // I need to add list and delete to api.ts
-            const data = await (api as any).waitingList.list();
+            const data = await api.waitingList.list(currentStoreId);
             setEntries(data || []);
-            const prodList = await api.products.list();
+            const prodList = await api.products.list(currentStoreId);
             setProducts(prodList);
         } catch (error) {
             console.error('Erro ao carregar lista de espera:', error);
@@ -33,8 +30,10 @@ export function Waitlist() {
     };
 
     useEffect(() => {
-        loadData();
-    }, []);
+        if (currentStoreId) {
+            loadData();
+        }
+    }, [currentStoreId]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Excluir entrada da lista?')) return;
