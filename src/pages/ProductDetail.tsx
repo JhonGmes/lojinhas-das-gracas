@@ -218,15 +218,15 @@ export function ProductDetail() {
                 <ArrowLeft size={12} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 bg-white p-6 md:p-10 rounded-3xl border border-gray-100 shadow-xl overflow-hidden relative">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-lg overflow-hidden relative">
                 {/* Imagens */}
-                <div className="lg:col-span-7 flex flex-col md:flex-row gap-6">
-                    <div className="hidden md:flex flex-col gap-3 w-20 shrink-0">
+                <div className="lg:col-span-6 flex flex-col md:flex-row gap-4">
+                    <div className="hidden md:flex flex-col gap-2 w-16 shrink-0">
                         {allImages.map((img, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentImageIndex(idx)}
-                                className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${idx === currentImageIndex ? 'border-brand-gold' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                className={`aspect-square rounded-xl overflow-hidden border transition-all ${idx === currentImageIndex ? 'border-brand-gold' : 'border-transparent opacity-60 hover:opacity-100'}`}
                             >
                                 <img src={img} alt="" className="w-full h-full object-cover" />
                             </button>
@@ -234,7 +234,7 @@ export function ProductDetail() {
                     </div>
 
                     <div
-                        className="relative flex-1 aspect-square rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 group cursor-zoom-in h-fit shadow-inner"
+                        className="relative flex-1 aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group cursor-zoom-in h-fit shadow-inner max-h-[450px]"
                         onMouseMove={(e) => {
                             const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
                             setMousePos({ x: ((e.pageX - left - window.scrollX) / width) * 100, y: ((e.pageY - top - window.scrollY) / height) * 100 });
@@ -252,57 +252,57 @@ export function ProductDetail() {
                 </div>
 
                 {/* Informações */}
-                <div className="lg:col-span-5 flex flex-col pt-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold bg-brand-gold/10 px-3 py-1 rounded-full">{product.category}</span>
-                        <WishlistButton productId={product.id} size={24} />
+                <div className="lg:col-span-6 flex flex-col pt-2">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold bg-brand-gold/10 px-2 py-1 rounded-full">{product.category}</span>
+                        <WishlistButton productId={product.id} size={20} />
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-display font-medium text-stone-800 leading-tight mb-2 tracking-tight uppercase">{product.name}</h1>
+                    <h1 className="text-2xl md:text-3xl font-display font-medium text-stone-800 leading-tight mb-2 tracking-tight uppercase">{product.name}</h1>
 
-                    <div className="flex items-center gap-4 mb-8">
-                        <ReviewStars rating={product.average_rating || 0} totalReviews={reviews.length} size={18} showText />
+                    <div className="flex items-center gap-3 mb-6">
+                        <ReviewStars rating={product.average_rating || 0} totalReviews={reviews.length} size={16} showText />
                     </div>
 
-                    <div className="mb-8">
+                    <div className="mb-6">
                         {product.promotionalPrice && (
-                            <span className="text-sm text-gray-400 line-through font-bold block mb-1">De {formatCurrency(product.price)}</span>
+                            <span className="text-xs text-gray-400 line-through font-bold block mb-1">De {formatCurrency(product.price)}</span>
                         )}
-                        <div className="flex items-baseline gap-3">
-                            <span className="text-4xl font-black text-brand-gold font-display">Por {formatCurrency(currentPrice)}</span>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-brand-gold font-display">Por {formatCurrency(currentPrice)}</span>
                             {product.promotionalPrice && (
-                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase">Promoção</span>
+                                <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase">Promoção</span>
                             )}
                         </div>
                     </div>
 
-                    <div className="space-y-4 mb-8">
+                    <div className="space-y-3 mb-6">
                         <button
                             onClick={handleAddToCart}
-                            className="w-full h-16 bg-stone-800 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:bg-brand-gold hover:text-stone-900 transition-all transform active:scale-95 flex items-center justify-center gap-3 group"
+                            className="w-full h-12 bg-stone-800 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-xl shadow-lg hover:bg-brand-gold hover:text-stone-900 transition-all transform active:scale-95 flex items-center justify-center gap-2 group"
                         >
-                            <ShoppingCart size={20} className="group-hover:translate-x-1 transition-transform" />
+                            <ShoppingCart size={18} className="group-hover:translate-x-1 transition-transform" />
                             {product.stock > 0 ? 'Adicionar ao Carrinho' : 'Avise-me quando chegar'}
                         </button>
 
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
-                                <Banknote size={20} className="text-emerald-500 mb-2" />
-                                <span className="text-[8px] font-black uppercase text-stone-400">Pix -5%</span>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
+                                <Banknote size={16} className="text-emerald-500 mb-1" />
+                                <span className="text-[7px] font-black uppercase text-stone-400">Pix -5%</span>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
-                                <CreditCard size={20} className="text-stone-400 mb-2" />
-                                <span className="text-[8px] font-black uppercase text-stone-400">3x S/ Juros</span>
+                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
+                                <CreditCard size={16} className="text-stone-400 mb-1" />
+                                <span className="text-[7px] font-black uppercase text-stone-400">3x S/ Juros</span>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
-                                <Truck size={20} className="text-stone-400 mb-2" />
-                                <span className="text-[8px] font-black uppercase text-stone-400">Todo Brasil</span>
+                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
+                                <Truck size={16} className="text-stone-400 mb-1" />
+                                <span className="text-[7px] font-black uppercase text-stone-400">Todo Brasil</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Frete */}
-                    <div className="pt-2 border-t border-gray-100 mb-8 mt-4">
+                    <div className="pt-2 border-t border-gray-100 mb-6 mt-2">
                         <div className="flex gap-2 items-center mb-2">
                             <Truck size={12} className="text-brand-gold" />
                             <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">Calcular Entrega</span>
@@ -312,28 +312,28 @@ export function ProductDetail() {
                                 value={cep}
                                 onChange={(e) => setCep(e.target.value)}
                                 placeholder="00000-000"
-                                className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[10px] font-bold focus:ring-2 focus:ring-brand-gold/20 outline-none tracking-widest"
+                                className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-[10px] font-bold focus:ring-1 focus:ring-brand-gold/20 outline-none tracking-widest h-9"
                                 maxLength={9}
                             />
                             <button
                                 onClick={handleCalculateShipping}
                                 disabled={shippingLoading}
-                                className="bg-stone-800 text-white px-6 py-2 rounded-xl text-[9px] font-black hover:bg-brand-gold transition-all disabled:opacity-50 flex items-center justify-center min-w-[70px]"
+                                className="bg-stone-800 text-white px-4 py-2 rounded-lg text-[9px] font-black hover:bg-brand-gold transition-all disabled:opacity-50 flex items-center justify-center min-w-[60px] h-9"
                             >
                                 {shippingLoading ? <Loader2 size={12} className="animate-spin" /> : 'Calcular'}
                             </button>
                         </div>
                         {shippingCost !== null && addressInfo && (
-                            <div className="mt-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex justify-between items-center animate-fade-in">
+                            <div className="mt-2 p-2 bg-emerald-50 border border-emerald-100 rounded-lg flex justify-between items-center animate-fade-in">
                                 <span className="text-[9px] font-black text-emerald-700 uppercase">{addressInfo.city} - {addressInfo.state}</span>
-                                <span className="text-[11px] font-black text-emerald-700">{formatCurrency(shippingCost)}</span>
+                                <span className="text-[10px] font-black text-emerald-700">{formatCurrency(shippingCost)}</span>
                             </div>
                         )}
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Sobre este Tesouro</h3>
-                        <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line font-medium">{product.description}</p>
+                    <div className="pt-3 border-t border-gray-100">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">Sobre este Tesouro</h3>
+                        <p className="text-gray-600 text-xs leading-relaxed whitespace-pre-line font-medium">{product.description}</p>
                     </div>
                 </div>
             </div>
