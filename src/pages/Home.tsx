@@ -42,11 +42,20 @@ export function Home() {
     }, [location.search]);
 
     // Carousel State
-    const [currentBanner] = useState(0);
+    const [currentBanner, setCurrentBanner] = useState(0);
     const banners = useMemo(() => [
         settings.hero_image_url || "https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000",
         ...(settings.hero_banners || [])
     ].filter(Boolean), [settings.hero_image_url, settings.hero_banners]);
+
+    // Auto-rotate carousel
+    useEffect(() => {
+        if (banners.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentBanner(prev => (prev + 1) % banners.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [banners.length]);
 
     // Data for filters
     const categories = useMemo(() => {
