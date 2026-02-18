@@ -16,6 +16,18 @@ export function Inventory() {
     const [promoPriceInput, setPromoPriceInput] = useState('');
     const [promoPercentInput, setPromoPercentInput] = useState('');
 
+    // Manual Stock Edit State
+    const [editingStockId, setEditingStockId] = useState<string | null>(null);
+    const [stockInput, setStockInput] = useState('');
+
+    const handleStockManualUpdate = async (id: string) => {
+        const val = parseInt(stockInput);
+        if (!isNaN(val) && val >= 0) {
+            await updateStock(id, val);
+        }
+        setEditingStockId(null);
+    };
+
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.code?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -190,16 +202,38 @@ export function Inventory() {
                                     <td className="px-4 py-2 text-center">
                                         <div className="flex items-center justify-center gap-1">
                                             <button
-                                                onClick={() => updateStock(product.id, -1)}
+                                                onClick={() => updateStock(product.id, Math.max(0, product.stock - 1))}
                                                 className="p-0.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                disabled={product.stock <= 0}
                                             >
                                                 <Minus size={10} />
                                             </button>
-                                            <span className={`text-xs font-mono w-6 text-center ${product.stock <= 5 ? 'text-amber-500 font-bold' : 'text-stone-600'}`}>
-                                                {product.stock}
-                                            </span>
+
+                                            {editingStockId === product.id ? (
+                                                <input
+                                                    type="number"
+                                                    value={stockInput}
+                                                    onChange={(e) => setStockInput(e.target.value)}
+                                                    onBlur={() => handleStockManualUpdate(product.id)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleStockManualUpdate(product.id)}
+                                                    className="w-12 text-center text-xs border border-brand-gold rounded py-0.5 focus:outline-none bg-white dark:bg-stone-800"
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <span
+                                                    onClick={() => {
+                                                        setEditingStockId(product.id);
+                                                        setStockInput(product.stock.toString());
+                                                    }}
+                                                    className={`text-xs font-mono w-8 text-center cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 rounded px-1 transition-colors ${product.stock <= 5 ? 'text-amber-500 font-bold' : 'text-stone-600 dark:text-stone-300'}`}
+                                                    title="Clique para editar manualmente"
+                                                >
+                                                    {product.stock}
+                                                </span>
+                                            )}
+
                                             <button
-                                                onClick={() => updateStock(product.id, 1)}
+                                                onClick={() => updateStock(product.id, product.stock + 1)}
                                                 className="p-0.5 text-stone-400 hover:text-emerald-500 hover:bg-emerald-50 rounded transition-colors"
                                             >
                                                 <Plus size={10} />
