@@ -30,6 +30,8 @@ export function AdminLayout() {
 
     // Avatar State (Local Persistence)
     const [avatar, setAvatar] = useState<string | null>(localStorage.getItem('admin_avatar'));
+    const [adminName, setAdminName] = useState<string>(localStorage.getItem('admin_custom_name') || user?.name || 'Admin');
+    const [isEditingName, setIsEditingName] = useState(false);
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -109,29 +111,29 @@ export function AdminLayout() {
 
             {/* Sidebar Moderno */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                {/* Brand Header - Compacted */}
-                <div className="h-16 flex items-center px-6 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
+                {/* Brand Header - Compacted & Elegant */}
+                <div className="h-16 flex items-center px-5 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
 
-                    <div className="w-9 h-9 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
-                        {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-xl" /> : storeInitials}
+                    <div className="w-8 h-8 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
+                        {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
                     </div>
-                    <span className="font-display font-bold text-xs text-white tracking-widest uppercase truncate drop-shadow-sm">{settings.store_name}</span>
+                    <span className="font-display font-medium text-sm text-white capitalize truncate drop-shadow-sm flex-1">{settings.store_name.toLowerCase()}</span>
                     <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* User Profile Section with Upload - Compacted */}
-                <div className="px-6 py-4 border-b border-white/5 bg-[#253849] shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="relative group/avatar cursor-pointer">
-                            <div className="w-10 h-10 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
-                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={20} className="text-stone-400" />}
+                {/* User Profile Section with Upload - Compacted & Editable */}
+                <div className="px-5 py-3 border-b border-white/5 bg-[#253849] shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="relative group/avatar cursor-pointer shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
+                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={18} className="text-stone-400" />}
                             </div>
                             {/* Camera Overlay */}
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center rounded-full transition-opacity duration-300 backdrop-blur-[1px]">
-                                <Camera size={14} className="text-white" />
+                                <Camera size={12} className="text-white" />
                             </div>
                             <input
                                 type="file"
@@ -141,18 +143,45 @@ export function AdminLayout() {
                                 title="Alterar foto de perfil"
                             />
                         </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-[9px] text-stone-400 font-bold uppercase tracking-widest mb-0.5">Gerente</span>
-                            <span className="text-sm font-bold text-white truncate">{user.name || 'Admin'}</span>
+                        <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-[8px] text-stone-400 font-bold uppercase tracking-widest mb-0.5">Gerente</span>
+
+                            {isEditingName ? (
+                                <input
+                                    type="text"
+                                    value={adminName}
+                                    onChange={(e) => setAdminName(e.target.value)}
+                                    onBlur={() => {
+                                        setIsEditingName(false);
+                                        localStorage.setItem('admin_custom_name', adminName);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            setIsEditingName(false);
+                                            localStorage.setItem('admin_custom_name', adminName);
+                                        }
+                                    }}
+                                    className="bg-stone-800 text-white text-xs font-bold rounded px-1 py-0.5 w-full border border-stone-600 focus:border-brand-gold outline-none"
+                                    autoFocus
+                                />
+                            ) : (
+                                <span
+                                    onClick={() => setIsEditingName(true)}
+                                    className="text-sm font-bold text-white truncate cursor-pointer hover:text-brand-gold transition-colors flex items-center gap-1 group/name"
+                                    title="Clique para editar"
+                                >
+                                    {adminName}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation - Fixed & Compacted */}
-                <nav className="flex-1 overflow-y-auto py-4 px-0 space-y-2 scrollbar-hide">
+                <nav className="flex-1 overflow-y-auto py-3 px-0 space-y-2 scrollbar-hide">
                     {navGroups.map((group, idx) => (
                         <div key={idx}>
-                            <h3 className="px-6 text-[9px] font-black text-stone-500 uppercase tracking-widest mb-2 opacity-70 flex items-center gap-2">
+                            <h3 className="px-5 text-[8px] font-black text-stone-500 uppercase tracking-widest mb-1 opacity-70 flex items-center gap-2">
                                 {group.title}
                             </h3>
                             <div className="space-y-0.5">
@@ -162,7 +191,7 @@ export function AdminLayout() {
                                         <Link
                                             key={item.path}
                                             to={item.path}
-                                            className={`flex items-center gap-3 px-6 py-2.5 transition-all group relative ${isActive
+                                            className={`flex items-center gap-3 px-5 py-2 transition-all group relative ${isActive
                                                 ? 'bg-gradient-to-r from-white/10 to-transparent text-brand-gold font-bold'
                                                 : 'hover:bg-white/5 hover:text-white text-stone-400'
                                                 }`}
@@ -170,8 +199,8 @@ export function AdminLayout() {
                                             {/* Active Indicator (Thin Line) */}
                                             {isActive && <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]" />}
 
-                                            <item.icon size={18} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                                            <span className={`text-sm tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                                            <item.icon size={16} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                            <span className={`text-xs tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
 
                                             {/* Badge for Orders */}
                                             {item.path === '/admin/orders' && pendingOrdersCount > 0 && (
@@ -181,7 +210,7 @@ export function AdminLayout() {
                                             )}
 
                                             {/* Chevron Highlight */}
-                                            {isActive && !(item.path === '/admin/orders' && pendingOrdersCount > 0) && <ChevronRight size={14} className="ml-auto opacity-100 text-brand-gold/50" />}
+                                            {isActive && !(item.path === '/admin/orders' && pendingOrdersCount > 0) && <ChevronRight size={12} className="ml-auto opacity-100 text-brand-gold/50" />}
                                         </Link>
                                     )
                                 })}
@@ -191,38 +220,41 @@ export function AdminLayout() {
                 </nav>
 
                 {/* Footer / System - Compact */}
-                <div className="p-3 bg-[#1f2f3f] space-y-1 border-t border-white/5 shrink-0">
-                    <Link
-                        to="/admin/settings"
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold bg-white/5' : 'text-stone-400 hover:text-white hover:bg-white/5'
-                            }`}
-                    >
-                        <SettingsIcon size={18} className="group-hover:rotate-90 transition-transform duration-500" />
-                        <span className="text-sm font-medium">Configurações</span>
-                    </Link>
+                <div className="px-3 py-2 bg-[#1f2f3f] space-y-0.5 border-t border-white/5 shrink-0">
+                    <div className="flex items-center gap-1">
+                        <Link
+                            to="/admin/settings"
+                            className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-md transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold bg-white/5' : 'text-stone-400 hover:text-white hover:bg-white/5'
+                                }`}
+                            title="Configurações"
+                        >
+                            <SettingsIcon size={16} className="group-hover:rotate-90 transition-transform duration-500" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Config</span>
+                        </Link>
 
-                    <button onClick={logout} className="flex items-center gap-3 px-4 py-2.5 text-stone-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-all w-full text-left group mt-1">
-                        <LogOut size={18} className="group-hover:text-red-400 transition-colors" />
-                        <span className="text-sm font-medium">Sair</span>
-                    </button>
+                        <button
+                            onClick={logout}
+                            className="flex-1 flex items-center justify-center gap-2 px-2 py-2 text-stone-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-all group"
+                            title="Sair"
+                        >
+                            <LogOut size={16} className="group-hover:text-red-400 transition-colors" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Sair</span>
+                        </button>
+                    </div>
 
-                    <Link to="/" className="flex items-center gap-2 px-4 py-2 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors mt-2 border-t border-white/5 pt-2 justify-center">
+                    <Link to="/" className="flex items-center gap-2 px-4 py-1.5 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors justify-center">
                         <ArrowLeft size={10} /> Ir para Loja
                     </Link>
 
-                    {/* Managed Store Indicator & Secret Access for Jhon */}
-                    <div className="mt-4 px-4 py-3 bg-red-500/10 rounded-xl border border-red-500/20">
-                        <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                            Ambiente de Loja
-                        </p>
-                        <p className="text-[10px] font-bold text-white truncate">{settings.store_name}</p>
-
+                    {/* Managed Store Indicator - Ultra Compact */}
+                    <div className="mt-1 px-3 py-2 bg-red-500/10 rounded-lg border border-red-500/10 flex items-center justify-between">
+                        <div className="overflow-hidden">
+                            <p className="text-[7px] font-black text-red-400/70 uppercase tracking-widest leading-none">Loja</p>
+                            <p className="text-[9px] font-bold text-white truncate leading-tight mt-0.5">{settings.store_name}</p>
+                        </div>
                         {user.role === 'admin' && (
-                            <Link
-                                to="/admin/super"
-                                className="mt-3 flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-red-900/40"
-                            >
-                                <Shield size={12} /> Super Admin
+                            <Link to="/admin/super" className="text-red-400 hover:text-white transition-colors">
+                                <Shield size={12} />
                             </Link>
                         )}
                     </div>
