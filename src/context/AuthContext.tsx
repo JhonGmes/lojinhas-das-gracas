@@ -160,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function logout() {
         await supabase.auth.signOut()
+        localStorage.removeItem('cart') // Limpa o carrinho ao sair (Evita produto fantasma)
         setUser(null)
     }
 

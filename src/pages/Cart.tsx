@@ -1,32 +1,24 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/utils';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Loader2, Tag } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowLeft, ArrowRight, Tag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { useStore } from '../context/StoreContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 export function Cart() {
     const {
         items, removeFromCart, updateQuantity, total,
         couponDiscount, appliedCoupon, applyCoupon,
-        removeCoupon, checkout, clearCart
+        removeCoupon
     } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [name, setName] = useState(user?.email?.split('@')[0] || '');
-    const [notes, setNotes] = useState('');
-    const [processing, setProcessing] = useState(false);
-    const [error, setError] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit' | 'debit'>('pix');
 
-    const pixDiscount = paymentMethod === 'pix' ? (total - couponDiscount) * 0.05 : 0;
-    const finalTotal = total - couponDiscount - pixDiscount;
+    const finalTotal = total - couponDiscount;
 
-    const { settings } = useStore();
 
     const handleApplyCoupon = async () => {
         if (!couponCode) return;
@@ -41,69 +33,6 @@ export function Cart() {
         setCouponLoading(false);
     };
 
-    const handleCheckout = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setProcessing(true);
-        setError('');
-        try {
-            const result = await checkout(name, notes, paymentMethod);
-
-            if (result.success && result.orderId) {
-                // INTEGRAÇÃO DINÂMICA INFINITEPAY (API CHECKOUT INTEGRADO)
-                if (settings.infinitepay_handle) {
-                    try {
-                        const infinitePayPayload = {
-                            handle: settings.infinitepay_handle,
-                            order_nsu: result.orderId,
-                            items: [{
-                                quantity: 1,
-                                price: Math.round(finalTotal * 100), // Valor em centavos
-                                description: `Pedido #${result.orderId} - ${settings.store_name}`
-                            }],
-                            payment_methods: [paymentMethod === 'pix' ? 'pix' : 'credit_card'],
-                            redirect_url: `${window.location.origin}/pedido-confirmado/${result.orderId}?payment=success`
-                        };
-
-                        // URL inteligente: Usa o proxy do Vite no local, e o proxy da Vercel na produção
-                        const isLocal = window.location.hostname === 'localhost';
-                        const endpoint = isLocal
-                            ? '/api/infinitepay/invoices/public/checkout/links'
-                            : `/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/links')}`;
-
-                        const response = await fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(infinitePayPayload)
-                        });
-
-                        const data = await response.json();
-
-                        if (data && data.url) {
-                            // Limpar carrinho e redirecionar para InfinitePay
-                            clearCart();
-                            window.location.href = data.url;
-                            return;
-                        } else {
-                            console.error("Link de checkout não retornado:", data);
-                        }
-                    } catch (apiErr) {
-                        console.error("Erro ao gerar link InfinitePay:", apiErr);
-                    }
-                }
-
-                // FALLBACK: Página de Sucesso Manual (Pix Fallback)
-                clearCart();
-                navigate(`/pedido-confirmado/${result.orderId}`);
-            } else {
-                setError(result.message || "Erro desconhecido");
-            }
-        } catch (err) {
-            setError("Erro ao processar pedido.");
-            console.error(err);
-        } finally {
-            setProcessing(false);
-        }
-    };
 
     if (items.length === 0) {
         return (
@@ -206,7 +135,7 @@ export function Cart() {
                             <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
                                 <div className="flex justify-between items-end mb-1">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total</span>
-                                    <span className={`text-2xl font-display font-medium ${(couponDiscount > 0 || pixDiscount > 0) ? 'line-through text-stone-300 text-sm mb-1' : 'text-stone-800 dark:text-stone-100'}`}>
+                                    <span className={`text - 2xl font - display font - medium ${couponDiscount > 0 ? 'line-through text-stone-300 text-sm mb-1' : 'text-stone-800 dark:text-stone-100'} `}>
                                         {formatCurrency(total)}
                                     </span>
                                 </div>
@@ -255,14 +184,7 @@ export function Cart() {
                                     </div>
                                 )}
 
-                                {pixDiscount > 0 && (
-                                    <div className="flex justify-between items-center text-emerald-600 mt-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Desconto Pix (5%)</span>
-                                        <span className="text-sm font-black">-{formatCurrency(pixDiscount)}</span>
-                                    </div>
-                                )}
-
-                                {(couponDiscount > 0 || pixDiscount > 0) && (
+                                {couponDiscount > 0 && (
                                     <div className="flex justify-between items-end pt-3 border-t border-stone-100 dark:border-stone-800 mt-4">
                                         <span className="text-[11px] font-black uppercase tracking-[0.2em] text-stone-800 dark:text-stone-100">Total Final</span>
                                         <span className="text-3xl font-display font-medium text-brand-gold">{formatCurrency(finalTotal)}</span>
@@ -271,89 +193,24 @@ export function Cart() {
                             </div>
                         </div>
 
-                        <form onSubmit={handleCheckout} className="space-y-6">
-                            <div className="space-y-3">
-                                <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">Forma de Pagamento</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentMethod('pix')}
-                                        className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group ${paymentMethod === 'pix' ? 'border-brand-gold bg-stone-50 dark:bg-stone-800 shadow-inner' : 'border-stone-100 dark:border-stone-800 hover:border-brand-gold/50'}`}
-                                    >
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'pix' ? 'text-brand-gold' : 'text-stone-400'}`}>PIX</span>
-                                        <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-sm font-black uppercase tracking-tighter">5% OFF</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaymentMethod('credit')}
-                                        className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group ${paymentMethod === 'credit' ? 'border-brand-gold bg-stone-50 dark:bg-stone-800 shadow-inner' : 'border-stone-100 dark:border-stone-800 hover:border-brand-gold/50'}`}
-                                    >
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'credit' ? 'text-brand-gold' : 'text-stone-400'}`}>Cartão</span>
-                                        <span className="text-[9px] text-stone-400 font-bold uppercase tracking-tighter">Até 3x s/j</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Seu Nome Principal *</label>
-                                    <input
-                                        required
-                                        value={name}
-                                        onChange={e => setName(e.target.value)}
-                                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-sm px-4 py-3.5 text-xs font-bold focus:border-brand-gold outline-none transition-colors shadow-inner"
-                                        placeholder="Ex: Maria das Graças"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Observações (Opcional)</label>
-                                    <textarea
-                                        value={notes}
-                                        onChange={e => setNotes(e.target.value)}
-                                        className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-sm px-4 py-3.5 text-xs font-bold focus:border-brand-gold outline-none h-24 resize-none transition-colors shadow-inner"
-                                        placeholder="Ex: Embalagem para presente..."
-                                    />
-                                </div>
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-sm border border-red-100 text-center">
-                                    {error}
-                                </div>
-                            )}
-
+                        <div className="space-y-4">
                             {!user ? (
                                 <button
-                                    type="button"
-                                    onClick={() => navigate('/login?redirect=/cart')}
-                                    className="w-full bg-stone-800 text-white py-5 rounded-sm font-black text-xs uppercase tracking-[0.25em] shadow-lg hover:bg-brand-gold hover:text-brand-wood transition-all"
+                                    onClick={() => navigate('/identificacao?redirect=/cart')}
+                                    className="w-full bg-stone-800 text-white py-5 rounded-sm font-black text-[11px] uppercase tracking-[0.25em] shadow-lg hover:bg-stone-700 transition-all"
                                 >
                                     Login para Finalizar
                                 </button>
                             ) : (
-                                <div className="space-y-3">
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="w-full bg-brand-gold text-brand-wood py-5 rounded-sm font-black text-[11px] uppercase tracking-[0.25em] shadow-lg hover:bg-brand-wood hover:text-white transition-all flex items-center justify-center gap-3 group"
-                                    >
-                                        {processing ? (
-                                            <Loader2 className="animate-spin" size={20} />
-                                        ) : (
-                                            <>
-                                                {paymentMethod === 'pix' ? 'FINALIZAR E PAGAR AGORA' : 'PAGAR COM CARTÃO'}
-                                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                            </>
-                                        )}
-                                    </button>
-                                    <p className="text-[10px] text-center text-stone-400 font-bold uppercase tracking-widest block pt-2">
-                                        {paymentMethod === 'pix'
-                                            ? 'Link seguro na próxima página.'
-                                            : 'Checkout seguro Appmax.'}
-                                    </p>
-                                </div>
+                                <button
+                                    onClick={() => navigate('/checkout')}
+                                    className="w-full bg-brand-gold text-brand-wood py-5 rounded-sm font-black text-[11px] uppercase tracking-[0.25em] shadow-lg hover:bg-brand-wood hover:text-white transition-all flex items-center justify-center gap-3 group"
+                                >
+                                    PROSSEGUIR PARA PAGAMENTO
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
                             )}
-                        </form>
+                        </div>
                     </div>
 
                     <div className="p-4 bg-stone-50 dark:bg-stone-800/40 border border-stone-100 dark:border-stone-800 rounded-sm flex items-center gap-4">
