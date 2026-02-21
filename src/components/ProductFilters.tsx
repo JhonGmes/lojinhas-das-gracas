@@ -199,26 +199,36 @@ export default function ProductFilters({
                         </div>
 
                         {/* Botão Limpar Filtros */}
-                        <button
-                            onClick={() => {
-                                const reset: FilterState = {
-                                    search: '',
-                                    category: [],
-                                    priceRange: [0, 1000],
-                                    materials: [],
-                                    colors: [],
-                                    sortBy: 'newest'
-                                };
-                                setFilters(reset);
-                                onFilterChange(reset);
-                            }}
-                            className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-stone-300 hover:text-brand-gold transition-colors border-t border-stone-100 dark:border-stone-800 mt-10"
-                        >
-                            Limpar Filtros
-                        </button>
+                        <div className="flex flex-col gap-3 pt-6 border-t border-stone-100 dark:border-stone-800 mt-10">
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="w-full bg-brand-gold text-brand-wood py-4 rounded-sm font-black text-[11px] uppercase tracking-[0.2em] shadow-soft hover:bg-brand-wood hover:text-white transition-all"
+                            >
+                                Ver {totalResults || 0} Resultados
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const reset: FilterState = {
+                                        search: '',
+                                        category: [],
+                                        priceRange: [0, 1000],
+                                        materials: [],
+                                        colors: [],
+                                        sortBy: 'newest'
+                                    };
+                                    setFilters(reset);
+                                    onFilterChange(reset);
+                                    // setIsOpen(false); // Optional: close on clear
+                                }}
+                                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-brand-gold transition-colors"
+                            >
+                                Limpar Filtros
+                            </button>
+                        </div>
                     </div>
                 </div>
             </aside>
         </div>
     );
-};
+}
+
