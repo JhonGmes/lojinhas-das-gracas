@@ -21,7 +21,7 @@ export function Cart() {
     const [error, setError] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card'>('pix');
+    const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit' | 'debit'>('pix');
 
     const pixDiscount = paymentMethod === 'pix' ? (total - couponDiscount) * 0.05 : 0;
     const finalTotal = total - couponDiscount - pixDiscount;
@@ -285,10 +285,10 @@ export function Cart() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setPaymentMethod('card')}
-                                        className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group ${paymentMethod === 'card' ? 'border-brand-gold bg-stone-50 dark:bg-stone-800 shadow-inner' : 'border-stone-100 dark:border-stone-800 hover:border-brand-gold/50'}`}
+                                        onClick={() => setPaymentMethod('credit')}
+                                        className={`p-4 rounded-sm border transition-all flex flex-col items-center gap-2 group ${paymentMethod === 'credit' ? 'border-brand-gold bg-stone-50 dark:bg-stone-800 shadow-inner' : 'border-stone-100 dark:border-stone-800 hover:border-brand-gold/50'}`}
                                     >
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'card' ? 'text-brand-gold' : 'text-stone-400'}`}>Cartão</span>
+                                        <span className={`text-[11px] font-black uppercase tracking-widest ${paymentMethod === 'credit' ? 'text-brand-gold' : 'text-stone-400'}`}>Cartão</span>
                                         <span className="text-[9px] text-stone-400 font-bold uppercase tracking-tighter">Até 3x s/j</span>
                                     </button>
                                 </div>

@@ -73,7 +73,12 @@ export function Coupons() {
                 toast.success('Cupom atualizado!');
             } else {
                 await api.coupons.create({
-                    ...formData,
+                    code: formData.code!,
+                    type: (formData.type as 'fixed' | 'percentage') || 'percentage',
+                    value: formData.value!,
+                    minSpend: formData.minSpend,
+                    usageLimit: formData.usageLimit,
+                    expiryDate: formData.expiryDate,
                     usageCount: 0,
                     isActive: true,
                     store_id: currentStoreId

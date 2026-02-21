@@ -90,7 +90,7 @@ export function Checkout() {
                 },
                 items: items,
                 total: total,
-                status: checkoutUrl ? 'pending' : 'paid', // If no URL obtained, simulate paid
+                status: (checkoutUrl ? 'pending' : 'paid') as 'pending' | 'paid' | 'delivered' | 'cancelled',
                 paymentMethod: paymentMethod,
                 createdAt: new Date().toISOString(),
                 notes: `Checkout ${checkoutUrl ? 'Redirecionado' : 'Simulado'} - InfinitePay`

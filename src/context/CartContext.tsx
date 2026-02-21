@@ -15,7 +15,7 @@ interface CartContextType {
     appliedCoupon: Coupon | null;
     applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
     removeCoupon: () => void;
-    checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'card') => Promise<{ success: boolean; message?: string; whatsappUrl?: string; orderId?: string }>;
+    checkout: (customerName: string, notes?: string, paymentMethod?: 'pix' | 'credit' | 'debit') => Promise<{ success: boolean; message?: string; whatsappUrl?: string; orderId?: string }>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -121,7 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const removeCoupon = () => setAppliedCoupon(null);
 
-    const checkout = async (customerName: string, notes?: string, paymentMethod: 'pix' | 'card' = 'card') => {
+    const checkout = async (customerName: string, notes?: string, paymentMethod: 'pix' | 'credit' | 'debit' = 'credit') => {
         // 1. Validate Stock
         const freshProducts = await api.products.list(currentStoreId);
 
@@ -155,6 +155,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             items: [...items],
             total: finalTotal,
             status: 'pending',
+            paymentMethod: paymentMethod,
             createdAt: new Date().toISOString(),
             notes: `${notes || ''} | Pagamento: ${paymentMethod}`
         };
