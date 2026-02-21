@@ -35,6 +35,16 @@ export default {
             transitionDuration: {
                 '400': '400ms', // Contemplative transitions
             },
+            keyframes: {
+                marquee: {
+                    '0%': { transform: 'translateX(0%)' },
+                    '100%': { transform: 'translateX(-50%)' },
+                }
+            },
+            animation: {
+                marquee: 'marquee 30s linear infinite',
+                'marquee-slow': 'marquee 45s linear infinite',
+            }
         },
     },
     plugins: [],

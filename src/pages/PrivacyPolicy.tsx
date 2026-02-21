@@ -1,0 +1,22 @@
+import { useStore } from '../context/StoreContext';
+import { ShieldCheck } from 'lucide-react';
+
+export function PrivacyPolicy() {
+    const { settings } = useStore();
+
+    return (
+        <div className="max-w-3xl mx-auto px-4 py-16 animate-fade-in">
+            <div className="text-center mb-12">
+                <ShieldCheck className="mx-auto text-brand-gold mb-4" size={32} />
+                <h1 className="text-3xl lg:text-4xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-widest mb-4">
+                    Política de Privacidade
+                </h1>
+                <div className="w-24 h-px bg-brand-gold/30 mx-auto"></div>
+            </div>
+
+            <div className="prose prose-stone dark:prose-invert max-w-none text-stone-600 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">
+                {settings?.privacy_policy || 'Nossa política de privacidade detalha como lidamos com seus dados de forma segura e transparente.'}
+            </div>
+        </div>
+    );
+}

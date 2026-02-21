@@ -7,6 +7,7 @@ interface AuthContextType {
     login: (email: string, pass: string) => Promise<boolean>
     signUp: (data: { email: string; pass: string; name: string; whatsapp: string; address: string; storeId?: string }) => Promise<{ success: boolean; message?: string }>
     resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
+    updatePassword: (password: string) => Promise<{ success: boolean; message?: string }>
     logout: () => Promise<void>
 }
 
@@ -149,13 +150,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true }
     }
 
+    async function updatePassword(password: string) {
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) {
+            return { success: false, message: error.message }
+        }
+        return { success: true }
+    }
+
     async function logout() {
         await supabase.auth.signOut()
         setUser(null)
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, signUp, resetPassword, logout }}>
+        <AuthContext.Provider value={{ user, login, signUp, resetPassword, updatePassword, logout }}>
             {children}
         </AuthContext.Provider>
     )

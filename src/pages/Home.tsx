@@ -58,10 +58,8 @@ export function Home() {
     }, [banners.length]);
 
     // Data for filters
-    const categories = useMemo(() => {
-        const cats = Array.from(new Set(products.map(p => p.category)));
-        return cats.sort();
-    }, [products]);
+    const { categories: adminCategories } = useProducts();
+    const categories = useMemo(() => adminCategories.sort(), [adminCategories]);
 
 
 
@@ -224,10 +222,70 @@ export function Home() {
                                     </div>
                                 </section>
                             )}
+
+                            {/* Categorias - Navegue por Categoria */}
+                            {categories.length > 0 && (
+                                <section className="py-8 border-y border-stone-100 dark:border-stone-800 my-12 bg-white/50 dark:bg-stone-900/50">
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
+                                        <h2 className="text-sm font-display font-medium text-stone-800 dark:text-stone-200 uppercase tracking-[0.2em] text-center">Navegue por Categoria</h2>
+                                        <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
+                                    </div>
+                                    <div className="relative overflow-hidden w-full pb-6 pt-2">
+                                        {/* Fading Edges for elegance */}
+                                        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
+                                        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
+
+                                        <div className="flex w-max animate-marquee-slow hover:[animation-play-state:paused] gap-6 md:gap-8 px-4">
+                                            {/* Renderizamos a lista duas vezes com os mesmos itens para o efeito de loop infinito suave */}
+                                            {[...categories, ...categories].map((category, idx) => {
+                                                // Find a product image to represent the category, or use a placeholder
+                                                const representiveProduct = products.find(p => p.category === category && p.image);
+                                                const bgImage = representiveProduct?.image || "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=400";
+
+                                                return (
+                                                    <button
+                                                        key={`${category}-${idx}`}
+                                                        onClick={() => {
+                                                            const newParams = new URLSearchParams(searchParams);
+                                                            newParams.set('cat', category);
+                                                            // Prevent keeping old search query if switching categories
+                                                            newParams.delete('q');
+
+                                                            // Update URL directly (which naturally updates filters via useEffect)
+                                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
+
+                                                            // Also update local state for immediate feedback
+                                                            setActiveFilters(prev => ({ ...prev, category: [category], search: '' }));
+
+                                                            // Smooth scroll to results
+                                                            document.getElementById('product-results-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                        }}
+                                                        className="shrink-0 group flex flex-col items-center gap-4 transition-all hover:-translate-y-1"
+                                                    >
+                                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-brand-gold transition-colors shadow-sm relative">
+                                                            <img
+                                                                src={bgImage}
+                                                                alt={category}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                                            />
+                                                            <div className="absolute inset-0 bg-brand-wood/20 group-hover:bg-transparent transition-colors duration-500" />
+                                                        </div>
+                                                        <span className="text-[10px] md:text-xs font-bold font-display uppercase tracking-widest text-stone-600 dark:text-stone-300 group-hover:text-brand-gold transition-colors text-center w-32">
+                                                            {category}
+                                                        </span>
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
+
                         </>
                     )}
 
-                    <section className="pb-20">
+                    <section id="product-results-section" className="pb-20 scroll-mt-24 min-h-[60vh]">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 border-b border-stone-100 pb-6">
                             <div className="flex items-center gap-3">
                                 <Compass size={18} className="text-brand-gold" />
@@ -265,7 +323,7 @@ export function Home() {
                                 <h3 className="text-sm font-black text-stone-800 uppercase tracking-widest mb-2">Nenhum tesouro encontrado</h3>
                                 <p className="text-[10px] text-stone-400 uppercase tracking-widest mb-8">Tente ajustar seus filtros para encontrar sua graça.</p>
                                 <button
-                                    onClick={() => window.location.reload()}
+                                    onClick={() => window.location.href = '/'}
                                     className="bg-brand-gold text-brand-wood px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-soft"
                                 >
                                     Limpar Filtros

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { INITIAL_PRODUCTS } from './constants'
-import type { Product, Order, BlogPost, Review, WishlistItem } from '../types'
+import type { Product, Order, BlogPost, Review, WishlistItem, Coupon } from '../types'
 
 const LS_PRODUCTS = 'ljg_products'
 const LS_ORDERS = 'ljg_orders'
@@ -210,7 +210,19 @@ export const api = {
                         status: order.status,
                         items: order.items,
                         notes: order.notes,
-                        store_id: storeId
+                        store_id: storeId,
+                        // Customer Data
+                        customer_email: order.customerEmail,
+                        customer_phone: order.customerPhone,
+                        customer_address_street: order.customerAddress?.street,
+                        customer_address_number: order.customerAddress?.number,
+                        customer_address_complement: order.customerAddress?.complement,
+                        customer_address_neighborhood: order.customerAddress?.neighborhood,
+                        customer_address_city: order.customerAddress?.city,
+                        customer_address_state: order.customerAddress?.state,
+                        customer_address_zipcode: order.customerAddress?.zipcode,
+                        // Payment Method
+                        payment_method: order.paymentMethod
                     })
                     .select()
                     .single();
@@ -318,6 +330,7 @@ export const api = {
                     customerName: o.customer_name || o.customerName,
                     orderNumber: o.order_number,
                     createdAt: o.created_at || o.createdAt,
+                    paymentMethod: o.payment_method as any,
                     // Adicionar novos campos de cliente
                     customerEmail: o.customer_email,
                     customerPhone: o.customer_phone,
@@ -471,54 +484,6 @@ export const api = {
                 const posts = JSON.parse(localStorage.getItem('ljg_blog') || '[]');
                 const filtered = posts.filter((p: any) => p.id !== id);
                 localStorage.setItem('ljg_blog', JSON.stringify(filtered));
-            }
-        }
-    },
-    coupons: {
-        list: async (storeId: string): Promise<any[]> => {
-            try {
-                const { data, error } = await supabase
-                    .from('coupons')
-                    .select('*')
-                    .eq('store_id', storeId);
-                if (error) throw error;
-                return data;
-            } catch {
-                const stored = localStorage.getItem('ljg_coupons');
-                return stored ? JSON.parse(stored) : [];
-            }
-        },
-        create: async (coupon: any): Promise<void> => {
-            try {
-                const { error } = await supabase.from('coupons').insert([coupon]);
-                if (error) throw error;
-            } catch {
-                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
-                coupons.push({ ...coupon, id: crypto.randomUUID(), usageCount: 0 });
-                localStorage.setItem('ljg_coupons', JSON.stringify(coupons));
-            }
-        },
-        update: async (coupon: any): Promise<void> => {
-            try {
-                const { error } = await supabase.from('coupons').update(coupon).eq('id', coupon.id);
-                if (error) throw error;
-            } catch {
-                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
-                const idx = coupons.findIndex((c: any) => c.id === coupon.id);
-                if (idx !== -1) {
-                    coupons[idx] = coupon;
-                    localStorage.setItem('ljg_coupons', JSON.stringify(coupons));
-                }
-            }
-        },
-        delete: async (id: string): Promise<void> => {
-            try {
-                const { error } = await supabase.from('coupons').delete().eq('id', id);
-                if (error) throw error;
-            } catch {
-                const coupons = JSON.parse(localStorage.getItem('ljg_coupons') || '[]');
-                const filtered = coupons.filter((c: any) => c.id !== id);
-                localStorage.setItem('ljg_coupons', JSON.stringify(filtered));
             }
         }
     },
@@ -692,6 +657,63 @@ export const api = {
         },
         updateNotifications: async (id: string, options: { notify_on_sale?: boolean; notify_on_stock?: boolean }): Promise<void> => {
             const { error } = await supabase.from('wishlists').update(options).eq('id', id);
+            if (error) throw error;
+        }
+    },
+    coupons: {
+        list: async (storeId: string): Promise<Coupon[]> => {
+            try {
+                const { data, error } = await supabase
+                    .from('coupons')
+                    .select('*')
+                    .eq('store_id', storeId)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data?.map(c => ({
+                    id: c.id,
+                    code: c.code,
+                    type: c.type,
+                    value: c.value,
+                    minSpend: c.min_spend,
+                    usageLimit: c.usage_limit,
+                    usageCount: c.usage_count,
+                    expiryDate: c.expiry_date,
+                    isActive: c.is_active
+                })) || [];
+            } catch (err) {
+                console.warn('Erro ao carregar cupons:', err);
+                return [];
+            }
+        },
+        create: async (coupon: Omit<Coupon, 'id'> & { store_id: string }): Promise<void> => {
+            const { error } = await supabase.from('coupons').insert([{
+                code: coupon.code,
+                type: coupon.type,
+                value: coupon.value,
+                min_spend: coupon.minSpend,
+                usage_limit: coupon.usageLimit,
+                usage_count: coupon.usageCount,
+                expiry_date: coupon.expiryDate,
+                is_active: coupon.isActive,
+                store_id: coupon.store_id
+            }]);
+            if (error) throw error;
+        },
+        update: async (coupon: Coupon): Promise<void> => {
+            const { error } = await supabase.from('coupons').update({
+                code: coupon.code,
+                type: coupon.type,
+                value: coupon.value,
+                min_spend: coupon.minSpend,
+                usage_limit: coupon.usageLimit,
+                usage_count: coupon.usageCount,
+                expiry_date: coupon.expiryDate,
+                is_active: coupon.isActive
+            }).eq('id', coupon.id);
+            if (error) throw error;
+        },
+        delete: async (id: string): Promise<void> => {
+            const { error } = await supabase.from('coupons').delete().eq('id', id);
             if (error) throw error;
         }
     },

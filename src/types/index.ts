@@ -58,6 +58,7 @@ export interface Order {
     items: CartItem[];
     total: number;
     status: 'pending' | 'paid' | 'delivered' | 'cancelled';
+    paymentMethod: 'credit' | 'debit' | 'pix';
     createdAt: string;
     notes?: string;
     // Campos de CRM (capturados da InfinitePay)

@@ -77,6 +77,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                     <nav className="p-4">
                         <ul className="space-y-1">
+                            <li>
+                                <Link
+                                    to={`/blog`}
+                                    onClick={() => setIsSidebarOpen(false)}
+                                    className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest text-brand-gold"
+                                >
+                                    Blog Diário
+                                </Link>
+                            </li>
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
@@ -102,7 +111,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <Menu size={22} />
                     </button>
 
-                    <Link to="/" className="flex items-center gap-3 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0">
+                    <Link
+                        to="/"
+                        onClick={() => {
+                            if (location.pathname === '/') {
+                                window.location.reload();
+                            }
+                        }}
+                        className="flex items-center gap-3 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0"
+                    >
                         {settings.logo_url ? (
                             <img src={settings.logo_url} className="h-8 md:h-11 lg:h-13 w-auto object-contain drop-shadow-sm" alt={settings.store_name} />
                         ) : (
@@ -207,6 +224,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <nav className="hidden lg:block border-t border-stone-100 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-center h-12">
                         <ul className="flex items-center gap-8 md:gap-10">
+                            <li>
+                                <Link
+                                    to="/blog"
+                                    className="font-display text-[10px] font-medium text-brand-gold hover:text-brand-amber transition-all relative group py-1.5 uppercase tracking-[0.2em]"
+                                >
+                                    Blog Diário
+                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-gold scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+                                </Link>
+                            </li>
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
@@ -285,9 +311,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <div className="space-y-4">
                             <h4 className="font-display text-sm font-bold text-brand-gold uppercase tracking-widest">Institucional</h4>
                             <ul className="space-y-2 text-[11px] opacity-60">
-                                <li><a href="#" className="hover:text-brand-gold transition-colors">Quem Somos</a></li>
-                                <li><Link to="/contact" className="hover:text-brand-gold transition-colors">Fale Conosco</Link></li>
-                                <li><a href="#" className="hover:text-brand-gold transition-colors">Política de Privacidade</a></li>
+                                <li><Link to="/quem-somos" className="hover:text-brand-gold transition-colors">Quem Somos</Link></li>
+                                <li><a href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors">Fale Conosco</a></li>
+                                <li><Link to="/privacidade" className="hover:text-brand-gold transition-colors">Política de Privacidade</Link></li>
+                                <li><Link to="/blog" className="hover:text-brand-gold transition-colors">Blog Diário</Link></li>
                             </ul>
                         </div>
 

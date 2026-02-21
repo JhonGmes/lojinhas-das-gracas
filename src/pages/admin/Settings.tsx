@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon, FileText } from 'lucide-react';
 
 export function Settings() {
     const { settings, updateSettings, loading } = useStore();
@@ -227,6 +227,38 @@ export function Settings() {
                     </div>
                 </div>
 
+
+                {/* Páginas Institucionais */}
+                <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FileText className="text-sky-500" size={20} />
+                        <h2 className="font-bold text-stone-700 dark:text-stone-200">Páginas Institucionais</h2>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Texto "Quem Somos"</label>
+                        <textarea
+                            rows={5}
+                            value={formData.about_text || ''}
+                            onChange={e => setFormData({ ...formData, about_text: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                            placeholder="Escreva a história da sua loja, missão, visão e valores..."
+                        />
+                        <p className="text-[9px] text-stone-400 italic">Aceita formatação básica (linhas em branco criam novos parágrafos).</p>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Política de Privacidade</label>
+                        <textarea
+                            rows={5}
+                            value={formData.privacy_policy || ''}
+                            onChange={e => setFormData({ ...formData, privacy_policy: e.target.value })}
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                            placeholder="Descreva como os dados do usuário são armazenados e tratados..."
+                        />
+                        <p className="text-[9px] text-stone-400 italic">Aparecerá automaticamente no rodapé da loja.</p>
+                    </div>
+                </div>
 
                 {/* Logotipo da Loja */}
                 <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">

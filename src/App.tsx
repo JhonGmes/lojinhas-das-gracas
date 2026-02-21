@@ -22,9 +22,12 @@ const Cart = lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })))
 const Wishlist = lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
 const BlogList = lazy(() => import('./pages/BlogList').then(m => ({ default: m.BlogList })));
 const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
+const AboutUs = lazy(() => import('./pages/AboutUs').then(m => ({ default: m.AboutUs })));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Identification = lazy(() => import('./pages/Identification').then(m => ({ default: m.Identification })));
+const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
 const SuperAdmin = lazy(() => import('./pages/admin/SuperAdmin').then(m => ({ default: m.SuperAdmin })));
@@ -126,6 +129,8 @@ function App() {
                                                     <Route path="/cart" element={<Layout><Cart /></Layout>} />
                                                     <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
                                                     <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+                                                    <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
+                                                    <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
                                                     <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
 
                                                     {/* Blog Routes */}
@@ -135,6 +140,7 @@ function App() {
                                                     {/* Auth Routes */}
                                                     <Route path="/login" element={<Layout><Identification /></Layout>} />
                                                     <Route path="/admin-login" element={<Login />} />
+                                                    <Route path="/reset-password" element={<ResetPassword />} />
 
                                                     {/* Secure Routes */}
                                                     <Route path="/admin/super" element={<SuperAdmin />} />

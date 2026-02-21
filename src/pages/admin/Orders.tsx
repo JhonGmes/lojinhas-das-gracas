@@ -151,6 +151,7 @@ export function Orders() {
                                 <th className="px-4 py-2 text-left text-[9px] font-bold text-stone-400 uppercase tracking-widest">Cliente</th>
                                 <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Data</th>
                                 <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Total</th>
+                                <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Pagamento</th>
                                 <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Status</th>
                                 <th className="px-4 py-2 text-right text-[9px] font-bold text-stone-400 uppercase tracking-widest">Ações</th>
                             </tr>
@@ -176,6 +177,9 @@ export function Orders() {
                                         </td>
                                         <td className="px-4 py-2 text-center text-xs font-bold text-stone-700 dark:text-stone-200">
                                             {formatCurrency(order.total)}
+                                        </td>
+                                        <td className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-stone-500">
+                                            {order.paymentMethod === 'credit' ? 'Crédito' : order.paymentMethod === 'debit' ? 'Débito' : order.paymentMethod === 'pix' ? 'Pix' : '-'}
                                         </td>
                                         <td className="px-4 py-2 text-center">
                                             <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${statusConfig.color}`}>

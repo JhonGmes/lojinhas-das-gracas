@@ -31,8 +31,14 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
 
     const formatAddress = (addr: any) => {
         if (!addr) return 'Endereço não informado';
+
+        // If street contains comma/numbers, assume full address string was passed
+        if (addr.street && addr.street.length > 30 && !addr.number) {
+            return addr.street;
+        }
+
         const parts = [
-            addr.street && `${addr.street}, ${addr.number || 'S/N'}`,
+            addr.street && `${addr.street}${addr.number ? ', ' + addr.number : ''}`,
             addr.complement,
             addr.neighborhood,
             addr.city && addr.state && `${addr.city}/${addr.state}`,
@@ -115,6 +121,14 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
                                 <div className="flex items-center gap-2 group cursor-pointer" onClick={() => copyToClipboard(order.customerPhone, 'Whatsapp')}>
                                     <p className="font-medium text-stone-700 dark:text-stone-300">{order.customerPhone || 'Não informado'}</p>
                                     {order.customerPhone && <Phone size={10} className="text-stone-300 group-hover:text-emerald-500" />}
+                                </div>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                                <p className="text-[10px] uppercase text-stone-400 font-bold tracking-widest mb-1">Forma de Pagamento</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-stone-700 dark:text-stone-300 uppercase text-[10px] tracking-wider px-2 py-1 bg-stone-100 rounded-sm">
+                                        {order.paymentMethod === 'credit' ? 'Cartão de Crédito' : order.paymentMethod === 'debit' ? 'Cartão de Débito' : order.paymentMethod === 'pix' ? 'Pix' : 'Não Informado'}
+                                    </span>
                                 </div>
                             </div>
                             <div className="col-span-2">
