@@ -7,7 +7,6 @@ import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Banknote, AlertTriangle, R
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 
 export function Checkout() {
     const navigate = useNavigate();
