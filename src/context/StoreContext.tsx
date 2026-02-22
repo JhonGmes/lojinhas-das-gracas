@@ -106,13 +106,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
             // 2. Detecção por Subdomínio (Ex: shop1.lojinhasdasgracas.com)
             const host = window.location.hostname;
-            // Se não for localhost e tiver 3 partes (sub.domino.com)
             const parts = host.split('.');
+            let slug = '';
+
             if (parts.length >= 3 && parts[0] !== 'www' && !host.includes('localhost') && !host.includes('127.0.0.1')) {
-                const slug = parts[0];
-                const { data } = await supabase.from('stores').select('id').eq('slug', slug).single();
-                if (data?.id) {
-                    setCurrentStoreId(data.id);
+                slug = parts[0];
+            } else if (host.includes('lojinhadas-gracas')) {
+                slug = 'lojinhadas-gracas';
+            }
+
+            if (slug) {
+                // Hardcoded fallback for the main store to avoid Supabase 406 limits
+                if (slug === 'lojinhadas-gracas') {
+                    setCurrentStoreId(DEFAULT_STORE_ID);
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.from('stores').select('id').eq('slug', slug).single();
+                    if (data?.id) {
+                        setCurrentStoreId(data.id);
+                    } else if (error) {
+                        console.warn("Supabase store detection failed, using default:", error.message);
+                    }
+                } catch (e) {
+                    console.error("Store detection crash:", e);
                 }
             }
         };

@@ -59,8 +59,7 @@ export function Checkout() {
 
             // 2. Prepare Payload for InfinitePay (now with specific redirect_url)
             const infiniteItems = items.map(item => ({
-                id: item.id,
-                name: item.name,
+                description: item.name,
                 price: Math.round((item.promotionalPrice || item.price) * 100), // cents
                 quantity: item.quantity
             }));
