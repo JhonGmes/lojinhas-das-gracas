@@ -65,7 +65,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (data) {
                 setSettings(data);
             } else {
-                // Reset states for new store to avoid data leakage from previous store (e.g. Lojinha das Graças)
+                // Hardcoded fallback for the main store to ensure site accessibility even with Supabase problems
+                if (currentStoreId === DEFAULT_STORE_ID) {
+                    setSettings({
+                        id: DEFAULT_STORE_ID,
+                        store_name: 'Lojinha das Graças',
+                        whatsapp_number: '5598984095956',
+                        primary_color: '#D4AF37',
+                        hero_title: 'PAZ E DEVOÇÃO',
+                        hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
+                        hero_button_text: 'VER OFERTAS',
+                        hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
+                        hero_banners: [],
+                        pix_key: '5598984095956',
+                        instagram_url: 'https://instagram.com/lojinhadasgracas',
+                        infinitepay_handle: 'lojinhadasgracas',
+                        about_text: 'Levando a paz de Cristo até você.',
+                        privacy_policy: 'Seus dados estão protegidos conosco.'
+                    });
+                    return;
+                }
+
                 setSettings({
                     id: '',
                     store_name: 'Nova Loja',
@@ -84,7 +104,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 } as any);
             }
         } catch (error) {
-            console.error("Failed to fetch settings", error);
+            console.warn("Using fallback settings due to Supabase error:", error);
+            if (currentStoreId === DEFAULT_STORE_ID) {
+                setSettings({
+                    id: DEFAULT_STORE_ID,
+                    store_name: 'Lojinha das Graças',
+                    whatsapp_number: '5598984095956',
+                    primary_color: '#D4AF37',
+                    hero_title: 'PAZ E DEVOÇÃO',
+                    hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
+                    hero_button_text: 'VER OFERTAS',
+                    hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
+                    hero_banners: [],
+                    pix_key: '5598984095956',
+                    instagram_url: 'https://instagram.com/lojinhadasgracas',
+                    infinitepay_handle: 'lojinhadasgracas',
+                    about_text: 'Levando a paz de Cristo até você.',
+                    privacy_policy: 'Seus dados estão protegidos conosco.'
+                });
+            }
         } finally {
             setLoading(false);
         }
@@ -92,11 +130,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const detectStore = async () => {
-            // 1. Prioridade para parâmetro na URL (ótimo para testes: ?shop=slug)
             const params = new URLSearchParams(window.location.search);
             const storeSlug = params.get('shop');
 
             if (storeSlug) {
+                if (storeSlug === 'lojinhadas-gracas' || storeSlug === 'lojinhas-das-gracas') {
+                    setCurrentStoreId(DEFAULT_STORE_ID);
+                    return;
+                }
                 const { data } = await supabase.from('stores').select('id').eq('slug', storeSlug).single();
                 if (data?.id) {
                     setCurrentStoreId(data.id);
@@ -104,30 +145,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // 2. Detecção por Subdomínio (Ex: shop1.lojinhasdasgracas.com)
             const host = window.location.hostname;
             const parts = host.split('.');
             let slug = '';
 
             if (parts.length >= 3 && parts[0] !== 'www' && !host.includes('localhost') && !host.includes('127.0.0.1')) {
                 slug = parts[0];
-            } else if (host.includes('lojinhadas-gracas')) {
+            } else if (host.includes('lojinhadas-gracas') || host.includes('lojinhas-das-gracas')) {
                 slug = 'lojinhadas-gracas';
             }
 
             if (slug) {
-                // Hardcoded fallback for the main store to avoid Supabase 406 limits
-                if (slug === 'lojinhadas-gracas') {
+                if (slug === 'lojinhadas-gracas' || slug === 'lojinhas-das-gracas') {
                     setCurrentStoreId(DEFAULT_STORE_ID);
                     return;
                 }
 
                 try {
-                    const { data, error } = await supabase.from('stores').select('id').eq('slug', slug).single();
+                    const { data } = await supabase.from('stores').select('id').eq('slug', slug).single();
                     if (data?.id) {
                         setCurrentStoreId(data.id);
-                    } else if (error) {
-                        console.warn("Supabase store detection failed, using default:", error.message);
                     }
                 } catch (e) {
                     console.error("Store detection crash:", e);

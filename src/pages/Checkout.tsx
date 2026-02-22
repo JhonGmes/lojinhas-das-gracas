@@ -73,7 +73,7 @@ export function Checkout() {
                 customer: {
                     name: user.name || 'Cliente',
                     email: user.email,
-                    phone_number: user.whatsapp || '5598984095956'
+                    phone_number: `+${(user.whatsapp || '5598984095956').replace(/\D/g, '')}`
                 }
             };
 
