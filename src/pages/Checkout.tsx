@@ -59,37 +59,31 @@ export function Checkout() {
             let checkoutUrl = '';
 
             try {
-                // Call Supabase Edge Function instead of direct InfinitePay (to avoid CORS)
-                const { data: functionData, error: functionError } = await supabase.functions.invoke('create-checkout-link', {
-                    body: infinitePayload
+                // Use Vercel Proxy instead of Supabase (to bypass Supabase Egress limits)
+                const targetUrl = 'https://api.infinitepay.io/invoices/public/checkout/links';
+                const proxyUrl = `/api/proxy?target=${encodeURIComponent(targetUrl)}`;
+
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(infinitePayload)
                 });
 
-                if (functionError) {
-                    console.error("[Checkout] Edge Function Error Object:", functionError);
-
-                    const errorMsg = JSON.stringify(functionError).toLowerCase();
-                    const isLimitError = errorMsg.includes('limit') || errorMsg.includes('usage') || errorMsg.includes('quota');
-
-                    setPaymentError({
-                        title: isLimitError ? 'Limite do Supabase Atingido' : 'Erro no Pagamento',
-                        message: isLimitError
-                            ? 'O limite gratuito do seu projeto no Supabase foi excedido. As funções foram temporariamente desativadas. Finalize seu pedido pelo WhatsApp.'
-                            : `Houve uma falha na comunicação com o banco: ${functionError.message || 'Erro desconhecido'}. Verifique os logs no dashboard.`
-                    });
-                    setLoading(false);
-                    return;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("[Checkout] Vercel Proxy Error:", errorData);
+                    throw new Error('GATEWAY_ERROR');
                 }
 
-                if (!functionData?.url) {
-                    throw new Error('EMPTY_URL');
-                }
+                const data = await response.json();
+                checkoutUrl = data.url || data.payment_url || data?.data?.url;
 
-                checkoutUrl = functionData.url;
+                if (!checkoutUrl) throw new Error('EMPTY_URL');
             } catch (proxyError: any) {
-                console.error("[Checkout] Invoke Catch Block:", proxyError);
+                console.error("[Checkout] Proxy failure:", proxyError);
                 setPaymentError({
-                    title: 'Falha de Comunicação',
-                    message: 'Não conseguimos conectar à função de pagamento. Verifique se a função "create-checkout-link" está ativa no Supabase.'
+                    title: 'Falha no Pagamento',
+                    message: 'Não conseguimos conectar ao serviço de pagamento. Por favor, tente novamente ou use o WhatsApp.'
                 });
                 setLoading(false);
                 return;

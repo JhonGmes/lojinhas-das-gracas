@@ -10,11 +10,19 @@ export default async function handler(req, res) {
   if (!target) return res.status(400).json({ error: 'Missing target' });
 
   try {
+    const isPost = req.method === 'POST';
     const options = {
       method: req.method,
-      headers: { 'Content-Type': 'application/json' },
-      body: req.method === 'POST' ? JSON.stringify(req.body) : undefined
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
     };
+
+    if (isPost) {
+      // Vercel auto-parses req.body if content-type is json
+      options.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    }
 
     const response = await fetch(target, options);
     const data = await response.json();
