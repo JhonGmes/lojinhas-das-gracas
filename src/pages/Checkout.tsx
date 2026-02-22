@@ -29,17 +29,39 @@ export function Checkout() {
         }
     }, [user, navigate]);
 
-    const handlePay = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
-
+    const handlePay = async () => {
+        if (!user || items.length === 0) return;
         setLoading(true);
-        setPaymentError(null); // Reset error state on new attempt
+        setPaymentError(null);
 
         try {
+            // 1. Create the Order FIRST (status pending)
+            const orderId = crypto.randomUUID().slice(0, 8);
+            const orderData = {
+                id: orderId,
+                customerName: user.name || 'Cliente',
+                customerEmail: user.email,
+                customerPhone: user.whatsapp,
+                customerAddress: {
+                    street: user.address || '',
+                    number: '', complement: '', neighborhood: '', city: '', state: '', zipcode: '',
+                },
+                items: items,
+                total: total,
+                status: 'pending' as const,
+                paymentMethod: paymentMethod,
+                createdAt: new Date().toISOString(),
+                notes: `Checkout via InfinitePay - Order: ${orderId}`
+            };
+
+            const createdOrder = await api.orders.create(orderData, currentStoreId);
+            if (!createdOrder) throw new Error('ORDER_CREATION_FAILED');
+
+            // 2. Prepare Payload for InfinitePay (now with specific redirect_url)
             const infiniteItems = items.map(item => ({
-                description: item.name,
-                price: Math.round((item.promotionalPrice || item.price) * 100),
+                id: item.id,
+                name: item.name,
+                price: Math.round((item.promotionalPrice || item.price) * 100), // cents
                 quantity: item.quantity
             }));
 
@@ -47,7 +69,8 @@ export function Checkout() {
                 handle: storeSettings?.infinitepay_handle || 'lojinhadasgracas',
                 items: infiniteItems,
                 payment_method: paymentMethod === 'credit' ? "credit_card" : "pix",
-                redirect_url: `${window.location.origin}/pedido-confirmado?status=success`,
+                // REDIRECT URL NOW INCLUDES ORDER ID
+                redirect_url: `${window.location.origin}/pedido-confirmado/${orderId}?status=success`,
                 customer: {
                     name: user.name || 'Cliente',
                     email: user.email,
@@ -78,44 +101,19 @@ export function Checkout() {
                 checkoutUrl = data.url || data.payment_url || data?.data?.url;
 
                 if (!checkoutUrl) throw new Error('EMPTY_URL');
+
+                // 3. SUCCESS! Redirect to payment
+                window.location.href = checkoutUrl;
+
             } catch (proxyError: any) {
                 console.error("[Checkout] Proxy failure:", proxyError);
+                // Even if payment link fails, the order is created. 
+                // We show the error but the user can retry.
                 setPaymentError({
-                    title: 'Falha no Pagamento',
-                    message: 'Não conseguimos conectar ao serviço de pagamento. Por favor, tente novamente ou use o WhatsApp.'
+                    title: 'Falha no Link de Pagamento',
+                    message: `Pedido #${orderId} gerado, mas falhamos ao conectar com a InfinitePay. Tente novamente ou use o WhatsApp.`
                 });
                 setLoading(false);
-                return;
-            }
-
-            const orderData = {
-                id: '',
-                customerName: user.name || 'Cliente',
-                customerEmail: user.email,
-                customerPhone: user.whatsapp,
-                customerAddress: {
-                    street: user.address || '',
-                    number: '', complement: '', neighborhood: '', city: '', state: '', zipcode: '',
-                },
-                items: items,
-                total: total,
-                status: (checkoutUrl ? 'pending' : 'paid') as 'pending' | 'paid' | 'delivered' | 'cancelled',
-                paymentMethod: paymentMethod,
-                createdAt: new Date().toISOString(),
-                notes: `Checkout ${checkoutUrl ? 'Redirecionado' : 'Simulado'} - InfinitePay`
-            };
-
-            const createdOrder = await api.orders.create(orderData, currentStoreId);
-
-            if (createdOrder && createdOrder.id) {
-                if (checkoutUrl) {
-                    window.location.href = checkoutUrl;
-                } else {
-                    toast.success("Pedido realizado com sucesso!");
-                    navigate(`/pedido-confirmado/${createdOrder.id}`);
-                }
-            } else {
-                throw new Error('ORDER_CREATION_FAILED');
             }
         } catch (error: unknown) {
             console.error("Erro no checkout:", error);
@@ -126,7 +124,6 @@ export function Checkout() {
                     ? 'Não conseguimos salvar seu pedido. Tente novamente ou finalize pelo WhatsApp.'
                     : 'Ocorreu um erro inesperado. Tente novamente ou use o WhatsApp para finalizar.'
             });
-        } finally {
             setLoading(false);
         }
     };

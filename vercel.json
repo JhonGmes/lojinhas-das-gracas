@@ -6,6 +6,10 @@
             "destination": "/api/proxy.js"
         },
         {
+            "source": "/api/send-order-email",
+            "destination": "/api/send-order-email.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
