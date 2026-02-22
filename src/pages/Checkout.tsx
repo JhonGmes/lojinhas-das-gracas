@@ -67,14 +67,14 @@ export function Checkout() {
                 if (functionError) {
                     console.error("[Checkout] Edge Function Error Object:", functionError);
 
-                    // Specific message for Usage Limits
-                    const isLimitError = JSON.stringify(functionError).toLowerCase().includes('limit');
+                    const errorMsg = JSON.stringify(functionError).toLowerCase();
+                    const isLimitError = errorMsg.includes('limit') || errorMsg.includes('usage') || errorMsg.includes('quota');
 
                     setPaymentError({
-                        title: isLimitError ? 'Limite de Uso Excedido' : 'Erro no Pagamento',
+                        title: isLimitError ? 'Limite do Supabase Atingido' : 'Erro no Pagamento',
                         message: isLimitError
-                            ? 'O serviço do Supabase atingiu o limite gratuito. Tente novamente mais tarde ou finalize pelo WhatsApp.'
-                            : `Ocorreu um erro ao processar o link: ${functionError.message || 'Erro desconhecido'}. Verifique os logs no Supabase.`
+                            ? 'O limite gratuito do seu projeto no Supabase foi excedido. As funções foram temporariamente desativadas. Finalize seu pedido pelo WhatsApp.'
+                            : `Houve uma falha na comunicação com o banco: ${functionError.message || 'Erro desconhecido'}. Verifique os logs no dashboard.`
                     });
                     setLoading(false);
                     return;
