@@ -1,12 +1,14 @@
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle2, Copy, MessageCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Copy, MessageCircle, ArrowRight, FileText, Mail, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, generatePixPayload } from '../lib/utils';
 import { useStore } from '../context/StoreContext';
 import { useCart } from '../context/CartContext';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { api } from '../services/api';
-import { Clock, AlertTriangle } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { OrderReceipt } from '../components/OrderReceipt';
+import { EmailService } from '../services/EmailService';
 
 const EXPIRATION_MINUTES = 20;
 
@@ -19,15 +21,37 @@ export function OrderSuccess() {
     const [retryCount, setRetryCount] = useState(0);
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
     const [isPaid, setIsPaid] = useState(false);
-    const hasShownToast = useRef(false); // Controla se o toast já foi mostrado
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY_MS = 2000; // 2 seconds
-    const POLLING_INTERVAL = 5000; // 5 seconds
+    const [showReceipt, setShowReceipt] = useState(false);
+    const hasShownToast = useRef(false);
+    const hasSentEmail = useRef(false);
 
-    // Use settings pix_key or fallback
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 2000;
+    const POLLING_INTERVAL = 5000;
+
     const pixKey = settings.pix_key || "seu-pix-aqui@email.com";
 
-    // Gerar Payload Pix Válido apenas quando tiver o pedido
+    // Efeito de Confete Vibrante
+    const triggerConfetti = () => {
+        const duration = 5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        const interval: any = setInterval(function () {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    };
+
     const pixPayload = useMemo(() => {
         if (!order || !pixKey) return '';
         try {
@@ -45,10 +69,10 @@ export function OrderSuccess() {
 
     const infinitepayLink = useMemo(() => {
         if (!order || !settings.infinitepay_handle) return null;
-        // Formato mais estável para links dinâmicos da InfinitePay
         return `https://pay.infinitepay.io/${settings.infinitepay_handle}/${order.total.toString().replace('.', ',')}`;
     }, [order, settings.infinitepay_handle]);
 
+    // Timer de Expiração
     useEffect(() => {
         if (!order) return;
 
@@ -67,15 +91,13 @@ export function OrderSuccess() {
         return () => clearInterval(interval);
     }, [order]);
 
+    // Busca e Polling do Pedido
     useEffect(() => {
         if (orderId) {
-            // 🛒 LIMPAR CARRINHO IMEDIATAMENTE ao chegar na página de sucesso
-            // Isso garante que o carrinho seja limpo mesmo se o usuário voltar para a página
             clearCart();
 
             const fetchOrder = async () => {
                 try {
-                    // 1. Checar parâmetros de retorno na URL (Redirect)
                     const urlParams = new URLSearchParams(window.location.search);
                     const transactionNsu = urlParams.get('transaction_nsu');
 
@@ -91,14 +113,14 @@ export function OrderSuccess() {
                         setLoading(false);
                         let currentStatus = found.status;
 
-                        // 2. Detecção via Redirect (Se o cliente clicou em 'Voltar para a Loja')
+                        // Detecção via Redirect
                         if (transactionNsu && currentStatus === 'pending') {
                             await api.orders.updateStatus(found.id, 'paid');
                             currentStatus = 'paid';
                             found.status = 'paid';
                         }
 
-                        // 3. Polling Ativo (O "Coração" do SaaS): Verifica no servidor se o Pix caiu enquanto o usuário espera na tela
+                        // Polling InfinitePay
                         if (currentStatus === 'pending' && settings.infinitepay_handle) {
                             try {
                                 const checkResponse = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
@@ -112,30 +134,21 @@ export function OrderSuccess() {
 
                                 if (checkResponse.ok) {
                                     const checkData = await checkResponse.json();
-
-                                    // A InfinitePay retorna success e paid se estiver tudo certo
                                     if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
-                                        // Atualizar status do pedido
                                         await api.orders.updateStatus(found.id, 'paid');
                                         currentStatus = 'paid';
                                         found.status = 'paid';
 
-                                        // 🎯 CAPTURAR DADOS DO CLIENTE DA INFINITEPAY
-                                        // A InfinitePay retorna dados do cliente quando o pagamento é confirmado
                                         if (checkData.customer || checkData.payer) {
                                             const customer = checkData.customer || checkData.payer;
                                             const customerData: any = {
                                                 transactionNsu: checkData.transaction_nsu || transactionNsu,
-                                                infinitepayData: checkData // Backup completo dos dados
+                                                infinitepayData: checkData
                                             };
-
-                                            // Email e Telefone
                                             if (customer.email) customerData.email = customer.email;
                                             if (customer.phone || customer.phone_number) {
                                                 customerData.phone = customer.phone || customer.phone_number;
                                             }
-
-                                            // Endereço (se disponível)
                                             if (customer.address) {
                                                 customerData.address = {
                                                     street: customer.address.street || customer.address.line1,
@@ -147,12 +160,7 @@ export function OrderSuccess() {
                                                     zipcode: customer.address.zipcode || customer.address.postal_code
                                                 };
                                             }
-
-                                            // Salvar dados do cliente no banco
                                             await api.orders.updateOrderWithCustomerData(found.id, customerData);
-                                            console.log('✅ Dados do cliente capturados e salvos!', customerData);
-
-                                            // Atualizar o estado do pedido com os novos dados
                                             setOrder((prev: any) => ({
                                                 ...prev,
                                                 customerEmail: customerData.email,
@@ -169,25 +177,23 @@ export function OrderSuccess() {
                             }
                         }
 
-                        // 4. Detecção final e atualização da UI
+                        // Ações ao Confirmar Pagamento
                         if (currentStatus === 'paid' || currentStatus === 'delivered') {
                             if (!isPaid) {
                                 setIsPaid(true);
-                                clearCart();
+                                triggerConfetti();
 
-                                // Mostrar toast apenas uma vez
                                 if (!hasShownToast.current) {
                                     hasShownToast.current = true;
                                     toast.success("PAGAMENTO CONFIRMADO!", {
                                         icon: '💰',
                                         duration: 5000
                                     });
+                                }
 
-                                    // Redirecionamento automático após confirmação
-                                    setTimeout(() => {
-                                        const waUrl = `https://wa.me/${settings.whatsapp_number}?text=Olá! Meu pagamento do pedido #${orderId} foi confirmado via InfinitePay. Pode iniciar a separação!`;
-                                        window.open(waUrl, '_blank');
-                                    }, 3000);
+                                if (found.customerEmail && !hasSentEmail.current) {
+                                    hasSentEmail.current = true;
+                                    EmailService.sendOrderConfirmation(found.id, found.customerEmail);
                                 }
                             }
                         }
@@ -205,12 +211,10 @@ export function OrderSuccess() {
             };
 
             fetchOrder();
-
-            // Inicia o Polling para checar status em tempo real
             const poll = setInterval(fetchOrder, POLLING_INTERVAL);
             return () => clearInterval(poll);
         }
-    }, [orderId, retryCount, settings.whatsapp_number, settings.infinitepay_handle]);
+    }, [orderId, retryCount, settings.whatsapp_number, settings.infinitepay_handle, currentStoreId, clearCart, isPaid]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -337,6 +341,25 @@ export function OrderSuccess() {
                 </div>
 
                 <div className="p-10 space-y-10">
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => setShowReceipt(true)}
+                            className="flex items-center justify-center gap-2 w-full border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:border-brand-gold hover:text-brand-gold transition-all group"
+                        >
+                            <FileText size={18} className="group-hover:scale-110 transition-transform" />
+                            Ver Comprovante Detalhado
+                        </button>
+
+                        {isPaid && order.customerEmail && (
+                            <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-sm border border-green-100 dark:border-green-900/20 flex items-center gap-3">
+                                <Mail size={16} className="text-green-600" />
+                                <p className="text-[9px] font-bold text-green-700 uppercase tracking-wider">
+                                    E-mail de confirmação enviado para {order.customerEmail}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
                     {isPaid ? (
                         <div className="text-center space-y-6">
                             <p className="text-xs font-bold uppercase tracking-widest text-stone-500 leading-relaxed max-w-sm mx-auto">
@@ -345,7 +368,6 @@ export function OrderSuccess() {
                             </p>
                         </div>
                     ) : timeLeft === 0 ? (
-                        /* Tela de Expirado */
                         <div className="bg-red-50 dark:bg-red-900/10 p-10 rounded-sm border border-red-100 dark:border-red-900/20 text-center space-y-6">
                             <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600">
                                 <AlertTriangle size={28} />
@@ -380,7 +402,6 @@ export function OrderSuccess() {
                         </div>
                     )}
 
-                    {/* Próximo Passo */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-4">
                             <span className="w-8 h-8 bg-brand-gold text-brand-wood rounded-full flex items-center justify-center text-xs font-black shadow-soft">2</span>
@@ -406,6 +427,15 @@ export function OrderSuccess() {
                     </div>
                 </div>
             </div>
+
+            {/* Receipt Modal */}
+            {showReceipt && order && (
+                <OrderReceipt
+                    order={order}
+                    storeSettings={settings}
+                    onClose={() => setShowReceipt(false)}
+                />
+            )}
         </div>
     );
 }

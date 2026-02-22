@@ -6,6 +6,7 @@ import { Sparkles, ArrowRight, Feather, Compass, Gift } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
 import ProductFilters, { type FilterState } from '../components/ProductFilters';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 
 import { useBlog } from '../context/BlogContext';
 import { SEO } from '../components/SEO';
@@ -194,92 +195,98 @@ export function Home() {
                     {!isGlobalSearch && (
                         <>
                             {featuredProducts.length > 0 && (
-                                <section>
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Sparkles size={16} className="text-brand-gold" />
-                                        <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Destaques</h2>
-                                        <div className="h-px flex-1 bg-stone-100" />
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                        {featuredProducts.slice(0, 8).map(p => (
-                                            <ProductCard key={`${p.id}-featured`} product={p} />
-                                        ))}
-                                    </div>
-                                </section>
+                                <ErrorBoundary>
+                                    <section>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <Sparkles size={16} className="text-brand-gold" />
+                                            <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Destaques</h2>
+                                            <div className="h-px flex-1 bg-stone-100" />
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                            {featuredProducts.slice(0, 8).map(p => (
+                                                <ProductCard key={`${p.id}-featured`} product={p} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                </ErrorBoundary>
                             )}
 
                             {promoProducts.length > 0 && (
-                                <section ref={offersRef}>
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Gift size={16} className="text-brand-gold" />
-                                        <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Ofertas de Bênção</h2>
-                                        <div className="h-px flex-1 bg-stone-100" />
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                        {promoProducts.slice(0, 8).map(p => (
-                                            <ProductCard key={`${p.id}-promo`} product={p} />
-                                        ))}
-                                    </div>
-                                </section>
+                                <ErrorBoundary>
+                                    <section ref={offersRef}>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <Gift size={16} className="text-brand-gold" />
+                                            <h2 className="text-sm font-display font-medium text-stone-800 uppercase tracking-[0.2em]">Ofertas de Bênção</h2>
+                                            <div className="h-px flex-1 bg-stone-100" />
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                            {promoProducts.slice(0, 8).map(p => (
+                                                <ProductCard key={`${p.id}-promo`} product={p} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                </ErrorBoundary>
                             )}
 
                             {/* Categorias - Navegue por Categoria */}
                             {categories.length > 0 && (
-                                <section className="py-8 border-y border-stone-100 dark:border-stone-800 my-12 bg-white/50 dark:bg-stone-900/50">
-                                    <div className="flex items-center gap-3 mb-8">
-                                        <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
-                                        <h2 className="text-sm font-display font-medium text-stone-800 dark:text-stone-200 uppercase tracking-[0.2em] text-center">Navegue por Categoria</h2>
-                                        <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
-                                    </div>
-                                    <div className="relative overflow-hidden w-full pb-6 pt-2">
-                                        {/* Fading Edges for elegance */}
-                                        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
-                                        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
-
-                                        <div className="flex w-max animate-marquee-slow hover:[animation-play-state:paused] gap-6 md:gap-8 px-4">
-                                            {/* Renderizamos a lista duas vezes com os mesmos itens para o efeito de loop infinito suave */}
-                                            {[...categories, ...categories].map((category, idx) => {
-                                                // Find a product image to represent the category, or use a placeholder
-                                                const representiveProduct = products.find(p => p.category === category && p.image);
-                                                const bgImage = representiveProduct?.image || "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=400";
-
-                                                return (
-                                                    <button
-                                                        key={`${category}-${idx}`}
-                                                        onClick={() => {
-                                                            const newParams = new URLSearchParams(searchParams);
-                                                            newParams.set('cat', category);
-                                                            // Prevent keeping old search query if switching categories
-                                                            newParams.delete('q');
-
-                                                            // Update URL directly (which naturally updates filters via useEffect)
-                                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
-
-                                                            // Also update local state for immediate feedback
-                                                            setActiveFilters(prev => ({ ...prev, category: [category], search: '' }));
-
-                                                            // Smooth scroll to top of page to see results from start
-                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                                        }}
-                                                        className="shrink-0 group flex flex-col items-center gap-4 transition-all hover:-translate-y-1"
-                                                    >
-                                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-brand-gold transition-colors shadow-sm relative">
-                                                            <img
-                                                                src={bgImage}
-                                                                alt={category}
-                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                                                            />
-                                                            <div className="absolute inset-0 bg-brand-wood/20 group-hover:bg-transparent transition-colors duration-500" />
-                                                        </div>
-                                                        <span className="text-[10px] md:text-xs font-bold font-display uppercase tracking-widest text-stone-600 dark:text-stone-300 group-hover:text-brand-gold transition-colors text-center w-32">
-                                                            {category}
-                                                        </span>
-                                                    </button>
-                                                )
-                                            })}
+                                <ErrorBoundary>
+                                    <section className="py-8 border-y border-stone-100 dark:border-stone-800 my-12 bg-white/50 dark:bg-stone-900/50">
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
+                                            <h2 className="text-sm font-display font-medium text-stone-800 dark:text-stone-200 uppercase tracking-[0.2em] text-center">Navegue por Categoria</h2>
+                                            <div className="h-px flex-1 bg-stone-100 dark:bg-stone-800" />
                                         </div>
-                                    </div>
-                                </section>
+                                        <div className="relative overflow-hidden w-full pb-6 pt-2">
+                                            {/* Fading Edges for elegance */}
+                                            <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
+                                            <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
+
+                                            <div className="flex w-max animate-marquee-slow hover:[animation-play-state:paused] gap-6 md:gap-8 px-4">
+                                                {/* Renderizamos a lista duas vezes com os mesmos itens para o efeito de loop infinito suave */}
+                                                {[...categories, ...categories].map((category, idx) => {
+                                                    // Find a product image to represent the category, or use a placeholder
+                                                    const representiveProduct = products.find(p => p.category === category && p.image);
+                                                    const bgImage = representiveProduct?.image || "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=400";
+
+                                                    return (
+                                                        <button
+                                                            key={`${category}-${idx}`}
+                                                            onClick={() => {
+                                                                const newParams = new URLSearchParams(searchParams);
+                                                                newParams.set('cat', category);
+                                                                // Prevent keeping old search query if switching categories
+                                                                newParams.delete('q');
+
+                                                                // Update URL directly (which naturally updates filters via useEffect)
+                                                                window.history.replaceState({}, '', `?${newParams.toString()}`);
+
+                                                                // Also update local state for immediate feedback
+                                                                setActiveFilters(prev => ({ ...prev, category: [category], search: '' }));
+
+                                                                // Smooth scroll to top of page to see results from start
+                                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                            }}
+                                                            className="shrink-0 group flex flex-col items-center gap-4 transition-all hover:-translate-y-1"
+                                                        >
+                                                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-brand-gold transition-colors shadow-sm relative">
+                                                                <img
+                                                                    src={bgImage}
+                                                                    alt={category}
+                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                                                />
+                                                                <div className="absolute inset-0 bg-brand-wood/20 group-hover:bg-transparent transition-colors duration-500" />
+                                                            </div>
+                                                            <span className="text-[10px] md:text-xs font-bold font-display uppercase tracking-widest text-stone-600 dark:text-stone-300 group-hover:text-brand-gold transition-colors text-center w-32">
+                                                                {category}
+                                                            </span>
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </section>
+                                </ErrorBoundary>
                             )}
 
                         </>
@@ -312,11 +319,13 @@ export function Home() {
                                 Sincronizando com o céu...
                             </div>
                         ) : filteredProducts.length > 0 ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                {filteredProducts.map(p => (
-                                    <ProductCard key={p.id} product={p} />
-                                ))}
-                            </div>
+                            <ErrorBoundary>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {filteredProducts.map(p => (
+                                        <ProductCard key={p.id} product={p} />
+                                    ))}
+                                </div>
+                            </ErrorBoundary>
                         ) : (
                             <div className="text-center py-32 bg-white rounded-sm border border-dashed border-stone-200">
                                 <span className="text-4xl mb-6 block">🕊️</span>
@@ -334,20 +343,22 @@ export function Home() {
                 </main>
 
                 {!isGlobalSearch && featuredPosts.length > 0 && (
-                    <section className="py-24 border-t border-stone-100">
-                        <div className="flex items-center justify-between mb-12">
-                            <div className="flex items-center gap-3">
-                                <Feather size={20} className="text-brand-gold" />
-                                <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">Blog de Fé</h2>
+                    <ErrorBoundary>
+                        <section className="py-24 border-t border-stone-100">
+                            <div className="flex items-center justify-between mb-12">
+                                <div className="flex items-center gap-3">
+                                    <Feather size={20} className="text-brand-gold" />
+                                    <h2 className="text-xl font-display font-medium text-stone-800 uppercase tracking-widest">Blog de Fé</h2>
+                                </div>
+                                <Link to="/blog" className="text-brand-gold font-bold text-[10px] uppercase tracking-widest border-b border-brand-gold/30 pb-1 hover:border-brand-gold transition-colors">Ver tudo</Link>
                             </div>
-                            <Link to="/blog" className="text-brand-gold font-bold text-[10px] uppercase tracking-widest border-b border-brand-gold/30 pb-1 hover:border-brand-gold transition-colors">Ver tudo</Link>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {featuredPosts.map(post => (
-                                <BlogCard key={post.id} post={post} />
-                            ))}
-                        </div>
-                    </section>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {featuredPosts.map(post => (
+                                    <BlogCard key={post.id} post={post} />
+                                ))}
+                            </div>
+                        </section>
+                    </ErrorBoundary>
                 )}
             </div>
         </div>

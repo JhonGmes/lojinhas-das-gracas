@@ -57,39 +57,52 @@ export function Checkout() {
             let checkoutUrl = '';
 
             try {
-                const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(infinitePayload)
-                });
+                // Controller to handle timeouts
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-                if (response.status === 404) {
-                    const fallbackResponse = await fetch('https://api.infinitepay.io/v2/payment-links', {
+                try {
+                    const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(infinitePayload)
+                        body: JSON.stringify(infinitePayload),
+                        signal: controller.signal
                     });
-                    const fallbackData = await fallbackResponse.json();
-                    checkoutUrl = fallbackData.url || fallbackData.payment_url || fallbackData?.data?.url;
-                } else if (!response.ok) {
-                    // Payment gateway returned an error
-                    throw new Error('GATEWAY_ERROR');
-                } else {
-                    const data = await response.json();
-                    checkoutUrl = data.url || data.payment_url || data?.data?.url;
-                }
-            } catch (fetchError: unknown) {
-                const isGatewayError = fetchError instanceof Error && fetchError.message === 'GATEWAY_ERROR';
-                if (isGatewayError) {
-                    setPaymentError({
-                        title: 'Serviço de Pagamento Indisponível',
-                        message: 'O gateway de pagamento está fora do ar. Use o WhatsApp para fechar seu pedido agora.'
-                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (response.status === 404) {
+                        const fallbackResponse = await fetch('https://api.infinitepay.io/v2/payment-links', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(infinitePayload)
+                        });
+                        const fallbackData = await fallbackResponse.json();
+                        checkoutUrl = fallbackData.url || fallbackData.payment_url || fallbackData?.data?.url;
+                    } else if (!response.ok) {
+                        throw new Error('GATEWAY_ERROR');
+                    } else {
+                        const data = await response.json();
+                        checkoutUrl = data.url || data.payment_url || data?.data?.url;
+                    }
+                } catch (fetchError: any) {
+                    if (fetchError.name === 'AbortError') {
+                        setPaymentError({
+                            title: 'Conexão Lenta',
+                            message: 'O serviço de pagamento demorou muito para responder. Verifique sua conexão ou use o WhatsApp.'
+                        });
+                    } else {
+                        // Network error — likely offline or blocked
+                        setPaymentError({
+                            title: 'Erro de Rede',
+                            message: 'Não conseguimos conectar ao serviço de pagamento. Verifique se você está online.'
+                        });
+                    }
                     setLoading(false);
                     return;
                 }
-                // Network error — likely offline
-                console.warn('InfinitePay API offline, using simulated mode.', fetchError);
+            } catch (outerError) {
+                console.warn('InfinitePay integration failed, check payload or connectivity.', outerError);
             }
 
             const orderData = {
