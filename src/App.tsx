@@ -14,6 +14,7 @@ import { Layout } from './components/layout/Layout';
 import { geminiService } from './services/gemini';
 import ScrollToTop from './components/layout/ScrollToTop';
 import { Toaster } from 'react-hot-toast';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -121,35 +122,37 @@ function App() {
                                         <BrowserRouter>
                                             <ScrollToTop />
                                             <Toaster position="top-right" />
-                                            <Suspense fallback={<LoadingFallback />}>
-                                                <Routes>
-                                                    {/* Public Routes */}
-                                                    <Route path="/" element={<Layout><Home /></Layout>} />
-                                                    <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
-                                                    <Route path="/cart" element={<Layout><Cart /></Layout>} />
-                                                    <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
-                                                    <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
-                                                    <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
-                                                    <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
-                                                    <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
+                                            <ErrorBoundary whatsappNumber="5598984095956">
+                                                <Suspense fallback={<LoadingFallback />}>
+                                                    <Routes>
+                                                        {/* Public Routes */}
+                                                        <Route path="/" element={<Layout><Home /></Layout>} />
+                                                        <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
+                                                        <Route path="/cart" element={<Layout><Cart /></Layout>} />
+                                                        <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
+                                                        <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+                                                        <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
+                                                        <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
+                                                        <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
 
-                                                    {/* Blog Routes */}
-                                                    <Route path="/blog" element={<Layout><BlogList /></Layout>} />
-                                                    <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
+                                                        {/* Blog Routes */}
+                                                        <Route path="/blog" element={<Layout><BlogList /></Layout>} />
+                                                        <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
 
-                                                    {/* Auth Routes */}
-                                                    <Route path="/login" element={<Layout><Identification /></Layout>} />
-                                                    <Route path="/admin-login" element={<Login />} />
-                                                    <Route path="/reset-password" element={<ResetPassword />} />
+                                                        {/* Auth Routes */}
+                                                        <Route path="/login" element={<Layout><Identification /></Layout>} />
+                                                        <Route path="/admin-login" element={<Login />} />
+                                                        <Route path="/reset-password" element={<ResetPassword />} />
 
-                                                    {/* Secure Routes */}
-                                                    <Route path="/admin/super" element={<SuperAdmin />} />
-                                                    <Route path="/admin/*" element={<AdminLayout />} />
+                                                        {/* Secure Routes */}
+                                                        <Route path="/admin/super" element={<SuperAdmin />} />
+                                                        <Route path="/admin/*" element={<AdminLayout />} />
 
-                                                    {/* Catch All */}
-                                                    <Route path="*" element={<Navigate to="/" replace />} />
-                                                </Routes>
-                                            </Suspense>
+                                                        {/* Catch All */}
+                                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                                    </Routes>
+                                                </Suspense>
+                                            </ErrorBoundary>
                                             <ChatBot />
                                         </BrowserRouter>
                                     </CartProvider>

@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import { api } from '../services/api';
-import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Banknote } from 'lucide-react';
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Banknote, AlertTriangle, RefreshCw, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -15,6 +15,12 @@ export function Checkout() {
     const { currentStoreId, settings: storeSettings } = useStore();
     const [loading, setLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'credit' | 'pix'>('credit');
+    const [paymentError, setPaymentError] = useState<{ title: string; message: string } | null>(null);
+
+    const whatsappNumber = storeSettings?.whatsapp_number || '5598984095956';
+    const whatsappFallback = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        `Olá! Tive um problema ao finalizar minha compra no site. Gostaria de continuar meu pedido de R$ ${formatCurrency(total)}.`
+    )}`;
 
     useEffect(() => {
         if (!user) {
@@ -28,17 +34,15 @@ export function Checkout() {
         if (!user) return;
 
         setLoading(true);
+        setPaymentError(null); // Reset error state on new attempt
 
         try {
-            // Calculate final items exactly as InfinitePay expects
-            // Note: prices must be integers (cents) -> e.g. R$ 10,00 = 1000
             const infiniteItems = items.map(item => ({
                 description: item.name,
                 price: Math.round((item.promotionalPrice || item.price) * 100),
                 quantity: item.quantity
             }));
 
-            // Prepare Link Payload
             const infinitePayload = {
                 handle: storeSettings?.infinitepay_handle || 'lojinhadasgracas',
                 items: infiniteItems,
@@ -50,8 +54,6 @@ export function Checkout() {
                 }
             };
 
-            // Call external InfinitePay endpoint
-            // Try fetching from invoices/public/checkout/links first
             let checkoutUrl = '';
 
             try {
@@ -61,7 +63,6 @@ export function Checkout() {
                     body: JSON.stringify(infinitePayload)
                 });
 
-                // fallback to v2/payment-links if 404
                 if (response.status === 404) {
                     const fallbackResponse = await fetch('https://api.infinitepay.io/v2/payment-links', {
                         method: 'POST',
@@ -70,17 +71,29 @@ export function Checkout() {
                     });
                     const fallbackData = await fallbackResponse.json();
                     checkoutUrl = fallbackData.url || fallbackData.payment_url || fallbackData?.data?.url;
+                } else if (!response.ok) {
+                    // Payment gateway returned an error
+                    throw new Error('GATEWAY_ERROR');
                 } else {
                     const data = await response.json();
                     checkoutUrl = data.url || data.payment_url || data?.data?.url;
                 }
-            } catch (fetchError) {
-                console.warn('InfinitePay API call direct failed, falling back to local simulation.', fetchError);
+            } catch (fetchError: unknown) {
+                const isGatewayError = fetchError instanceof Error && fetchError.message === 'GATEWAY_ERROR';
+                if (isGatewayError) {
+                    setPaymentError({
+                        title: 'Serviço de Pagamento Indisponível',
+                        message: 'O gateway de pagamento está fora do ar. Use o WhatsApp para fechar seu pedido agora.'
+                    });
+                    setLoading(false);
+                    return;
+                }
+                // Network error — likely offline
+                console.warn('InfinitePay API offline, using simulated mode.', fetchError);
             }
 
-            // Create Order Object
             const orderData = {
-                id: '', // Placeholder
+                id: '',
                 customerName: user.name || 'Cliente',
                 customerEmail: user.email,
                 customerPhone: user.whatsapp,
@@ -100,19 +113,23 @@ export function Checkout() {
 
             if (createdOrder && createdOrder.id) {
                 if (checkoutUrl) {
-                    // Redirect to InfinitePay checkout
-                    // In a real scenario we might pass redirect_url back to our site
                     window.location.href = checkoutUrl;
                 } else {
-                    toast.success("PEDIDO REALIZADO COM SUCESSO (Simulado)!");
+                    toast.success("Pedido realizado com sucesso!");
                     navigate(`/pedido-confirmado/${createdOrder.id}`);
                 }
             } else {
-                throw new Error("Falha ao criar pedido no banco");
+                throw new Error('ORDER_CREATION_FAILED');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Erro no checkout:", error);
-            toast.error("Erro ao processar pedido. Tente novamente.");
+            const isOrderError = error instanceof Error && error.message === 'ORDER_CREATION_FAILED';
+            setPaymentError({
+                title: isOrderError ? 'Erro ao Registrar Pedido' : 'Algo deu errado',
+                message: isOrderError
+                    ? 'Não conseguimos salvar seu pedido. Tente novamente ou finalize pelo WhatsApp.'
+                    : 'Ocorreu um erro inesperado. Tente novamente ou use o WhatsApp para finalizar.'
+            });
         } finally {
             setLoading(false);
         }
@@ -120,9 +137,13 @@ export function Checkout() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
-                <p className="font-display uppercase tracking-widest text-stone-400 mb-4">Seu carrinho está vazio</p>
-                <button onClick={() => navigate('/')} className="bg-brand-gold px-8 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest">Voltar à Loja</button>
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
+                <span className="text-5xl mb-6">🛒</span>
+                <p className="font-display uppercase tracking-widest text-stone-600 dark:text-stone-300 mb-2 font-bold">Seu carrinho está vazio</p>
+                <p className="text-[10px] text-stone-400 uppercase tracking-widest mb-8">Adicione produtos antes de finalizar a compra.</p>
+                <button onClick={() => navigate('/')} className="bg-brand-gold text-brand-wood px-8 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-soft hover:bg-brand-wood hover:text-white transition-all">
+                    Ver Produtos
+                </button>
             </div>
         );
     }
@@ -133,6 +154,43 @@ export function Checkout() {
                 <ArrowLeft size={14} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar ao Carrinho
             </button>
 
+            {/* === PAYMENT ERROR PANEL === */}
+            {paymentError && (
+                <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-sm animate-fade-in-up">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-red-100 dark:bg-red-800/50 rounded-full flex items-center justify-center shrink-0">
+                            <AlertTriangle size={20} className="text-red-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-black text-sm text-red-700 dark:text-red-300 uppercase tracking-wide mb-1">
+                                {paymentError.title}
+                            </h3>
+                            <p className="text-[11px] text-red-600 dark:text-red-400 leading-relaxed mb-4">
+                                {paymentError.message}
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <button
+                                    onClick={() => setPaymentError(null)}
+                                    className="flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-colors"
+                                >
+                                    <RefreshCw size={12} />
+                                    Tentar Novamente
+                                </button>
+                                <a
+                                    href={whatsappFallback}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-colors"
+                                >
+                                    <MessageCircle size={12} />
+                                    Finalizar pelo WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 <div className="lg:col-span-7 space-y-8">
                     <div className="flex items-center gap-3 border-b border-stone-100 dark:border-stone-800 pb-4">
@@ -140,7 +198,6 @@ export function Checkout() {
                         <h1 className="text-xl font-display font-medium uppercase tracking-tight">Pagamento</h1>
                     </div>
 
-                    {/* Payment Method Selection */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <button
                             type="button"
@@ -173,7 +230,7 @@ export function Checkout() {
                                 disabled={loading}
                                 className="w-full bg-brand-gold text-brand-wood py-4 rounded-sm font-black text-[11px] uppercase tracking-[0.2em] shadow-lg hover:bg-brand-wood hover:text-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {loading ? <Loader2 className="animate-spin" size={20} /> : `PAGAR ${formatCurrency(total)} (VIA INFINITEPAY)`}
+                                {loading ? <Loader2 className="animate-spin" size={20} /> : `Pagar ${formatCurrency(total)} via InfinitePay`}
                             </button>
                         </div>
 
@@ -188,7 +245,6 @@ export function Checkout() {
                     <div className="bg-stone-50 dark:bg-stone-800/40 p-6 rounded-sm border border-brand-cotton-dark dark:border-stone-800">
                         <h2 className="text-xs font-black uppercase tracking-widest text-stone-700 dark:text-stone-200 mb-6 border-b border-stone-200 dark:border-stone-700 pb-3">Resumo da Compra</h2>
 
-                        {/* Customer Info Preview */}
                         {user && (
                             <div className="mb-6 p-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm">
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">Dados do Cliente</h3>
