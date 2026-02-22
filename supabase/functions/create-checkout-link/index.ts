@@ -13,16 +13,23 @@ Deno.serve(async (req) => {
 
     try {
         const payload = await req.json();
+        console.log("[Edge Function] Received Payload:", JSON.stringify(payload, null, 2));
 
         // Call InfinitePay Public API (Server-side to avoid CORS)
         const response = await fetch("https://api.infinitepay.io/invoices/public/checkout/links", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             body: JSON.stringify(payload),
         });
 
+        console.log("[Edge Function] InfinitePay Status:", response.status);
+
         let data;
         if (response.status === 404) {
+            console.log("[Edge Function] Attempting fallback to v2...");
             // Fallback to older API version if needed
             const fallbackResponse = await fetch("https://api.infinitepay.io/v2/payment-links", {
                 method: "POST",
@@ -32,12 +39,20 @@ Deno.serve(async (req) => {
             data = await fallbackResponse.json();
         } else if (!response.ok) {
             const errorText = await response.text();
-            console.error("[InfinitePay Error]", errorText);
-            throw new Error("GATEWAY_ERROR");
+            console.error("[Edge Function] InfinitePay Full Error:", errorText);
+            return new Response(JSON.stringify({
+                error: "GATEWAY_ERROR",
+                details: errorText,
+                status: response.status
+            }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+                status: response.status,
+            });
         } else {
             data = await response.json();
         }
 
+        console.log("[Edge Function] InfinitePay Response:", JSON.stringify(data));
         const checkoutUrl = data.url || data.payment_url || data?.data?.url;
 
         if (!checkoutUrl) {

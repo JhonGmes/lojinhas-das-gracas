@@ -47,11 +47,12 @@ export function Checkout() {
             const infinitePayload = {
                 handle: storeSettings?.infinitepay_handle || 'lojinhadasgracas',
                 items: infiniteItems,
-                payment_method: paymentMethod === 'credit' ? ["credit"] : ["pix"],
+                payment_method: paymentMethod === 'credit' ? "credit_card" : "pix",
+                redirect_url: `${window.location.origin}/pedido-confirmado?status=success`,
                 customer: {
                     name: user.name || 'Cliente',
                     email: user.email,
-                    phone: user.whatsapp || '5511999999999'
+                    phone_number: user.whatsapp || '5598984095956'
                 }
             };
 
