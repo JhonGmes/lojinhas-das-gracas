@@ -64,16 +64,32 @@ export function Checkout() {
                     body: infinitePayload
                 });
 
-                if (functionError || !functionData?.url) {
-                    console.error("[Checkout] Edge Function Error:", functionError);
-                    throw new Error('GATEWAY_ERROR');
+                if (functionError) {
+                    console.error("[Checkout] Edge Function Error Object:", functionError);
+
+                    // Specific message for Usage Limits
+                    const isLimitError = JSON.stringify(functionError).toLowerCase().includes('limit');
+
+                    setPaymentError({
+                        title: isLimitError ? 'Limite de Uso Excedido' : 'Erro no Pagamento',
+                        message: isLimitError
+                            ? 'O serviço do Supabase atingiu o limite gratuito. Tente novamente mais tarde ou finalize pelo WhatsApp.'
+                            : `Ocorreu um erro ao processar o link: ${functionError.message || 'Erro desconhecido'}. Verifique os logs no Supabase.`
+                    });
+                    setLoading(false);
+                    return;
+                }
+
+                if (!functionData?.url) {
+                    throw new Error('EMPTY_URL');
                 }
 
                 checkoutUrl = functionData.url;
             } catch (proxyError: any) {
+                console.error("[Checkout] Invoke Catch Block:", proxyError);
                 setPaymentError({
-                    title: 'Erro de Comunicação',
-                    message: 'Não conseguimos processar o pagamento agora. Tente novamente ou use o WhatsApp.'
+                    title: 'Falha de Comunicação',
+                    message: 'Não conseguimos conectar à função de pagamento. Verifique se a função "create-checkout-link" está ativa no Supabase.'
                 });
                 setLoading(false);
                 return;
