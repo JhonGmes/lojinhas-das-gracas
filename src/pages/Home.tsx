@@ -258,13 +258,8 @@ export function Home() {
                                                             // Also update local state for immediate feedback
                                                             setActiveFilters(prev => ({ ...prev, category: [category], search: '' }));
 
-                                                            // Smooth scroll to results safely
-                                                            const resultsSection = document.getElementById('product-results-section');
-                                                            if (resultsSection) {
-                                                                const yOffset = -80; // offset for sticky header
-                                                                const y = resultsSection.getBoundingClientRect().top + window.scrollY + yOffset;
-                                                                window.scrollTo({ top: y, behavior: 'smooth' });
-                                                            }
+                                                            // Smooth scroll to top of page to see results from start
+                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
                                                         }}
                                                         className="shrink-0 group flex flex-col items-center gap-4 transition-all hover:-translate-y-1"
                                                     >

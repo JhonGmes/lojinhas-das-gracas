@@ -89,8 +89,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
-                                        to={`/?cat=${cat}`}
-                                        onClick={() => setIsSidebarOpen(false)}
+                                        to={`/`}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            const newParams = new URLSearchParams();
+                                            newParams.set('cat', cat);
+                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
+                                            setIsSidebarOpen(false);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
                                         className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest"
                                     >
                                         {cat}
@@ -114,9 +121,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Link
                         to="/"
                         onClick={() => {
-                            if (location.pathname === '/') {
-                                window.location.reload();
-                            }
+                            window.location.href = '/';
                         }}
                         className="flex items-center gap-3 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0"
                     >
@@ -236,7 +241,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
-                                        to={`/?cat=${cat}`}
+                                        to={`/`}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            const newParams = new URLSearchParams();
+                                            newParams.set('cat', cat);
+                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            // Se estiver na Home, o useEffect vai disparar a atualização do estado
+                                            if (location.pathname !== '/') {
+                                                navigate(`/?cat=${cat}`);
+                                            }
+                                        }}
                                         className="font-display text-[10px] font-medium text-stone-500 dark:text-stone-400 hover:text-brand-gold transition-all relative group py-1.5 uppercase tracking-[0.2em]"
                                     >
                                         {cat}
@@ -247,7 +263,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </ul>
                     </div>
                 </nav>
-            </header>
+            </header >
 
             <main className="flex-1 w-full">
                 {children}
@@ -335,6 +351,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
             </footer>
             <WhatsAppWidget />
-        </div>
+        </div >
     );
 }
