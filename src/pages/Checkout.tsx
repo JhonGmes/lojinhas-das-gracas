@@ -7,6 +7,7 @@ import { CreditCard, ShieldCheck, ArrowLeft, Loader2, Banknote, AlertTriangle, R
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 export function Checkout() {
     const navigate = useNavigate();
@@ -57,52 +58,24 @@ export function Checkout() {
             let checkoutUrl = '';
 
             try {
-                // Controller to handle timeouts
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+                // Call Supabase Edge Function instead of direct InfinitePay (to avoid CORS)
+                const { data: functionData, error: functionError } = await supabase.functions.invoke('create-checkout-link', {
+                    body: infinitePayload
+                });
 
-                try {
-                    const response = await fetch('https://api.infinitepay.io/invoices/public/checkout/links', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(infinitePayload),
-                        signal: controller.signal
-                    });
-
-                    clearTimeout(timeoutId);
-
-                    if (response.status === 404) {
-                        const fallbackResponse = await fetch('https://api.infinitepay.io/v2/payment-links', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(infinitePayload)
-                        });
-                        const fallbackData = await fallbackResponse.json();
-                        checkoutUrl = fallbackData.url || fallbackData.payment_url || fallbackData?.data?.url;
-                    } else if (!response.ok) {
-                        throw new Error('GATEWAY_ERROR');
-                    } else {
-                        const data = await response.json();
-                        checkoutUrl = data.url || data.payment_url || data?.data?.url;
-                    }
-                } catch (fetchError: any) {
-                    if (fetchError.name === 'AbortError') {
-                        setPaymentError({
-                            title: 'Conexão Lenta',
-                            message: 'O serviço de pagamento demorou muito para responder. Verifique sua conexão ou use o WhatsApp.'
-                        });
-                    } else {
-                        // Network error — likely offline or blocked
-                        setPaymentError({
-                            title: 'Erro de Rede',
-                            message: 'Não conseguimos conectar ao serviço de pagamento. Verifique se você está online.'
-                        });
-                    }
-                    setLoading(false);
-                    return;
+                if (functionError || !functionData?.url) {
+                    console.error("[Checkout] Edge Function Error:", functionError);
+                    throw new Error('GATEWAY_ERROR');
                 }
-            } catch (outerError) {
-                console.warn('InfinitePay integration failed, check payload or connectivity.', outerError);
+
+                checkoutUrl = functionData.url;
+            } catch (proxyError: any) {
+                setPaymentError({
+                    title: 'Erro de Comunicação',
+                    message: 'Não conseguimos processar o pagamento agora. Tente novamente ou use o WhatsApp.'
+                });
+                setLoading(false);
+                return;
             }
 
             const orderData = {
