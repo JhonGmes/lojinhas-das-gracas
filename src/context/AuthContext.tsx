@@ -13,58 +13,85 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const LS_USER = 'auth_user_session';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null)
+    const [user, setUser] = useState<User | null>(() => {
+        try {
+            const saved = localStorage.getItem(LS_USER);
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
+    });
+
+    const saveUser = (u: User | null) => {
+        setUser(u);
+        if (u) {
+            localStorage.setItem(LS_USER, JSON.stringify(u));
+        } else {
+            localStorage.removeItem(LS_USER);
+        }
+    };
 
     useEffect(() => {
-        checkUser()
-    }, [])
+        checkUser();
+    }, []);
 
     async function checkUser() {
-        const { data } = await supabase.auth.getSession()
-        const session = data.session
+        try {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) throw error;
 
-        if (!session) return
+            const session = data.session;
+            if (!session) {
+                if (user) saveUser(null);
+                return;
+            }
 
-        const authId = session.user.id
+            const authId = session.user.id;
+            const { data: usuario, error: dbError } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('auth_id', authId)
+                .single();
 
-        const { data: usuario } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('auth_id', authId)
-            .single()
+            if (dbError) throw dbError;
 
-        if (usuario) {
-            setUser({
-                id: usuario.id,
-                email: usuario.email,
-                name: usuario.nome,
-                whatsapp: usuario.telefone,
-                address: usuario.endereco,
-                role: usuario.nivel,
-                store_id: usuario.store_id
-            })
+            if (usuario) {
+                saveUser({
+                    id: usuario.id,
+                    email: usuario.email,
+                    name: usuario.nome,
+                    whatsapp: usuario.telefone,
+                    address: usuario.endereco,
+                    role: usuario.nivel,
+                    store_id: usuario.store_id
+                });
+            }
+        } catch (err: any) {
+            console.warn('⚠️ Sessão mantida localmente devido a erro de rede:', err.message);
         }
     }
 
     async function login(email: string, pass: string) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password: pass
-        })
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password: pass
+            });
 
-        if (error || !data.user) return false
+            if (error || !data.user) return false;
 
-        const { data: usuario } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('auth_id', data.user.id)
-            .single()
+            const { data: usuario, error: dbError } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('auth_id', data.user.id)
+                .single();
 
-        if (!usuario) return false
+            if (dbError || !usuario) return false;
 
-        if (usuario) {
-            setUser({
+            saveUser({
                 id: usuario.id,
                 email: usuario.email,
                 name: usuario.nome,
@@ -72,70 +99,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 address: usuario.endereco,
                 role: usuario.nivel,
                 store_id: usuario.store_id
-            })
-        }
+            });
 
-        return true
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async function signUp({ email, pass, name, whatsapp, address, storeId = '00000000-0000-0000-0000-000000000001' }: { email: string; pass: string; name: string; whatsapp: string; address: string, storeId?: string }) {
-        console.log('🚀 [AuthContext] Iniciando signUp com dados:', { email, name, whatsapp, address, storeId });
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password: pass
+            });
 
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password: pass
-        })
+            if (error || !data.user) {
+                return { success: false, message: error?.message || 'Erro ao cadastrar' }
+            }
 
-        if (error || !data.user) {
-            console.error('❌ [AuthContext] Erro ao criar usuário no auth:', error);
-            return { success: false, message: error?.message || 'Erro ao cadastrar' }
-        }
-
-        console.log('✅ [AuthContext] Usuário auth criado com sucesso:', data.user.id);
-
-        // Create profile in usuarios table
-        const insertData = {
-            auth_id: data.user.id,
-            email: email,
-            nome: name,
-            telefone: whatsapp,
-            endereco: address,
-            nivel: 'customer',
-            store_id: storeId
-        };
-
-        console.log('📝 [AuthContext] Dados que serão inseridos na tabela usuarios:', insertData);
-
-        const { data: insertResult, error: profileError } = await supabase
-            .from('usuarios')
-            .insert([insertData])
-            .select();
-
-        console.log('📤 [AuthContext] Resultado do INSERT:', { insertResult, profileError });
-
-        if (profileError) {
-            console.error('❌ [AuthContext] Erro ao salvar perfil na tabela usuarios:', profileError);
-            console.error('Dados que tentamos inserir:', insertData);
-            return { success: false, message: 'Conta criada, mas erro ao salvar perfil. Contate o suporte.' }
-        }
-
-        console.log('✅ [AuthContext] Perfil salvo com sucesso na tabela usuarios');
-
-        // If email confirmation is disabled in Supabase, we get a session immediately
-        if (data.session) {
-            setUser({
-                id: data.user.id,
+            const insertData = {
+                auth_id: data.user.id,
                 email: email,
-                name: name,
-                whatsapp: whatsapp,
-                address: address,
-                role: 'customer',
+                nome: name,
+                telefone: whatsapp,
+                endereco: address,
+                nivel: 'customer',
                 store_id: storeId
-            })
-            console.log('✅ [AuthContext] Sessão criada e usuário setado no contexto');
-        }
+            };
 
-        return { success: true }
+            const { error: profileError } = await supabase
+                .from('usuarios')
+                .insert([insertData]);
+
+            if (profileError) {
+                return { success: false, message: 'Conta criada, mas erro ao salvar perfil.' }
+            }
+
+            if (data.session) {
+                saveUser({
+                    id: data.user.id,
+                    email: email,
+                    name: name,
+                    whatsapp: whatsapp,
+                    address: address,
+                    role: 'customer',
+                    store_id: storeId
+                });
+            }
+
+            return { success: true }
+        } catch (err: any) {
+            return { success: false, message: err.message };
+        }
     }
 
     async function resetPassword(email: string) {
@@ -143,25 +159,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             redirectTo: `${window.location.origin}/reset-password`,
         })
 
-        if (error) {
-            return { success: false, message: error.message }
-        }
-
+        if (error) return { success: false, message: error.message }
         return { success: true }
     }
 
     async function updatePassword(password: string) {
         const { error } = await supabase.auth.updateUser({ password })
-        if (error) {
-            return { success: false, message: error.message }
-        }
+        if (error) return { success: false, message: error.message }
         return { success: true }
     }
 
     async function logout() {
-        await supabase.auth.signOut()
-        localStorage.removeItem('cart') // Limpa o carrinho ao sair (Evita produto fantasma)
-        setUser(null)
+        await supabase.auth.signOut();
+        localStorage.removeItem('cart');
+        saveUser(null);
     }
 
     return (
