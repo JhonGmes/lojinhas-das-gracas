@@ -11,7 +11,8 @@ import {
     setDoc,
     orderBy,
     limit,
-    serverTimestamp
+    serverTimestamp,
+    increment
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { compressImage } from '../utils/imageCompression'
@@ -283,6 +284,35 @@ export const api = {
                     orders[idx].status = status;
                     localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
                 }
+            }
+        },
+
+        confirmPayment: async (order: Order): Promise<void> => {
+            try {
+                // 1. Atualiza status do pedido para 'paid'
+                await updateDoc(doc(db, 'orders', order.id), { status: 'paid' });
+
+                // 2. Baixa o estoque de cada item
+                for (const item of order.items) {
+                    try {
+                        const productRef = doc(db, 'products', item.id);
+                        await updateDoc(productRef, {
+                            stock: increment(-item.quantity)
+                        });
+                    } catch (stockErr) {
+                        console.error(`❌ Erro ao baixar estoque do item ${item.id}:`, stockErr);
+                    }
+                }
+
+                // Fallback LocalStorage
+                const orders = getLocalOrders();
+                const idx = orders.findIndex(o => o.id === order.id);
+                if (idx !== -1) {
+                    orders[idx].status = 'paid';
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                }
+            } catch (err: any) {
+                console.error('❌ Erro ao confirmar pagamento:', err.message);
             }
         },
 

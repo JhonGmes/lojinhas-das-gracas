@@ -118,7 +118,7 @@ export function OrderSuccess() {
 
                         // Detecção via Redirect
                         if (transactionNsu && currentStatus === 'pending') {
-                            await api.orders.updateStatus(found.id, 'paid');
+                            await api.orders.confirmPayment(found);
                             currentStatus = 'paid';
                             found.status = 'paid';
                         }
@@ -138,7 +138,7 @@ export function OrderSuccess() {
                                 if (checkResponse.ok) {
                                     const checkData = await checkResponse.json();
                                     if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
-                                        await api.orders.updateStatus(found.id, 'paid');
+                                        await api.orders.confirmPayment(found);
                                         currentStatus = 'paid';
                                         found.status = 'paid';
 
