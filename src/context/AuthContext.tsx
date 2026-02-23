@@ -5,8 +5,7 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     sendPasswordResetEmail,
-    updatePassword as firebaseUpdatePassword,
-    type User as FirebaseUser
+    updatePassword as firebaseUpdatePassword
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'

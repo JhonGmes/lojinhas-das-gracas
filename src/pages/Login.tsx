@@ -21,7 +21,7 @@ export function Login() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        api.settings.get(DEFAULT_STORE_ID).then(setStoreSettings);
+        api.settings.getByStoreId(DEFAULT_STORE_ID).then(setStoreSettings);
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
