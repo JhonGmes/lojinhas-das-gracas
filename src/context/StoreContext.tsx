@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface StoreSettings {
     id: string;
@@ -150,9 +151,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             // Fallback for other stores (only if not the main one)
             if (storeSlug) {
                 try {
-                    const { data } = await supabase.from('stores').select('id').eq('slug', storeSlug).single();
-                    if (data?.id) {
-                        setCurrentStoreId(data.id);
+                    const q = query(collection(db, 'stores'), where('slug', '==', storeSlug), limit(1));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        setCurrentStoreId(snap.docs[0].id);
                         return;
                     }
                 } catch (e) {
@@ -164,9 +166,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (parts.length >= 3 && parts[0] !== 'www' && !host.includes('localhost') && !host.includes('127.0.0.1')) {
                 const slug = parts[0];
                 try {
-                    const { data } = await supabase.from('stores').select('id').eq('slug', slug).single();
-                    if (data?.id) {
-                        setCurrentStoreId(data.id);
+                    const q = query(collection(db, 'stores'), where('slug', '==', slug), limit(1));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        setCurrentStoreId(snap.docs[0].id);
                     }
                 } catch (e) {
                     console.error("Store detection crash:", e);

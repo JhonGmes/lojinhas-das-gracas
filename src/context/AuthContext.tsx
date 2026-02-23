@@ -1,5 +1,15 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
+import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    sendPasswordResetEmail,
+    updatePassword as firebaseUpdatePassword,
+    type User as FirebaseUser
+} from 'firebase/auth'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { auth, db } from '../lib/firebase'
 import type { User } from '../types'
 
 interface AuthContextType {
@@ -35,142 +45,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        checkUser();
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        saveUser({
+                            id: firebaseUser.uid,
+                            email: firebaseUser.email || '',
+                            name: userData.name,
+                            whatsapp: userData.whatsapp,
+                            address: userData.address,
+                            role: userData.role || 'customer',
+                            store_id: userData.store_id
+                        });
+                    }
+                } catch (err: any) {
+                    console.warn('⚠️ Erro ao buscar perfil no Firestore:', err.message);
+                }
+            } else {
+                saveUser(null);
+            }
+        });
+
+        return () => unsubscribe();
     }, []);
-
-    async function checkUser() {
-        try {
-            const { data, error } = await supabase.auth.getSession();
-            if (error) throw error;
-
-            const session = data.session;
-            if (!session) {
-                if (user) saveUser(null);
-                return;
-            }
-
-            const authId = session.user.id;
-            const { data: usuario, error: dbError } = await supabase
-                .from('usuarios')
-                .select('*')
-                .eq('auth_id', authId)
-                .single();
-
-            if (dbError) throw dbError;
-
-            if (usuario) {
-                saveUser({
-                    id: usuario.id,
-                    email: usuario.email,
-                    name: usuario.nome,
-                    whatsapp: usuario.telefone,
-                    address: usuario.endereco,
-                    role: usuario.nivel,
-                    store_id: usuario.store_id
-                });
-            }
-        } catch (err: any) {
-            console.warn('⚠️ Sessão mantida localmente devido a erro de rede:', err.message);
-        }
-    }
 
     async function login(email: string, pass: string) {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password: pass
-            });
+            const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, pass);
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
 
-            if (error || !data.user) return false;
-
-            const { data: usuario, error: dbError } = await supabase
-                .from('usuarios')
-                .select('*')
-                .eq('auth_id', data.user.id)
-                .single();
-
-            if (dbError || !usuario) return false;
-
-            saveUser({
-                id: usuario.id,
-                email: usuario.email,
-                name: usuario.nome,
-                whatsapp: usuario.telefone,
-                address: usuario.endereco,
-                role: usuario.nivel,
-                store_id: usuario.store_id
-            });
-
-            return true;
-        } catch {
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                saveUser({
+                    id: firebaseUser.uid,
+                    email: firebaseUser.email || '',
+                    name: userData.name,
+                    whatsapp: userData.whatsapp,
+                    address: userData.address,
+                    role: userData.role || 'customer',
+                    store_id: userData.store_id
+                });
+                return true;
+            }
+            return false;
+        } catch (err: any) {
+            console.error('❌ Erro no login Firebase:', err.message);
             return false;
         }
     }
 
-    async function signUp({ email, pass, name, whatsapp, address, storeId = '00000000-0000-0000-0000-000000000001' }: { email: string; pass: string; name: string; whatsapp: string; address: string, storeId?: string }) {
+    async function signUp({ email, pass, name, whatsapp, address, storeId = 'lojinhadas-gracas' }: { email: string; pass: string; name: string; whatsapp: string; address: string, storeId?: string }) {
         try {
-            const { data, error } = await supabase.auth.signUp({
+            const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, pass);
+
+            const userData = {
+                id: firebaseUser.uid,
                 email,
-                password: pass
-            });
-
-            if (error || !data.user) {
-                return { success: false, message: error?.message || 'Erro ao cadastrar' }
-            }
-
-            const insertData = {
-                auth_id: data.user.id,
-                email: email,
-                nome: name,
-                telefone: whatsapp,
-                endereco: address,
-                nivel: 'customer',
-                store_id: storeId
+                name,
+                whatsapp,
+                address,
+                role: 'customer',
+                store_id: storeId,
+                createdAt: new Date().toISOString()
             };
 
-            const { error: profileError } = await supabase
-                .from('usuarios')
-                .insert([insertData]);
+            await setDoc(doc(db, 'users', firebaseUser.uid), userData);
 
-            if (profileError) {
-                return { success: false, message: 'Conta criada, mas erro ao salvar perfil.' }
-            }
-
-            if (data.session) {
-                saveUser({
-                    id: data.user.id,
-                    email: email,
-                    name: name,
-                    whatsapp: whatsapp,
-                    address: address,
-                    role: 'customer',
-                    store_id: storeId
-                });
-            }
-
-            return { success: true }
+            saveUser(userData as User);
+            return { success: true };
         } catch (err: any) {
+            console.error('❌ Erro no cadastro Firebase:', err.message);
             return { success: false, message: err.message };
         }
     }
 
     async function resetPassword(email: string) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`,
-        })
-
-        if (error) return { success: false, message: error.message }
-        return { success: true }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            return { success: true };
+        } catch (err: any) {
+            return { success: false, message: err.message };
+        }
     }
 
     async function updatePassword(password: string) {
-        const { error } = await supabase.auth.updateUser({ password })
-        if (error) return { success: false, message: error.message }
-        return { success: true }
+        try {
+            if (auth.currentUser) {
+                await firebaseUpdatePassword(auth.currentUser, password);
+                return { success: true };
+            }
+            return { success: false, message: 'Usuário não autenticado' };
+        } catch (err: any) {
+            return { success: false, message: err.message };
+        }
     }
 
     async function logout() {
-        await supabase.auth.signOut();
+        await signOut(auth);
         localStorage.removeItem('cart');
         saveUser(null);
     }
