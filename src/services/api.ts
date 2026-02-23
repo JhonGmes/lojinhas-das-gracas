@@ -196,6 +196,7 @@ export const api = {
                 // Tenta buscar o último número de pedido para sequencial
                 let nextOrderNumber = 1;
                 try {
+                    // Tenta buscar o último número de pedido
                     const qLast = query(
                         collection(db, 'orders'),
                         where('store_id', '==', storeId),
@@ -209,10 +210,26 @@ export const api = {
                             nextOrderNumber = lastOrder.order_number + 1;
                         }
                     }
-                } catch (idxErr) {
-                    // Se der erro de índice ao buscar o último, usamos o timestamp como fallback momentâneo
-                    console.warn('⚠️ Erro de índice ao buscar order_number, usando Date.now()');
-                    nextOrderNumber = Date.now();
+                } catch (idxErr: any) {
+                    // Erro de índice comum no Firestore. Vamos tentar listar os últimos e ordenar em memória
+                    console.warn('⚠️ Erro de índice ao buscar order_number. Tentando fallback em memória...');
+                    try {
+                        const qFallback = query(
+                            collection(db, 'orders'),
+                            where('store_id', '==', storeId),
+                            limit(50) // Pega os últimos 50 e ordena manual
+                        );
+                        const snap = await getDocs(qFallback);
+                        const nums = snap.docs
+                            .map(d => d.data().order_number)
+                            .filter(n => typeof n === 'number') as number[];
+
+                        if (nums.length > 0) {
+                            nextOrderNumber = Math.max(...nums) + 1;
+                        }
+                    } catch (e) {
+                        nextOrderNumber = Date.now();
+                    }
                 }
 
                 const payload = {
@@ -236,10 +253,12 @@ export const api = {
                     order_number: nextOrderNumber
                 };
 
-                const docRef = await addDoc(collection(db, 'orders'), payload);
+                const docRef = doc(db, 'orders', order.id);
+                await setDoc(docRef, payload);
+
                 return {
                     ...order,
-                    id: docRef.id,
+                    id: order.id,
                     orderNumber: payload.order_number,
                     createdAt: new Date().toISOString()
                 };

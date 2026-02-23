@@ -102,8 +102,11 @@ export function OrderSuccess() {
                     const transactionNsu = urlParams.get('transaction_nsu');
 
                     const orders = await api.orders.list(currentStoreId);
+
+                    // Busca flexível: ID exato, orderNumber ou o ID truncado do Firestore
                     const found = orders.find((o: any) =>
                         o.id === orderId ||
+                        o.id?.slice(0, 8) === orderId ||
                         o.orderNumber?.toString() === orderId ||
                         o.orderNumber?.toString().padStart(4, '0') === orderId
                     );
@@ -314,9 +317,10 @@ export function OrderSuccess() {
 
     if (!order) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4 p-8 text-center">
-            <p className="text-xs font-black uppercase tracking-widest text-red-500">Ops! Pedido não encontrado.</p>
-            <p className="text-[10px] text-stone-400 max-w-xs leading-relaxed">
-                Não conseguimos carregar os detalhes do pedido #{orderId}. Por favor, verifique se o número está correto ou tente novamente em instantes.
+            <p className="text-xs font-black uppercase tracking-widest text-red-500">Ops! Pedido não localizado.</p>
+            <p className="text-[10px] text-stone-400 max-w-xs leading-relaxed uppercase font-bold">
+                Estamos processando seu pedido #{orderId}. <br />
+                Por favor, aguarde alguns instantes ou atualize a página.
             </p>
             <Link to="/" className="text-brand-gold font-black uppercase text-[10px] tracking-widest hover:underline pt-4">Voltar para a loja</Link>
         </div>
@@ -333,11 +337,11 @@ export function OrderSuccess() {
                     <h1 className="text-3xl font-display font-medium text-stone-800 dark:text-stone-100 uppercase tracking-tight">
                         {isPaid ? 'Pagamento Confirmado!' : 'Pedido Recebido!'}
                     </h1>
-                    <div className="flex items-center justify-center gap-2 mt-3">
-                        <span className="h-px w-4 bg-stone-200"></span>
-                        <p className="text-xs font-bold uppercase tracking-[0.3em] text-stone-400">PEDIDO #{orderId}</p>
-                        <span className="h-px w-4 bg-stone-200"></span>
-                    </div>
+                    <span className="h-px w-4 bg-stone-200"></span>
+                    <p className="text-xs font-bold uppercase tracking-[0.3em] text-stone-400">
+                        PEDIDO {order?.orderNumber ? `#${String(order.orderNumber).padStart(4, '0')}` : `#${orderId}`}
+                    </p>
+                    <span className="h-px w-4 bg-stone-200"></span>
                 </div>
 
                 <div className="p-10 space-y-10">
