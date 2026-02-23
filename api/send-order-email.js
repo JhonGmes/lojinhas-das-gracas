@@ -1,5 +1,4 @@
 /* eslint-disable no-undef */
-import { createClient } from "@supabase/supabase-js";
 
 export default async function handler(req, res) {
     // CORS configuration
@@ -17,26 +16,31 @@ export default async function handler(req, res) {
     }
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    const PROJECT_ID = "lojinha-dasgracas";
 
     try {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Fetch order details from Firestore via REST API
+        // This avoids adding firebase-admin dependency to the serverless function
+        const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/orders/${orderId}`;
 
-        // Fetch order details
-        const { data: order, error: orderError } = await supabase
-            .from('orders')
-            .select('*')
-            .eq('id', orderId)
-            .single();
+        const orderRes = await fetch(firestoreUrl);
 
-        if (orderError || !order) {
-            console.error("[Email API] Order not found:", orderError);
+        if (!orderRes.ok) {
+            console.error("[Email API] Order not found in Firestore:", await orderRes.text());
             return res.status(404).json({ error: 'Order not found' });
         }
 
+        const orderData = await orderRes.json();
+        const fields = orderData.fields;
+
+        // Map Firestore REST format to simple object
+        const order = {
+            total: fields.total?.doubleValue || fields.total?.integerValue || 0,
+            customer_name: fields.customer_name?.stringValue || "Cliente",
+        };
+
         const storeName = "Lojinha das Graças";
-        const valorFormatado = order.total.toFixed(2).replace('.', ',');
+        const valorFormatado = Number(order.total).toFixed(2).replace('.', ',');
 
         // Email Body
         let corpoEmail = `
@@ -77,3 +81,4 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message });
     }
 }
+

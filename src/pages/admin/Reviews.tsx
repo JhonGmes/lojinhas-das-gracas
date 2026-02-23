@@ -36,9 +36,19 @@ export function Reviews() {
     const loadReviews = async () => {
         setLoading(true);
         try {
-            const data = await api.reviews.listAll(currentStoreId);
-            setReviews(data as any);
+            const [reviewsData, productsData] = await Promise.all([
+                api.reviews.listAll(currentStoreId),
+                api.products.list(currentStoreId)
+            ]);
+
+            const enrichedReviews = reviewsData.map(review => ({
+                ...review,
+                products: productsData.find(p => p.id === review.product_id) || null
+            }));
+
+            setReviews(enrichedReviews as any);
         } catch (error) {
+            console.error('Erro ao carregar avaliações:', error);
             toast.error('Erro ao carregar avaliações.');
         } finally {
             setLoading(false);

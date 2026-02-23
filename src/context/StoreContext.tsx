@@ -22,6 +22,7 @@ interface StoreSettings {
     notification_sound_url?: string;
     about_text?: string;
     privacy_policy?: string;
+    manager_name?: string;
 }
 
 interface StoreContextType {
@@ -55,7 +56,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         monthly_revenue_goal: 5000,
         notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2042/2042-preview.mp3',
         about_text: 'Somos uma loja dedicada a trazer paz e devoção para sua vida através de produtos cuidadosamente selecionados...',
-        privacy_policy: 'Sua privacidade é importante para nós. Coletamos apenas as informações necessárias para procressar seu pedido...'
+        privacy_policy: 'Sua privacidade é importante para nós. Coletamos apenas as informações necessárias para procressar seu pedido...',
+        manager_name: 'Gerente'
     });
     const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                         instagram_url: 'https://instagram.com/lojinhadasgracas',
                         infinitepay_handle: 'lojinhadasgracas',
                         about_text: 'Levando a paz de Cristo até você.',
-                        privacy_policy: 'Seus dados estão protegidos conosco.'
+                        privacy_policy: 'Seus dados estão protegidos conosco.',
+                        manager_name: 'Jhon Gomes'
                     });
                     return;
                 }

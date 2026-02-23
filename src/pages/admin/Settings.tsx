@@ -143,6 +143,16 @@ export function Settings() {
                             className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
                             placeholder="https://instagram.com/loja"
                         />
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Nome do Administrador (Gerente)</label>
+                            <input
+                                type="text"
+                                value={formData.manager_name || ''}
+                                onChange={e => setFormData({ ...formData, manager_name: e.target.value })}
+                                className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors"
+                                placeholder="Seu Nome"
+                            />
+                        </div>
                     </div>
                 </div>
 

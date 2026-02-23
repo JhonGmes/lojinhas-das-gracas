@@ -30,10 +30,17 @@ export function AdminLayout() {
 
     // Avatar State (Local Persistence)
     const [avatar, setAvatar] = useState<string | null>(localStorage.getItem('admin_avatar'));
-    const [adminName, setAdminName] = useState<string>(localStorage.getItem('admin_custom_name') || user?.name || 'Admin');
+    const [adminName, setAdminName] = useState<string>(settings.manager_name || localStorage.getItem('admin_custom_name') || user?.name || 'Admin');
     const [isEditingName, setIsEditingName] = useState(false);
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Sync adminName when settings load
+    useEffect(() => {
+        if (settings.manager_name) {
+            setAdminName(settings.manager_name);
+        }
+    }, [settings.manager_name]);
 
     const fetchPendingCount = async () => {
         if (!currentStoreId) return;
@@ -110,7 +117,7 @@ export function AdminLayout() {
             )}
 
             {/* Sidebar Moderno */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Brand Header - Compacted & Elegant */}
                 <div className="h-16 flex items-center px-5 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
@@ -118,7 +125,9 @@ export function AdminLayout() {
                     <div className="w-8 h-8 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
                     </div>
-                    <span className="font-display font-medium text-sm text-white capitalize truncate drop-shadow-sm flex-1">{settings.store_name.toLowerCase()}</span>
+                    <span className="font-display text-base font-black text-white uppercase tracking-tighter truncate drop-shadow-sm flex-1 leading-none">
+                        {settings.store_name}
+                    </span>
                     <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
                         <X size={20} />
                     </button>
@@ -219,47 +228,47 @@ export function AdminLayout() {
                     ))}
                 </nav>
 
-                {/* Footer / System - Compact */}
-                <div className="px-3 py-2 bg-[#1f2f3f] space-y-0.5 border-t border-white/5 shrink-0">
-                    <div className="flex items-center gap-1">
+                {/* Footer / System - Extra Compact */}
+                <div className="px-3 py-2 bg-[#1f2f3f] space-y-1 border-t border-white/5 shrink-0">
+                    <div className="flex items-center gap-2">
                         <Link
                             to="/admin/settings"
-                            className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-md transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold bg-white/5' : 'text-stone-400 hover:text-white hover:bg-white/5'
+                            className={`flex-[3] flex items-center justify-center gap-2 px-1 py-1.5 rounded bg-white/5 transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold border border-brand-gold/20' : 'text-stone-400 hover:text-white'
                                 }`}
                             title="Configurações"
                         >
-                            <SettingsIcon size={16} className="group-hover:rotate-90 transition-transform duration-500" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Config</span>
+                            <SettingsIcon size={14} className="group-hover:rotate-90 transition-transform duration-500" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider">Config</span>
                         </Link>
 
                         <button
                             onClick={logout}
-                            className="flex-1 flex items-center justify-center gap-2 px-2 py-2 text-stone-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-all group"
+                            className="flex-[1] flex items-center justify-center p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-all group"
                             title="Sair"
                         >
-                            <LogOut size={16} className="group-hover:text-red-400 transition-colors" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Sair</span>
+                            <LogOut size={14} />
                         </button>
                     </div>
 
-                    <Link to="/" className="flex items-center gap-2 px-4 py-1.5 text-[9px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors justify-center">
-                        <ArrowLeft size={10} /> Ir para Loja
+                    <Link to="/" className="flex items-center gap-2 px-4 py-1 text-[8px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors justify-center font-bold">
+                        <ArrowLeft size={10} /> Ver Loja
                     </Link>
 
                     {/* Managed Store Indicator - Ultra Compact */}
-                    <div className="mt-1 px-3 py-2 bg-red-500/10 rounded-lg border border-red-500/10 flex items-center justify-between">
+                    <div className="mt-1 px-3 py-1.5 bg-brand-gold/5 rounded-lg border border-brand-gold/10 flex items-center justify-between">
                         <div className="overflow-hidden">
-                            <p className="text-[7px] font-black text-red-400/70 uppercase tracking-widest leading-none">Loja</p>
-                            <p className="text-[9px] font-bold text-white truncate leading-tight mt-0.5">{settings.store_name}</p>
+                            <p className="text-[7px] font-black text-brand-gold/60 uppercase tracking-widest leading-none">Status</p>
+                            <p className="text-[8px] font-bold text-stone-300 truncate leading-tight mt-0.5">Sistema Ativo</p>
                         </div>
                         {user.role === 'admin' && (
-                            <Link to="/admin/super" className="text-red-400 hover:text-white transition-colors">
-                                <Shield size={12} />
+                            <Link to="/admin/super" className="text-stone-500 hover:text-brand-gold transition-colors">
+                                <Shield size={10} />
                             </Link>
                         )}
                     </div>
                 </div>
             </aside>
+
 
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto relative bg-[#F7F7F7] dark:bg-stone-900 scrollbar-hide">
