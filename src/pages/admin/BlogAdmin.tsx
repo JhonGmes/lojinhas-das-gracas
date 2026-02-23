@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useBlog } from '../../context/BlogContext';
-import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Sparkles, X, Calendar, BookOpen } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, EyeOff, Sparkles, X, Calendar, BookOpen, Loader2, Image as ImageIcon } from 'lucide-react';
+import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 import type { BlogPost } from '../../types';
 
 export function BlogAdmin() {
@@ -8,6 +10,7 @@ export function BlogAdmin() {
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingPost, setEditingPost] = useState<Partial<BlogPost> | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     const filteredPosts = posts.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -27,11 +30,30 @@ export function BlogAdmin() {
 
         if (postData.id) {
             await updatePost(postData);
+            toast.success("Mensagem atualizada!");
         } else {
             await createPost(postData);
+            toast.success("Mensagem criada!");
         }
         setShowForm(false);
         setEditingPost(null);
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setUploading(true);
+            try {
+                const path = `blog/${Date.now()}_${file.name}`;
+                const url = await api.storage.upload(file, path);
+                setEditingPost({ ...editingPost, image: url });
+                toast.success("Imagem da mensagem enviada!");
+            } catch (error) {
+                toast.error("Erro no upload");
+            } finally {
+                setUploading(false);
+            }
+        }
     };
 
     const toggleFeatured = (post: BlogPost) => {
@@ -200,17 +222,43 @@ export function BlogAdmin() {
                                             />
                                         </div>
                                         <div>
-                                            <Label>URL da Imagem</Label>
-                                            <input
-                                                required
-                                                type="text"
-                                                className="w-full mt-1 px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-gold/20 outline-none"
-                                                placeholder="https://..."
-                                                value={editingPost?.image || ''}
-                                                onChange={e => setEditingPost({ ...editingPost, image: e.target.value })}
-                                            />
+                                            <Label>Imagem da Mensagem</Label>
+                                            <div className="mt-1 flex flex-col gap-3">
+                                                <input
+                                                    type="file"
+                                                    id="blog-image-upload"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    disabled={uploading}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <label
+                                                    htmlFor="blog-image-upload"
+                                                    className={`flex items-center justify-center gap-2 w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-lg cursor-pointer hover:border-brand-gold transition-colors font-bold text-[10px] uppercase text-stone-500 ${uploading ? 'opacity-50' : ''}`}
+                                                >
+                                                    {uploading ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+                                                    {uploading ? 'Enviando...' : (editingPost?.image ? 'Trocar Imagem' : 'Fazer Upload da Imagem')}
+                                                </label>
+
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                        <div className="w-full border-t border-stone-100 dark:border-stone-800"></div>
+                                                    </div>
+                                                    <div className="relative flex justify-center text-[8px] uppercase">
+                                                        <span className="bg-white dark:bg-stone-900 px-2 text-stone-400">ou use URL direta</span>
+                                                    </div>
+                                                </div>
+
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-3 py-2 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs font-medium focus:ring-2 focus:ring-brand-gold/20 outline-none"
+                                                    placeholder="https://..."
+                                                    value={editingPost?.image || ''}
+                                                    onChange={e => setEditingPost({ ...editingPost, image: e.target.value })}
+                                                />
+                                            </div>
                                             {editingPost?.image && (
-                                                <div className="mt-2 aspect-video rounded-lg overflow-hidden border border-stone-200">
+                                                <div className="mt-3 aspect-video rounded-lg overflow-hidden border border-stone-200 shadow-sm">
                                                     <img src={editingPost.image} className="w-full h-full object-cover" />
                                                 </div>
                                             )}

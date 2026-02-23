@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { ChevronLeft, Check, Loader2, Image as ImageIcon, Trash2, Plus, X } from 'lucide-react';
+import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 
 export function EditProduct() {
     const { id } = useParams();
@@ -19,6 +21,7 @@ export function EditProduct() {
     const [stock, setStock] = useState('0');
     const [code, setCode] = useState('');
     const [active, setActive] = useState(true);
+    const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         const product = products.find(p => p.id === id);
@@ -65,25 +68,38 @@ export function EditProduct() {
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setUploading(prev => ({ ...prev, main: true }));
+            try {
+                const path = `products/${id || 'temp'}/${Date.now()}_${file.name}`;
+                const url = await api.storage.upload(file, path);
+                setImage(url);
+                toast.success("Imagem enviada!");
+            } catch (error) {
+                toast.error("Erro no upload");
+            } finally {
+                setUploading(prev => ({ ...prev, main: false }));
+            }
         }
     };
 
-    const handleExtraImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleExtraImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setExtraImages([...extraImages, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
+            const index = extraImages.length;
+            setUploading(prev => ({ ...prev, [`extra_${index}`]: true }));
+            try {
+                const path = `products/${id || 'temp'}/gallery/${Date.now()}_${file.name}`;
+                const url = await api.storage.upload(file, path);
+                setExtraImages([...extraImages, url]);
+                toast.success("Imagem adicional enviada!");
+            } catch (error) {
+                toast.error("Erro no upload da imagem adicional");
+            } finally {
+                setUploading(prev => ({ ...prev, [`extra_${index}`]: false }));
+            }
         }
     };
 
@@ -218,9 +234,12 @@ export function EditProduct() {
                             {image ? (
                                 <img src={image} className="w-full h-full object-cover" />
                             ) : (
-                                <ImageIcon size={18} className="text-stone-300" />
+                                <div className="text-center">
+                                    {uploading['main'] ? <Loader2 size={18} className="animate-spin text-brand-gold" /> : <ImageIcon size={18} className="text-stone-300 mx-auto" />}
+                                    <p className="text-[8px] text-stone-400 uppercase font-bold mt-1">{uploading['main'] ? 'Enviando...' : 'Upload'}</p>
+                                </div>
                             )}
-                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
+                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" disabled={uploading['main']} />
                         </div>
                     </div>
 
@@ -246,8 +265,12 @@ export function EditProduct() {
 
                             {extraImages.length < 5 && (
                                 <div className="relative aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex items-center justify-center hover:border-brand-gold transition-colors cursor-pointer group/add">
-                                    <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
-                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" />
+                                    {uploading[`extra_${extraImages.length}`] ? (
+                                        <Loader2 size={16} className="text-brand-gold animate-spin" />
+                                    ) : (
+                                        <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
+                                    )}
+                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" disabled={uploading[`extra_${extraImages.length}`]} />
                                 </div>
                             )}
                         </div>

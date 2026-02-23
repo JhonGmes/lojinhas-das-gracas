@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { api } from '../../services/api';
 import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon, FileText } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function Settings() {
     const { settings, updateSettings, loading } = useStore();
     const [formData, setFormData] = useState(settings);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
     // Sync form with context when loaded
     useEffect(() => {
@@ -47,6 +50,28 @@ export function Settings() {
         const banners = [...(formData.hero_banners || [])];
         banners[index] = url;
         setFormData({ ...formData, hero_banners: banners });
+    };
+
+    const handleFileUpload = async (file: File, type: 'logo' | 'hero' | 'banner', index?: number) => {
+        const key = index !== undefined ? `${type}_${index}` : type;
+        setUploading(prev => ({ ...prev, [key]: true }));
+        try {
+            const path = `stores/${settings.id}/${type}/${Date.now()}_${file.name}`;
+            const url = await api.storage.upload(file, path);
+            if (type === 'logo') setFormData(prev => ({ ...prev, logo_url: url }));
+            else if (type === 'hero') setFormData(prev => ({ ...prev, hero_image_url: url }));
+            else if (type === 'banner' && index !== undefined) {
+                const banners = [...(formData.hero_banners || [])];
+                banners[index] = url;
+                setFormData(prev => ({ ...prev, hero_banners: banners }));
+            }
+            toast.success("Imagem enviada com sucesso!");
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Erro ao enviar imagem");
+        } finally {
+            setUploading(prev => ({ ...prev, [key]: false }));
+        }
     };
 
     const removeBanner = (index: number) => {
@@ -294,23 +319,18 @@ export function Settings() {
                                 id="logo-upload"
                                 accept="image/*"
                                 className="hidden"
+                                disabled={uploading['logo']}
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
-                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                            setFormData({ ...formData, logo_url: reader.result as string });
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
+                                    if (file) handleFileUpload(file, 'logo');
                                 }}
                             />
                             <label
                                 htmlFor="logo-upload"
-                                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-xl cursor-pointer hover:bg-indigo-100 transition-colors font-bold text-xs uppercase"
+                                className={`flex items-center justify-center gap-2 w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-xl cursor-pointer hover:bg-indigo-100 transition-colors font-bold text-xs uppercase ${uploading['logo'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                <PlusCircle size={16} />
-                                Anexar Imagem Local
+                                {uploading['logo'] ? <Loader2 className="animate-spin" size={16} /> : <PlusCircle size={16} />}
+                                {uploading['logo'] ? 'Enviando...' : 'Anexar Imagem Local'}
                             </label>
                         </div>
                     </div>
@@ -391,23 +411,18 @@ export function Settings() {
                                         id="banner-upload"
                                         accept="image/*"
                                         className="hidden"
+                                        disabled={uploading['hero']}
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                    setFormData({ ...formData, hero_image_url: reader.result as string });
-                                                };
-                                                reader.readAsDataURL(file);
-                                            }
+                                            if (file) handleFileUpload(file, 'hero');
                                         }}
                                     />
                                     <label
                                         htmlFor="banner-upload"
-                                        className="flex items-center justify-center gap-2 w-full px-4 py-6 bg-white dark:bg-stone-900 border-2 border-dashed border-stone-100 dark:border-stone-800 rounded-xl cursor-pointer hover:border-brand-gold transition-colors font-bold text-xs uppercase text-stone-500"
+                                        className={`flex items-center justify-center gap-2 w-full px-4 py-6 bg-white dark:bg-stone-900 border-2 border-dashed border-stone-100 dark:border-stone-800 rounded-xl cursor-pointer hover:border-brand-gold transition-colors font-bold text-xs uppercase text-stone-500 ${uploading['hero'] ? 'opacity-50' : ''}`}
                                     >
-                                        <ImageIcon size={20} />
-                                        {formData.hero_image_url ? 'Trocar Imagem' : 'Trocar Imagem do Banner'}
+                                        {uploading['hero'] ? <Loader2 className="animate-spin" size={20} /> : <ImageIcon size={20} />}
+                                        {uploading['hero'] ? 'Enviando...' : (formData.hero_image_url ? 'Trocar Imagem' : 'Trocar Imagem do Banner')}
                                     </label>
 
                                     {formData.hero_image_url && (
@@ -469,22 +484,18 @@ export function Settings() {
                                                     id={`banner-upload-${index}`}
                                                     accept="image/*"
                                                     className="hidden"
+                                                    disabled={uploading[`banner_${index}`]}
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            const reader = new FileReader();
-                                                            reader.onloadend = () => {
-                                                                updateBanner(index, reader.result as string);
-                                                            };
-                                                            reader.readAsDataURL(file);
-                                                        }
+                                                        if (file) handleFileUpload(file, 'banner', index);
                                                     }}
                                                 />
                                                 <label
                                                     htmlFor={`banner-upload-${index}`}
-                                                    className="bg-white text-stone-800 px-4 py-2 rounded-lg text-[10px] font-bold uppercase cursor-pointer hover:bg-brand-gold hover:text-white transition-colors"
+                                                    className="bg-white text-stone-800 px-4 py-2 rounded-lg text-[10px] font-bold uppercase cursor-pointer hover:bg-brand-gold hover:text-white transition-colors flex items-center gap-2"
                                                 >
-                                                    Trocar Imagem
+                                                    {uploading[`banner_${index}`] ? <Loader2 className="animate-spin" size={12} /> : null}
+                                                    {uploading[`banner_${index}`] ? 'Enviando...' : 'Trocar Imagem'}
                                                 </label>
                                             </div>
                                         </div>

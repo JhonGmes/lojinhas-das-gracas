@@ -13,7 +13,8 @@ import {
     limit,
     serverTimestamp
 } from 'firebase/firestore'
-import { db } from '../lib/firebase'
+import { db, storage } from '../lib/firebase'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { INITIAL_PRODUCTS } from './constants'
 import type { Product, Order, BlogPost, Review, WishlistItem, Coupon } from '../types'
 
@@ -595,6 +596,14 @@ export const api = {
             } catch (err) {
                 console.warn('Erro ao salvar email na newsletter:', err);
             }
+        }
+    },
+
+    storage: {
+        upload: async (file: File, path: string): Promise<string> => {
+            const fileRef = ref(storage, path);
+            const snapshot = await uploadBytes(fileRef, file);
+            return getDownloadURL(snapshot.ref);
         }
     }
 };

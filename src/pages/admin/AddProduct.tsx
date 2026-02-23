@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 
 import { ChevronLeft, Check, Loader2, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 
 export function AddProduct() {
     const navigate = useNavigate();
@@ -18,6 +20,7 @@ export function AddProduct() {
     const [extraImages, setExtraImages] = useState<string[]>([]);
     const [stock, setStock] = useState('0');
     const [code, setCode] = useState('');
+    const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,25 +43,38 @@ export function AddProduct() {
         navigate('/admin/inventory');
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setUploading(prev => ({ ...prev, main: true }));
+            try {
+                const path = `products/temp/${Date.now()}_${file.name}`;
+                const url = await api.storage.upload(file, path);
+                setImage(url);
+                toast.success("Imagem enviada!");
+            } catch (error) {
+                toast.error("Erro no upload");
+            } finally {
+                setUploading(prev => ({ ...prev, main: false }));
+            }
         }
     };
 
-    const handleExtraImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleExtraImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setExtraImages([...extraImages, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
+            const index = extraImages.length;
+            setUploading(prev => ({ ...prev, [`extra_${index}`]: true }));
+            try {
+                const path = `products/temp/${Date.now()}_${file.name}`;
+                const url = await api.storage.upload(file, path);
+                setExtraImages([...extraImages, url]);
+                toast.success("Imagem adicional enviada!");
+            } catch (error) {
+                toast.error("Erro no upload da imagem adicional");
+            } finally {
+                setUploading(prev => ({ ...prev, [`extra_${index}`]: false }));
+            }
         }
     };
 
@@ -199,10 +215,10 @@ export function AddProduct() {
                             ) : (
                                 <div className="text-center p-4">
                                     <div className="w-10 h-10 bg-stone-100 dark:bg-stone-700 rounded-full flex items-center justify-center mx-auto mb-2 text-stone-400">
-                                        <ImageIcon size={18} />
+                                        {uploading['main'] ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} />}
                                     </div>
-                                    <p className="text-[10px] text-stone-400 uppercase font-bold">Clique para upload</p>
-                                    <p className="text-[8px] text-stone-300 mt-1">PNG, JPG até 2MB</p>
+                                    <p className="text-[10px] text-stone-400 uppercase font-bold">{uploading['main'] ? 'Enviando...' : 'Clique para upload'}</p>
+                                    <p className="text-[8px] text-stone-300 mt-1">PNG, JPG até 5MB</p>
                                 </div>
                             )}
                             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} accept="image/*" />
@@ -231,8 +247,12 @@ export function AddProduct() {
 
                                 {extraImages.length < 5 && (
                                     <div className="relative aspect-square border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-sm flex items-center justify-center hover:border-brand-gold transition-colors cursor-pointer group/add">
-                                        <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" />
+                                        {uploading[`extra_${extraImages.length}`] ? (
+                                            <Loader2 size={16} className="text-brand-gold animate-spin" />
+                                        ) : (
+                                            <Plus size={16} className="text-stone-300 group-hover/add:text-brand-gold transition-colors" />
+                                        )}
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleExtraImageUpload} accept="image/*" disabled={uploading[`extra_${extraImages.length}`]} />
                                     </div>
                                 )}
                             </div>
