@@ -49,9 +49,18 @@ export function Orders() {
     };
 
     const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
-        await api.orders.updateStatus(orderId, newStatus);
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-        toast.success('Status atualizado!', { icon: '✓' });
+        try {
+            const order = orders.find(o => o.id === orderId);
+            if (newStatus === 'paid' && order) {
+                await api.orders.confirmPayment(order);
+            } else {
+                await api.orders.updateStatus(orderId, newStatus);
+            }
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            toast.success('Status atualizado!', { icon: '✓' });
+        } catch (error) {
+            toast.error('Erro ao atualizar status');
+        }
     };
 
     useEffect(() => {
