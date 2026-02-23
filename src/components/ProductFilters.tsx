@@ -218,7 +218,7 @@ export default function ProductFilters({
                                     };
                                     setFilters(reset);
                                     onFilterChange(reset);
-                                    // setIsOpen(false); // Optional: close on clear
+                                    setIsOpen(false);
                                 }}
                                 className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-brand-gold transition-colors"
                             >

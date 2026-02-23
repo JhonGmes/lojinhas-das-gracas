@@ -42,6 +42,7 @@ export function ProductDetail() {
 
     useEffect(() => {
         if (id) {
+            window.scrollTo(0, 0);
             setLoading(true);
             Promise.all([
                 api.products.getById(id),

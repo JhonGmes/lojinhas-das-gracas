@@ -100,6 +100,7 @@ export interface BlogPost {
     isFeatured?: boolean;
     isPublished: boolean;
     store_id?: string;
+    created_at?: any;
 }
 
 export interface Coupon {

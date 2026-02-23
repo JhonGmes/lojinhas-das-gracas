@@ -41,8 +41,7 @@ export const api = {
             try {
                 const q = query(
                     collection(db, 'products'),
-                    where('store_id', '==', storeId),
-                    orderBy('name')
+                    where('store_id', '==', storeId)
                 );
                 const querySnapshot = await getDocs(q);
                 return querySnapshot.docs.map(doc => {
@@ -55,9 +54,9 @@ export const api = {
                         createdAt: data.created_at,
                         code: data.code
                     } as Product;
-                });
-            } catch (err) {
-                console.warn('⚠️ Firebase offline → usando localStorage');
+                }).sort((a, b) => a.name.localeCompare(b.name));
+            } catch (err: any) {
+                console.warn('⚠️ Firebase offline ou erro de índice → usando localStorage:', err.message);
                 return getLocalProducts();
             }
         },
@@ -170,10 +169,11 @@ export const api = {
     categories: {
         list: async (storeId: string): Promise<string[]> => {
             try {
-                const q = query(collection(db, 'categories'), where('store_id', '==', storeId), orderBy('name'));
+                const q = query(collection(db, 'categories'), where('store_id', '==', storeId));
                 const querySnapshot = await getDocs(q);
-                return querySnapshot.docs.map(doc => doc.data().name);
-            } catch {
+                return querySnapshot.docs.map(doc => doc.data().name as string).sort((a, b) => a.localeCompare(b));
+            } catch (err: any) {
+                console.error('Erro ao carregar categorias:', err.message);
                 return [];
             }
         },
@@ -193,6 +193,28 @@ export const api = {
     orders: {
         create: async (order: Order, storeId: string): Promise<Order | any> => {
             try {
+                // Tenta buscar o último número de pedido para sequencial
+                let nextOrderNumber = 1;
+                try {
+                    const qLast = query(
+                        collection(db, 'orders'),
+                        where('store_id', '==', storeId),
+                        orderBy('order_number', 'desc'),
+                        limit(1)
+                    );
+                    const lastSnap = await getDocs(qLast);
+                    if (!lastSnap.empty) {
+                        const lastOrder = lastSnap.docs[0].data();
+                        if (typeof lastOrder.order_number === 'number') {
+                            nextOrderNumber = lastOrder.order_number + 1;
+                        }
+                    }
+                } catch (idxErr) {
+                    // Se der erro de índice ao buscar o último, usamos o timestamp como fallback momentâneo
+                    console.warn('⚠️ Erro de índice ao buscar order_number, usando Date.now()');
+                    nextOrderNumber = Date.now();
+                }
+
                 const payload = {
                     customer_name: order.customerName,
                     total: order.total,
@@ -211,7 +233,7 @@ export const api = {
                     customer_address_zipcode: order.customerAddress?.zipcode || '',
                     payment_method: order.paymentMethod,
                     created_at: serverTimestamp(),
-                    order_number: Date.now() // Simples gerador de número para Firebase
+                    order_number: nextOrderNumber
                 };
 
                 const docRef = await addDoc(collection(db, 'orders'), payload);
@@ -224,7 +246,7 @@ export const api = {
             } catch (err: any) {
                 console.error('⚠️ Pedido salvo localmente devido a erro no Firebase:', err.message);
                 const orders = getLocalOrders();
-                const newOrder = { ...order, orderNumber: 0 };
+                const newOrder = { ...order, orderNumber: Date.now() };
                 orders.push(newOrder);
                 localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
                 return newOrder;
@@ -274,8 +296,7 @@ export const api = {
             try {
                 const q = query(
                     collection(db, 'orders'),
-                    where('store_id', '==', storeId),
-                    orderBy('created_at', 'desc')
+                    where('store_id', '==', storeId)
                 );
                 const querySnapshot = await getDocs(q);
                 return querySnapshot.docs.map(doc => {
@@ -303,12 +324,23 @@ export const api = {
                         transactionNsu: data.transaction_nsu,
                         infinitepayData: data.infinitepay_data
                     } as Order;
-                });
+                }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             } catch (err: any) {
                 console.warn('Recuperando pedidos do navegador:', err.message);
                 return getLocalOrders().sort((a, b) =>
                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
+            }
+        },
+
+        delete: async (orderId: string): Promise<void> => {
+            try {
+                await deleteDoc(doc(db, 'orders', orderId));
+            } catch (err: any) {
+                console.error('❌ Erro ao deletar pedido:', err.message);
+                const orders = getLocalOrders();
+                const filtered = orders.filter(o => o.id !== orderId);
+                localStorage.setItem(LS_ORDERS, JSON.stringify(filtered));
             }
         }
     },
@@ -346,8 +378,7 @@ export const api = {
             try {
                 const q = query(
                     collection(db, 'blog_posts'),
-                    where('store_id', '==', storeId),
-                    orderBy('date', 'desc')
+                    where('store_id', '==', storeId)
                 );
                 const querySnapshot = await getDocs(q);
                 return querySnapshot.docs.map(doc => {
@@ -358,9 +389,14 @@ export const api = {
                         isFeatured: data.is_featured,
                         isPublished: data.is_published
                     } as BlogPost;
+                }).sort((a, b) => {
+                    // Ordenação manual por data decrescente
+                    const dateA = a.created_at?.toDate?.() || new Date(a.date || 0);
+                    const dateB = b.created_at?.toDate?.() || new Date(b.date || 0);
+                    return dateB.getTime() - dateA.getTime();
                 });
-            } catch (err) {
-                console.warn('⚠️ Firebase blog offline → usando localStorage');
+            } catch (err: any) {
+                console.warn('⚠️ Firebase blog offline ou erro de índice:', err.message);
                 const stored = localStorage.getItem('ljg_blog');
                 return stored ? JSON.parse(stored) : [];
             }
@@ -468,15 +504,34 @@ export const api = {
     },
     reviews: {
         list: async (productId: string): Promise<Review[]> => {
-            const q = query(collection(db, 'reviews'), where('product_id', '==', productId), orderBy('created_at', 'desc'));
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+            try {
+                const q = query(collection(db, 'reviews'), where('product_id', '==', productId));
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a: any, b: any) => {
+                        const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
+                        const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
+                        return dateB.getTime() - dateA.getTime();
+                    }) as any;
+            } catch (err: any) {
+                console.warn('⚠️ Erro ao listar reviews (índice?), retornando vazio:', err.message);
+                return [];
+            }
         },
         listAll: async (storeId: string): Promise<any[]> => {
-            // Firestore Joins são complexos, faremos o join manualmente se necessário ou denormalizado
-            const q = query(collection(db, 'reviews'), where('store_id', '==', storeId), orderBy('created_at', 'desc'));
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            try {
+                const q = query(collection(db, 'reviews'), where('store_id', '==', storeId));
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a: any, b: any) => {
+                        const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
+                        const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
+                        return dateB.getTime() - dateA.getTime();
+                    });
+            } catch (err: any) {
+                console.error('Erro ao carregar todas as avaliações:', err.message);
+                throw err;
+            }
         },
         create: async (review: Omit<Review, 'id' | 'created_at' | 'helpful_count'>): Promise<void> => {
             await addDoc(collection(db, 'reviews'), {

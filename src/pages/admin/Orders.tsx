@@ -88,6 +88,22 @@ export function Orders() {
         </div>
     );
 
+    const handleDeleteOrder = async (orderId: string) => {
+        if (!confirm('Tem certeza que deseja excluir este pedido? Esta ação é irreversível.')) return;
+        try {
+            await api.orders.delete(orderId);
+            setOrders(prev => prev.filter(o => o.id !== orderId));
+            toast.success('Pedido excluído.');
+        } catch (error) {
+            toast.error('Erro ao excluir pedido.');
+        }
+    };
+
+    const getFormattedOrderNumber = (order: Order) => {
+        if (!order.orderNumber) return `#${order.id.slice(0, 6)}`;
+        return `PEDIDO ${String(order.orderNumber).padStart(4, '0')}`;
+    };
+
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
             {/* Header Compacto */}
@@ -147,7 +163,7 @@ export function Orders() {
                     <table className="w-full">
                         <thead className="bg-stone-50 dark:bg-stone-800 border-b border-stone-100 dark:border-stone-700">
                             <tr>
-                                <th className="px-4 py-2 text-left text-[9px] font-bold text-stone-400 uppercase tracking-widest w-20">ID</th>
+                                <th className="px-4 py-2 text-left text-[9px] font-bold text-stone-400 uppercase tracking-widest w-32">ID</th>
                                 <th className="px-4 py-2 text-left text-[9px] font-bold text-stone-400 uppercase tracking-widest">Cliente</th>
                                 <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Data</th>
                                 <th className="px-4 py-2 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">Total</th>
@@ -162,8 +178,8 @@ export function Orders() {
                                 const StatusIcon = statusConfig.icon;
                                 return (
                                     <tr key={order.id} className="group hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
-                                        <td className="px-4 py-2 text-[10px] font-mono text-stone-500">
-                                            #{order.id.slice(0, 6)}
+                                        <td className="px-4 py-2 text-[9px] font-black uppercase text-stone-500 tracking-tighter">
+                                            {getFormattedOrderNumber(order)}
                                         </td>
                                         <td className="px-4 py-2">
                                             <div className="flex flex-col">
@@ -188,19 +204,28 @@ export function Orders() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 text-right">
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className="p-1 px-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded text-[9px] font-bold uppercase tracking-widest transition-colors"
-                                            >
-                                                Ver Detalhes
-                                            </button>
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => setSelectedOrder(order)}
+                                                    className="p-1 px-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded text-[9px] font-bold uppercase tracking-widest transition-colors"
+                                                >
+                                                    Ver
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteOrder(order.id)}
+                                                    className="p-1 px-2 bg-red-50 hover:bg-red-100 text-red-500 rounded text-[9px] font-bold uppercase tracking-widest transition-colors"
+                                                    title="Excluir Pedido"
+                                                >
+                                                    Excluir
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
                             })}
                             {filteredOrders.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-8 text-stone-400 text-xs italic">
+                                    <td colSpan={7} className="text-center py-8 text-stone-400 text-xs italic">
                                         Nenhum pedido encontrado.
                                     </td>
                                 </tr>

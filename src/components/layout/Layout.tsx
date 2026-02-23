@@ -92,9 +92,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                         to={`/`}
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            const newParams = new URLSearchParams();
-                                            newParams.set('cat', cat);
-                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
+                                            navigate(`/?cat=${encodeURIComponent(cat)}`);
                                             setIsSidebarOpen(false);
                                             window.scrollTo({ top: 0, behavior: 'smooth' });
                                         }}
@@ -120,8 +118,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                     <Link
                         to="/"
-                        onClick={() => {
-                            window.location.href = '/';
+                        onClick={(e) => {
+                            setIsSidebarOpen(false);
+                            // Se já estamos na home, force um recarregamento para "limpar tudo" como o usuário espera
+                            if (window.location.pathname === '/') {
+                                e.preventDefault();
+                                window.location.href = '/';
+                            }
                         }}
                         className="flex items-center gap-3 md:gap-4 shrink-0 hover:opacity-95 transition-all group mx-auto lg:mx-0"
                     >
@@ -244,14 +247,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                         to={`/`}
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            const newParams = new URLSearchParams();
-                                            newParams.set('cat', cat);
-                                            window.history.replaceState({}, '', `?${newParams.toString()}`);
+                                            navigate(`/?cat=${encodeURIComponent(cat)}`);
                                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                                            // Se estiver na Home, o useEffect vai disparar a atualização do estado
-                                            if (location.pathname !== '/') {
-                                                navigate(`/?cat=${cat}`);
-                                            }
                                         }}
                                         className="font-display text-[10px] font-medium text-stone-500 dark:text-stone-400 hover:text-brand-gold transition-all relative group py-1.5 uppercase tracking-[0.2em]"
                                     >

@@ -3,7 +3,7 @@ import { useProducts } from '../context/ProductContext';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ui/ProductCard';
 import { Sparkles, ArrowRight, Feather, Compass, Gift } from 'lucide-react';
-import { Link, useSearchParams, useLocation } from 'react-router-dom';
+import { Link, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
 import ProductFilters, { type FilterState } from '../components/ProductFilters';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
@@ -15,6 +15,7 @@ export function Home() {
     const { products, loading } = useProducts();
     const { settings } = useStore();
     const { posts } = useBlog();
+    const navigate = useNavigate();
     const offersRef = useRef<HTMLDivElement>(null);
 
     const [searchParams] = useSearchParams();
@@ -35,12 +36,24 @@ export function Home() {
         const cat = searchParams.get('cat');
         const q = searchParams.get('q');
 
-        setActiveFilters(prev => ({
-            ...prev,
-            category: cat ? [cat] : [],
-            search: q || ''
-        }));
-    }, [location.search]);
+        if (!cat && !q && location.pathname === '/') {
+            // Full reset to initial state
+            setActiveFilters({
+                search: '',
+                category: [],
+                priceRange: [0, 1000],
+                materials: [],
+                colors: [],
+                sortBy: 'newest'
+            });
+        } else {
+            setActiveFilters(prev => ({
+                ...prev,
+                category: cat ? [cat] : [],
+                search: q || ''
+            }));
+        }
+    }, [location.search, location.pathname]);
 
     // Carousel State
     const [currentBanner, setCurrentBanner] = useState(0);
@@ -253,17 +266,7 @@ export function Home() {
                                                         <button
                                                             key={`${category}-${idx}`}
                                                             onClick={() => {
-                                                                const newParams = new URLSearchParams(searchParams);
-                                                                newParams.set('cat', category);
-                                                                // Prevent keeping old search query if switching categories
-                                                                newParams.delete('q');
-
-                                                                // Update URL directly (which naturally updates filters via useEffect)
-                                                                window.history.replaceState({}, '', `?${newParams.toString()}`);
-
-                                                                // Also update local state for immediate feedback
-                                                                setActiveFilters(prev => ({ ...prev, category: [category], search: '' }));
-
+                                                                navigate(`/?cat=${encodeURIComponent(category)}`);
                                                                 // Smooth scroll to top of page to see results from start
                                                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                                                             }}
