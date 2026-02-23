@@ -13,8 +13,8 @@ import {
     limit,
     serverTimestamp
 } from 'firebase/firestore'
-import { db, storage } from '../lib/firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { db } from '../lib/firebase'
+import { compressImage } from '../utils/imageCompression'
 import { INITIAL_PRODUCTS } from './constants'
 import type { Product, Order, BlogPost, Review, WishlistItem, Coupon } from '../types'
 
@@ -600,10 +600,16 @@ export const api = {
     },
 
     storage: {
-        upload: async (file: File, path: string): Promise<string> => {
-            const fileRef = ref(storage, path);
-            const snapshot = await uploadBytes(fileRef, file);
-            return getDownloadURL(snapshot.ref);
+        upload: async (file: File, _path: string): Promise<string> => {
+            // Em vez de usar Firebase Storage (que exige plano pago em algumas regiões),
+            // usamos compressão local e retornamos o Base64.
+            // Como as páginas já esperam uma URL, o Base64 funciona perfeitamente.
+            try {
+                return await compressImage(file);
+            } catch (error) {
+                console.error("Erro na compressão:", error);
+                throw error;
+            }
         }
     }
 };
