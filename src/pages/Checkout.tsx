@@ -29,7 +29,8 @@ export function Checkout() {
         }
     }, [user, navigate]);
 
-    const handlePay = async () => {
+    const handlePay = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!user || items.length === 0) return;
         setLoading(true);
         setPaymentError(null);
