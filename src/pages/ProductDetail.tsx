@@ -182,7 +182,7 @@ export function ProductDetail() {
     const currentPrice = product.promotionalPrice || product.price;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 animate-fade-in-up">
+        <div className="max-w-6xl mx-auto px-4 py-2 md:py-4 animate-fade-in-up">
             <SEO
                 title={product.name}
                 description={product.description}
@@ -215,11 +215,11 @@ export function ProductDetail() {
                 }}
             />
 
-            <button onClick={() => navigate(-1)} className="flex items-center text-stone-400 hover:text-brand-gold mb-4 transition-colors font-bold uppercase text-[8px] tracking-[0.2em] group">
-                <ArrowLeft size={12} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar
+            <button onClick={() => navigate(-1)} className="flex items-center text-stone-400 hover:text-brand-gold mb-3 transition-colors font-bold uppercase text-[8px] tracking-[0.2em] group">
+                <ArrowLeft size={10} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-lg overflow-hidden relative">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 bg-white p-4 rounded-xl border border-gray-100 shadow-md overflow-hidden relative">
                 {/* Imagens */}
                 <div className="lg:col-span-6 flex flex-col md:flex-row gap-4">
                     <div className="hidden md:flex flex-col gap-2 w-16 shrink-0">
@@ -235,7 +235,7 @@ export function ProductDetail() {
                     </div>
 
                     <div
-                        className="relative flex-1 aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 group cursor-zoom-in h-fit shadow-inner max-h-[450px]"
+                        className="relative flex-1 aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100 group cursor-zoom-in h-fit shadow-inner max-h-[380px]"
                         onMouseMove={(e) => {
                             const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
                             setMousePos({ x: ((e.pageX - left - window.scrollX) / width) * 100, y: ((e.pageY - top - window.scrollY) / height) * 100 });
@@ -259,67 +259,67 @@ export function ProductDetail() {
                         <WishlistButton productId={product.id} size={20} />
                     </div>
 
-                    <h1 className="text-2xl md:text-3xl font-display font-medium text-stone-800 leading-tight mb-2 tracking-tight uppercase">{product.name}</h1>
+                    <h1 className="text-xl md:text-2xl font-display font-medium text-stone-800 leading-tight mb-1 tracking-tight uppercase">{product.name}</h1>
 
-                    <div className="flex items-center gap-3 mb-6">
-                        <ReviewStars rating={product.average_rating || 0} totalReviews={reviews.length} size={16} showText />
+                    <div className="flex items-center gap-3 mb-4">
+                        <ReviewStars rating={product.average_rating || 0} totalReviews={reviews.length} size={14} showText />
                     </div>
 
-                    <div className="mb-6">
+                    <div className="mb-4">
                         {product.promotionalPrice && (
-                            <span className="text-xs text-gray-400 line-through font-bold block mb-1">De {formatCurrency(product.price)}</span>
+                            <span className="text-[10px] text-gray-400 line-through font-bold block mb-0.5">De {formatCurrency(product.price)}</span>
                         )}
                         <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-brand-gold font-display">Por {formatCurrency(currentPrice)}</span>
+                            <span className="text-2xl font-black text-brand-gold font-display">Por {formatCurrency(currentPrice)}</span>
                             {product.promotionalPrice && (
-                                <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase">Promoção</span>
+                                <span className="bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">Promoção</span>
                             )}
                         </div>
                     </div>
 
-                    <div className="space-y-3 mb-6">
+                    <div className="space-y-2 mb-4">
                         <button
                             onClick={handleAddToCart}
-                            className="w-full h-12 bg-stone-800 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-xl shadow-lg hover:bg-brand-gold hover:text-stone-900 transition-all transform active:scale-95 flex items-center justify-center gap-2 group"
+                            className="w-full h-11 bg-stone-800 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-lg shadow-md hover:bg-brand-gold hover:text-stone-900 transition-all transform active:scale-95 flex items-center justify-center gap-2 group"
                         >
-                            <ShoppingCart size={18} className="group-hover:translate-x-1 transition-transform" />
+                            <ShoppingCart size={16} className="group-hover:translate-x-1 transition-transform" />
                             {product.stock > 0 ? 'Adicionar ao Carrinho' : 'Avise-me quando chegar'}
                         </button>
 
                         <div className="grid grid-cols-3 gap-2">
-                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
-                                <Banknote size={16} className="text-emerald-500 mb-1" />
+                            <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center text-center">
+                                <Banknote size={14} className="text-emerald-500 mb-0.5" />
                                 <span className="text-[7px] font-black uppercase text-stone-400">Pix -5%</span>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
-                                <CreditCard size={16} className="text-stone-400 mb-1" />
+                            <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center text-center">
+                                <CreditCard size={14} className="text-stone-400 mb-0.5" />
                                 <span className="text-[7px] font-black uppercase text-stone-400">3x S/ Juros</span>
                             </div>
-                            <div className="p-2 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center text-center">
-                                <Truck size={16} className="text-stone-400 mb-1" />
+                            <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100 flex flex-col items-center text-center">
+                                <Truck size={14} className="text-stone-400 mb-0.5" />
                                 <span className="text-[7px] font-black uppercase text-stone-400">Todo Brasil</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Frete */}
-                    <div className="pt-2 border-t border-gray-100 mb-6 mt-2">
-                        <div className="flex gap-2 items-center mb-2">
-                            <Truck size={12} className="text-brand-gold" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">Calcular Entrega</span>
+                    <div className="pt-2 border-t border-gray-100 mb-4 mt-1">
+                        <div className="flex gap-2 items-center mb-1.5">
+                            <Truck size={10} className="text-brand-gold" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-stone-500">Calcular Entrega</span>
                         </div>
                         <div className="flex gap-2">
                             <input
                                 value={cep}
                                 onChange={(e) => setCep(e.target.value)}
                                 placeholder="00000-000"
-                                className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-[10px] font-bold focus:ring-1 focus:ring-brand-gold/20 outline-none tracking-widest h-9"
+                                className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 text-[10px] font-bold focus:ring-1 focus:ring-brand-gold/20 outline-none tracking-widest h-8"
                                 maxLength={9}
                             />
                             <button
                                 onClick={handleCalculateShipping}
                                 disabled={shippingLoading}
-                                className="bg-stone-800 text-white px-4 py-2 rounded-lg text-[9px] font-black hover:bg-brand-gold transition-all disabled:opacity-50 flex items-center justify-center min-w-[60px] h-9"
+                                className="bg-stone-800 text-white px-3 py-1.5 rounded-lg text-[8px] font-black hover:bg-brand-gold transition-all disabled:opacity-50 flex items-center justify-center min-w-[50px] h-8"
                             >
                                 {shippingLoading ? <Loader2 size={12} className="animate-spin" /> : 'Calcular'}
                             </button>
@@ -332,9 +332,9 @@ export function ProductDetail() {
                         )}
                     </div>
 
-                    <div className="pt-3 border-t border-gray-100">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2">Sobre este Tesouro</h3>
-                        <p className="text-gray-600 text-xs leading-relaxed whitespace-pre-line font-medium">{product.description}</p>
+                    <div className="pt-2 border-t border-gray-100">
+                        <h3 className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1.5">Sobre este Tesouro</h3>
+                        <p className="text-gray-600 text-[10px] leading-relaxed whitespace-pre-line font-medium">{product.description}</p>
                     </div>
                 </div>
             </div>
