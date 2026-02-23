@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { BlogPost } from '../types';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
 import { useStore } from './StoreContext';
 
 interface BlogContextType {
@@ -53,26 +52,13 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
     const generateAIContent = async (reference: string): Promise<Partial<BlogPost>> => {
         try {
-            console.log('Chamando Supabase Edge Function...');
-
-            // Call Supabase Edge Function
-            const { data, error } = await supabase.functions.invoke('generate-blog-ai', {
-                body: { reference }
-            });
-
-            if (error) {
-                console.error('Edge Function error:', error);
-                throw error;
-            }
-
-            console.log('Resposta da Edge Function:', data);
-
-            // Data is already parsed JSON from the Edge Function
-            return data as Partial<BlogPost>;
-
+            console.warn('AI Content Generation (Supabase) desativado. Migre para Firebase Cloud Functions.');
+            return {
+                title: 'Post Gerado por IA (Exemplo)',
+                content: `Baseado em: ${reference}. Esta funcionalidade está sendo migrada para o Firebase.`
+            };
         } catch (error: any) {
             console.error('Erro ao gerar conteúdo:', error);
-            // Re-throwing the error as per the instruction's new catch block logic
             throw new Error(error.message || 'Falha ao gerar conteúdo com IA');
         }
     };

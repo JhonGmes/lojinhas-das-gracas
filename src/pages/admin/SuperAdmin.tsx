@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
-import { supabase } from '../../lib/supabase';
+import { collection, query, getDocs, addDoc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
 import { Shield, Plus, Building2, ExternalLink } from 'lucide-react';
@@ -25,9 +26,9 @@ export function SuperAdmin() {
 
     const fetchStores = async () => {
         try {
-            const { data, error } = await supabase.from('stores').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            setStores(data || []);
+            const q = query(collection(db, 'stores'), orderBy('created_at', 'desc'));
+            const snap = await getDocs(q);
+            setStores(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Store)));
         } catch (error) {
             toast.error('Erro ao carregar lojas');
         }
@@ -47,16 +48,19 @@ export function SuperAdmin() {
     const handleCreateStore = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const { data, error } = await supabase.from('stores').insert([
-                { name: newStore.name, slug: newStore.slug.toLowerCase().trim() }
-            ]).select().single();
+            const docRef = await addDoc(collection(db, 'stores'), {
+                name: newStore.name,
+                slug: newStore.slug.toLowerCase().trim(),
+                status: 'active',
+                created_at: serverTimestamp()
+            });
 
-            if (error) throw error;
+            const storeId = docRef.id;
 
             // Criar configurações iniciais para a nova loja
             await api.settings.update({
-                store_id: data.id,
-                store_name: data.name,
+                store_id: storeId,
+                store_name: newStore.name,
                 primary_color: '#D4AF37'
             } as any);
 
