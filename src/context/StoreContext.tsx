@@ -130,37 +130,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const detectStore = async () => {
+            const host = window.location.hostname;
             const params = new URLSearchParams(window.location.search);
             const storeSlug = params.get('shop');
 
+            // Hardcode check - ALWAYS FIRST and Bulletproof
+            if (
+                storeSlug === 'lojinhadas-gracas' ||
+                storeSlug === 'lojinhas-das-gracas' ||
+                host.includes('lojinhadas-gracas') ||
+                host.includes('lojinhas-das-gracas') ||
+                host === 'lojinhas-das-gracas.vercel.app'
+            ) {
+                console.log("🛡️ Proteção Ativa: Loja detectada por Hardcode Fallback");
+                setCurrentStoreId(DEFAULT_STORE_ID);
+                return;
+            }
+
+            // Fallback for other stores (only if not the main one)
             if (storeSlug) {
-                if (storeSlug === 'lojinhadas-gracas' || storeSlug === 'lojinhas-das-gracas') {
-                    setCurrentStoreId(DEFAULT_STORE_ID);
-                    return;
-                }
-                const { data } = await supabase.from('stores').select('id').eq('slug', storeSlug).single();
-                if (data?.id) {
-                    setCurrentStoreId(data.id);
-                    return;
+                try {
+                    const { data } = await supabase.from('stores').select('id').eq('slug', storeSlug).single();
+                    if (data?.id) {
+                        setCurrentStoreId(data.id);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Store slug detection failed:", e);
                 }
             }
 
-            const host = window.location.hostname;
             const parts = host.split('.');
-            let slug = '';
-
             if (parts.length >= 3 && parts[0] !== 'www' && !host.includes('localhost') && !host.includes('127.0.0.1')) {
-                slug = parts[0];
-            } else if (host.includes('lojinhadas-gracas') || host.includes('lojinhas-das-gracas')) {
-                slug = 'lojinhadas-gracas';
-            }
-
-            if (slug) {
-                if (slug === 'lojinhadas-gracas' || slug === 'lojinhas-das-gracas') {
-                    setCurrentStoreId(DEFAULT_STORE_ID);
-                    return;
-                }
-
+                const slug = parts[0];
                 try {
                     const { data } = await supabase.from('stores').select('id').eq('slug', slug).single();
                     if (data?.id) {
