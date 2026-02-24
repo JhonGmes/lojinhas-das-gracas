@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { api } from '../../services/api';
-import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon, FileText } from 'lucide-react';
+import { Save, Globe, MessageSquare, Palette, Layout, Loader2, CheckCircle, PlusCircle, TrendingUp, Trash2, Image as ImageIcon, FileText, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function Settings() {
@@ -260,6 +260,43 @@ export function Settings() {
                         />
                         <p className="text-[9px] text-stone-400 italic">O som tocado quando um novo pedido é detectado.</p>
                     </div>
+                </div>
+
+                {/* Plano da Loja */}
+                <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="text-brand-gold" size={20} />
+                        <h2 className="font-bold text-stone-700 dark:text-stone-200">Plano da Loja</h2>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, plan: 'basic' })}
+                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${formData.plan === 'basic' || !formData.plan
+                                ? 'border-brand-gold bg-brand-gold/5'
+                                : 'border-stone-100 dark:border-stone-800 hover:border-stone-200'
+                                }`}
+                        >
+                            <span className="font-bold text-sm uppercase tracking-widest">Plano Basic</span>
+                            <span className="text-[9px] text-stone-400 uppercase font-bold">Essencial</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, plan: 'pro' })}
+                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${formData.plan === 'pro'
+                                ? 'border-brand-gold bg-brand-gold/5'
+                                : 'border-stone-100 dark:border-stone-800 hover:border-stone-200'
+                                }`}
+                        >
+                            <div className="flex items-center gap-1">
+                                <span className="font-bold text-sm uppercase tracking-widest">Plano Pro</span>
+                                <Sparkles size={12} className="text-brand-gold" />
+                            </div>
+                            <span className="text-[9px] text-stone-400 uppercase font-bold">Completo</span>
+                        </button>
+                    </div>
+                    <p className="text-[9px] text-stone-400 italic">O plano Pro desbloqueia Blog, Cupons, Wishlist e Métricas Avançadas.</p>
                 </div>
 
 

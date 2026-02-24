@@ -20,7 +20,7 @@ export function useProducts(storeId: string) {
 
     // Mutação para atualizar produto
     const updateProductMutation = useMutation({
-        mutationFn: (product: Product) => api.products.update(product),
+        mutationFn: (product: Product) => api.products.update(product, storeId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products', storeId] });
             toast.success('Produto atualizado!');
@@ -40,7 +40,7 @@ export function useProducts(storeId: string) {
 
     // Mutação para deletar produto
     const deleteProductMutation = useMutation({
-        mutationFn: (id: string) => api.products.delete(id),
+        mutationFn: (id: string) => api.products.delete(id, storeId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products', storeId] });
             toast.success('Produto excluído');

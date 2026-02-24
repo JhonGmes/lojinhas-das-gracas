@@ -46,7 +46,7 @@ export function useOrders(storeId: string, notificationSoundUrl?: string) {
             if (newStatus === 'paid' && currentOrder) {
                 return api.orders.confirmPayment(currentOrder);
             } else {
-                return api.orders.updateStatus(orderId, newStatus);
+                return api.orders.updateStatus(orderId, newStatus, storeId);
             }
         },
         onSuccess: () => {
@@ -59,7 +59,7 @@ export function useOrders(storeId: string, notificationSoundUrl?: string) {
     });
 
     const deleteOrderMutation = useMutation({
-        mutationFn: (orderId: string) => api.orders.delete(orderId),
+        mutationFn: (orderId: string) => api.orders.delete(orderId, storeId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders', storeId] });
             toast.success('Pedido excluído');

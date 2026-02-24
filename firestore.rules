@@ -2,73 +2,76 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper: Check if user is an admin of the specific store
+    function isStoreAdmin(storeId) {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.store_id == storeId;
+    }
+
     // Users can only read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Stores and settings: public read, authenticated write
-    match /stores/{storeId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
+    // Store settings: public read, admin write (must match storeId)
     match /store_settings/{storeId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isStoreAdmin(storeId);
     }
 
-    // Products and categories: public read, authenticated write
+    // Products: public read, admin write (must match storeId)
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if isStoreAdmin(request.resource.data.store_id);
+      allow update, delete: if isStoreAdmin(resource.data.store_id);
     }
 
+    // Categories: public read, admin write
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if isStoreAdmin(request.resource.data.store_id);
+      allow update, delete: if isStoreAdmin(resource.data.store_id);
     }
 
-    // Orders: anyone can create (for anonymous checkouts), but only authenticated users can read/update/delete
+    // Orders: Anyone can create (checkout), but only Admin or Owner can read/update
     match /orders/{orderId} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null;
+      allow read: if isStoreAdmin(resource.data.store_id) || 
+                  (request.auth != null && request.auth.token.email == resource.data.customerEmail);
+      allow update: if isStoreAdmin(resource.data.store_id);
+      allow delete: if isStoreAdmin(resource.data.store_id);
     }
 
-    // Reviews: public read, authenticated create; only owner can update/delete
+    // Blog posts: public read, admin write
+    match /blog_posts/{postId} {
+      allow read: if true;
+      allow create: if isStoreAdmin(request.resource.data.store_id);
+      allow update, delete: if isStoreAdmin(resource.data.store_id);
+    }
+
+    // Wishlist: isolated by store and (session or user)
+    match /wishlists/{id} {
+      allow read, write: if true; // We rely on application logic + store_id filtering for now, 
+                                  // but ideally we should restrict to its own session_id if possible.
+    }
+
+    // Coupons: public read (for validation), admin write
+    match /coupons/{id} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.store_id || resource.data.store_id);
+    }
+
+    // Reviews: public read, authenticated create
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow update, delete: if isStoreAdmin(resource.data.store_id);
     }
 
-    // Blog posts: public read, authenticated write
-    match /blog_posts/{postId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // Wishlist, newsletters, waiting lists: authenticated access
-    match /wishlists/{id} {
-      allow read, write: if request.auth != null;
-    }
-
-    match /newsletters/{id} {
-      allow read, write: if request.auth != null;
-    }
-
-    match /waiting_list/{id} {
-      allow read, write: if request.auth != null;
-    }
-
-    match /coupons/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-
-    // Fallback: authenticated access for any other collection
+    // Fallback: deny all
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

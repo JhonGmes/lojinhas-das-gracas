@@ -13,7 +13,7 @@ import { SEO } from '../components/SEO';
 
 export function Home() {
     const { products, loading } = useProducts();
-    const { settings } = useStore();
+    const { settings, hasFeature } = useStore();
     const { posts } = useBlog();
     const navigate = useNavigate();
     const offersRef = useRef<HTMLDivElement>(null);
@@ -344,7 +344,7 @@ export function Home() {
                     </section>
                 </main>
 
-                {!isGlobalSearch && featuredPosts.length > 0 && (
+                {hasFeature('blog') && !isGlobalSearch && featuredPosts.length > 0 && (
                     <ErrorBoundary>
                         <section className="py-24 border-t border-stone-100">
                             <div className="flex items-center justify-between mb-12">

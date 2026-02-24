@@ -69,7 +69,7 @@ export function Coupons() {
 
         try {
             if (editingCoupon) {
-                await api.coupons.update(formData as Coupon);
+                await api.coupons.update(editingCoupon.id, formData, currentStoreId);
                 toast.success('Cupom atualizado!');
             } else {
                 await api.coupons.create({
@@ -81,8 +81,7 @@ export function Coupons() {
                     expiryDate: formData.expiryDate,
                     usageCount: 0,
                     isActive: true,
-                    store_id: currentStoreId
-                });
+                }, currentStoreId);
                 toast.success('Cupom criado com sucesso!');
             }
             setModalOpen(false);
@@ -94,7 +93,7 @@ export function Coupons() {
 
     const handleDelete = async (id: string) => {
         if (window.confirm('Tem certeza que deseja excluir este cupom?')) {
-            await api.coupons.delete(id);
+            await api.coupons.delete(id, currentStoreId);
             toast.success('Cupom excluído');
             loadCoupons();
         }
@@ -102,7 +101,7 @@ export function Coupons() {
 
     const toggleStatus = async (coupon: Coupon) => {
         const updated = { ...coupon, isActive: !coupon.isActive };
-        await api.coupons.update(updated);
+        await api.coupons.update(coupon.id, { isActive: !coupon.isActive }, currentStoreId);
         setCoupons(prev => prev.map(c => c.id === coupon.id ? updated : c));
         toast.success(updated.isActive ? 'Cupom ativado' : 'Cupom desativado');
     };

@@ -1,4 +1,6 @@
 import { useBlog } from '../context/BlogContext';
+import { useStore } from '../context/StoreContext';
+import { Navigate } from 'react-router-dom';
 import { BlogCard } from '../components/ui/BlogCard';
 import { BookOpen, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -6,7 +8,12 @@ import { SEO } from '../components/SEO';
 
 export function BlogList() {
     const { posts, loading } = useBlog();
+    const { hasFeature } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
+
+    if (!hasFeature('blog')) {
+        return <Navigate to="/" replace />;
+    }
 
     const filteredPosts = posts.filter(post =>
         post.isPublished && (

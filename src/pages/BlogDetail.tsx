@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { useBlog } from '../context/BlogContext';
 import { useStore } from '../context/StoreContext';
 import { Calendar, User, ChevronLeft, Share2, Instagram, Smartphone, Send, Feather } from 'lucide-react';
@@ -12,7 +12,11 @@ import { X as CloseIcon, Loader2, Sparkles } from 'lucide-react';
 export function BlogDetail() {
     const { id } = useParams();
     const { posts, loading } = useBlog();
-    const { settings } = useStore();
+    const { settings, hasFeature } = useStore();
+
+    if (!hasFeature('blog')) {
+        return <Navigate to="/" replace />;
+    }
 
     const post = posts.find(p => p.id === id);
 

@@ -36,7 +36,7 @@ const AdminLoading = () => (
 import { useEffect, useState } from 'react';
 export function AdminLayout() {
     const { user, logout } = useAuth();
-    const { settings, currentStoreId } = useStore();
+    const { settings, currentStoreId, updateSettings } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -137,7 +137,7 @@ export function AdminLayout() {
                     <div className="w-8 h-8 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
                     </div>
-                    <span className="font-display text-base font-black text-white uppercase tracking-tighter truncate drop-shadow-sm flex-1 leading-none">
+                    <span className="font-display text-sm md:text-base font-black text-white uppercase tracking-tighter truncate drop-shadow-sm flex-1 leading-tight py-1">
                         {settings.store_name}
                     </span>
                     <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
@@ -172,14 +172,14 @@ export function AdminLayout() {
                                     type="text"
                                     value={adminName}
                                     onChange={(e) => setAdminName(e.target.value)}
-                                    onBlur={() => {
+                                    onBlur={async () => {
                                         setIsEditingName(false);
-                                        localStorage.setItem('admin_custom_name', adminName);
+                                        await updateSettings({ manager_name: adminName });
                                     }}
-                                    onKeyDown={(e) => {
+                                    onKeyDown={async (e) => {
                                         if (e.key === 'Enter') {
                                             setIsEditingName(false);
-                                            localStorage.setItem('admin_custom_name', adminName);
+                                            await updateSettings({ manager_name: adminName });
                                         }
                                     }}
                                     className="bg-stone-800 text-white text-xs font-bold rounded px-1 py-0.5 w-full border border-stone-600 focus:border-brand-gold outline-none"
@@ -241,30 +241,29 @@ export function AdminLayout() {
                 </nav>
 
                 {/* Footer / System - Extra Compact */}
-                <div className="px-3 py-2 bg-[#1f2f3f] space-y-1 border-t border-white/5 shrink-0">
-                    <div className="flex items-center gap-2">
+                <div className="px-4 py-2 bg-[#1f2f3f] border-t border-white/5 shrink-0">
+                    <div className="flex items-center justify-between gap-3">
                         <Link
                             to="/admin/settings"
-                            className={`flex-[3] flex items-center justify-center gap-2 px-1 py-1.5 rounded bg-white/5 transition-all group ${location.pathname === '/admin/settings' ? 'text-brand-gold border border-brand-gold/20' : 'text-stone-400 hover:text-white'
+                            className={`p-2 rounded-lg transition-all group ${location.pathname === '/admin/settings' ? 'bg-brand-gold text-brand-wood shadow-lg' : 'bg-white/5 text-stone-400 hover:text-white'
                                 }`}
                             title="Configurações"
                         >
-                            <SettingsIcon size={14} className="group-hover:rotate-90 transition-transform duration-500" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider">Config</span>
+                            <SettingsIcon size={16} className="group-hover:rotate-90 transition-transform duration-700" />
+                        </Link>
+
+                        <Link to="/" className="text-[9px] font-black text-stone-500 hover:text-brand-gold uppercase tracking-[0.2em] transition-colors flex items-center gap-1">
+                            <ArrowLeft size={10} /> Ver Loja
                         </Link>
 
                         <button
                             onClick={logout}
-                            className="flex-[1] flex items-center justify-center p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-all group"
+                            className="p-2 bg-white/5 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all group"
                             title="Sair"
                         >
-                            <LogOut size={14} />
+                            <LogOut size={16} />
                         </button>
                     </div>
-
-                    <Link to="/" className="flex items-center gap-2 px-4 py-1 text-[8px] text-stone-500 hover:text-brand-gold uppercase tracking-widest transition-colors justify-center font-bold">
-                        <ArrowLeft size={10} /> Ver Loja
-                    </Link>
 
                     {/* Managed Store Indicator - Ultra Compact */}
                     <div className="mt-1 px-3 py-1.5 bg-brand-gold/5 rounded-lg border border-brand-gold/10 flex items-center justify-between">

@@ -21,6 +21,7 @@ const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })))
 const ProductDetail = lazy(() => import('./pages/ProductDetail').then(m => ({ default: m.ProductDetail })));
 const Cart = lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })));
 const Wishlist = lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
+const StoreNotFound = lazy(() => import('./pages/StoreNotFound').then(m => ({ default: m.StoreNotFound })));
 const BlogList = lazy(() => import('./pages/BlogList').then(m => ({ default: m.BlogList })));
 const BlogDetail = lazy(() => import('./pages/BlogDetail').then(m => ({ default: m.BlogDetail })));
 const AboutUs = lazy(() => import('./pages/AboutUs').then(m => ({ default: m.AboutUs })));
@@ -108,8 +109,8 @@ function App() {
     return (
         <HelmetProvider>
             <ThemeProvider>
-                <StoreProvider>
-                    <AuthProvider>
+                <AuthProvider>
+                    <StoreProvider>
                         <BlogProvider>
                             <ProductProvider>
                                 <WishlistProvider>
@@ -128,7 +129,9 @@ function App() {
                                                         <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
                                                         <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
                                                         <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
-                                                        <Route path="/pedido-confirmado/:orderId" element={<Layout><OrderSuccess /></Layout>} />
+                                                        <Route path="/pedido-confirmado/:id" element={<Layout><OrderSuccess /></Layout>} />
+                                                        <Route path="/404-loja" element={<StoreNotFound />} />
+                                                        <Route path="*" element={<Layout><Home /></Layout>} />
 
                                                         {/* Blog Routes */}
                                                         <Route path="/blog" element={<Layout><BlogList /></Layout>} />
@@ -154,8 +157,8 @@ function App() {
                                 </WishlistProvider>
                             </ProductProvider>
                         </BlogProvider>
-                    </AuthProvider>
-                </StoreProvider>
+                    </StoreProvider>
+                </AuthProvider>
             </ThemeProvider>
         </HelmetProvider>
     );

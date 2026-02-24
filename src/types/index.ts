@@ -49,6 +49,7 @@ export interface WishlistItem {
 
 export interface CartItem extends Product {
     quantity: number;
+    options?: any;
 }
 
 export interface Order {

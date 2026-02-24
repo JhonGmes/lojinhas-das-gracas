@@ -15,7 +15,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const { items: cartItems } = useCart();
     const { items: wishlistItems } = useWishlist();
     const { theme, toggleTheme } = useTheme();
-    const { settings, currentStoreId } = useStore();
+    const { settings, currentStoreId, hasFeature } = useStore();
     const { user, logout } = useAuth();
     const { categories } = useProducts();
     const navigate = useNavigate();
@@ -77,15 +77,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                     <nav className="p-4">
                         <ul className="space-y-1">
-                            <li>
-                                <Link
-                                    to={`/blog`}
-                                    onClick={() => setIsSidebarOpen(false)}
-                                    className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest text-brand-gold"
-                                >
-                                    Blog Diário
-                                </Link>
-                            </li>
+                            {hasFeature('blog') && (
+                                <li>
+                                    <Link
+                                        to={`/blog`}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                        className="flex items-center px-4 py-4 text-sm font-display font-medium text-stone-700 dark:text-stone-300 hover:bg-brand-cotton dark:hover:bg-stone-800 rounded-xl transition-colors uppercase tracking-widest text-brand-gold"
+                                    >
+                                        Blog Diário
+                                    </Link>
+                                </li>
+                            )}
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
@@ -232,15 +234,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <nav className="hidden lg:block border-t border-stone-100 dark:border-stone-800 bg-white/40 dark:bg-stone-900/40 relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-center h-12">
                         <ul className="flex items-center gap-8 md:gap-10">
-                            <li>
-                                <Link
-                                    to="/blog"
-                                    className="font-display text-[10px] font-medium text-brand-gold hover:text-brand-amber transition-all relative group py-1.5 uppercase tracking-[0.2em]"
-                                >
-                                    Blog Diário
-                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-gold scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-                                </Link>
-                            </li>
+                            {hasFeature('blog') && (
+                                <li>
+                                    <Link
+                                        to="/blog"
+                                        className="font-display text-[10px] font-medium text-brand-gold hover:text-brand-amber transition-all relative group py-1.5 uppercase tracking-[0.2em]"
+                                    >
+                                        Blog Diário
+                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-gold scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+                                    </Link>
+                                </li>
+                            )}
                             {categories.map((cat) => (
                                 <li key={cat}>
                                     <Link
