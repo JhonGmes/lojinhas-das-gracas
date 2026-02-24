@@ -55,9 +55,13 @@ export const storeService = {
         }
     },
     waitingList: {
-        create: async (data: any): Promise<void> => {
+        create: async (data: any, storeId: string): Promise<void> => {
             try {
-                await addDoc(collection(db, 'waiting_list'), { ...data, created_at: serverTimestamp() });
+                await addDoc(collection(db, 'waiting_list'), {
+                    ...data,
+                    store_id: storeId,
+                    created_at: serverTimestamp()
+                });
             } catch (err: any) {
                 console.warn('⚠️ Fallback LocalStorage (Waitlist):', err.message);
                 const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');

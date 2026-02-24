@@ -58,6 +58,9 @@ export const orderService = {
                     createdAt: doc.data().created_at?.toDate?.()?.toISOString() || doc.data().created_at
                 } as Order));
             } catch (err: any) {
+                if (err.message?.includes('index')) {
+                    console.error('❌ ERRO DE ÍNDICE NO FIREBASE: Você precisa criar um índice composto para "orders" no Console do Firebase (store_id ASC, created_at DESC).');
+                }
                 console.error('Erro ao listar pedidos no Firebase:', err.message);
                 return getLocalOrders();
             }
@@ -120,9 +123,18 @@ export const orderService = {
             });
         },
 
-        confirmPayment: async (order: Order): Promise<void> => {
+        confirmPayment: async (order: Order, storeId?: string): Promise<void> => {
             try {
                 const docRef = doc(db, 'orders', order.id);
+
+                // Security check if storeId is provided
+                if (storeId) {
+                    const docSnap = await getDoc(docRef);
+                    if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+                        throw new Error('Permissão negada.');
+                    }
+                }
+
                 await updateDoc(docRef, {
                     status: 'paid',
                     updated_at: serverTimestamp()

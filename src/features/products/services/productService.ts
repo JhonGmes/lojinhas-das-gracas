@@ -80,6 +80,44 @@ export const productService = {
             return product;
         },
 
+        getByIds: async (ids: string[], storeId?: string): Promise<Product[]> => {
+            if (ids.length === 0) return [];
+            try {
+                const results: Product[] = [];
+                // Firestore 'in' queries are limited to 10-30 elements depending on version, 
+                // but let's assume small lists for wishlists.
+                // For safety, we can fetch one by one or chunk it.
+                // Chunking is better.
+                const chunks = [];
+                for (let i = 0; i < ids.length; i += 10) {
+                    chunks.push(ids.slice(i, i + 10));
+                }
+
+                for (const chunk of chunks) {
+                    const q = query(collection(db, 'products'), where('__name__', 'in', chunk));
+                    const snap = await getDocs(q);
+                    snap.docs.forEach(doc => {
+                        const data = doc.data();
+                        if (!storeId || data.store_id === storeId) {
+                            results.push({
+                                id: doc.id,
+                                ...data,
+                                promotionalPrice: data.promotional_price,
+                                isFeatured: data.is_featured,
+                                createdAt: data.created_at,
+                                code: data.code
+                            } as Product);
+                        }
+                    });
+                }
+                return results;
+            } catch (err) {
+                console.warn('⚠️ Erro ao buscar produtos em lote, tentando unitário ou local');
+                const products = await Promise.all(ids.map(id => productService.products.getById(id, storeId)));
+                return products.filter((p): p is Product => p !== undefined);
+            }
+        },
+
         update: async (product: Product, storeId: string): Promise<void> => {
             try {
                 // Verificação de segurança: O produto pertence a esta loja?

@@ -22,10 +22,26 @@ export const wishlistService = {
             const querySnapshot = await getDocs(q);
             let items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WishlistItem));
 
+            // Filtering
             if (userEmail) {
-                return items.filter(i => i.session_id === sessionId || i.user_email === userEmail);
+                items = items.filter(i => i.session_id === sessionId || i.user_email === userEmail);
+            } else {
+                items = items.filter(i => i.session_id === sessionId);
             }
-            return items.filter(i => i.session_id === sessionId);
+
+            // JOIN: Fetch product data
+            if (items.length > 0) {
+                const { productService } = await import('../../products/services/productService');
+                const productIds = Array.from(new Set(items.map(i => i.product_id)));
+                const products = await productService.products.getByIds(productIds, storeId);
+
+                return items.map(item => ({
+                    ...item,
+                    product: products.find(p => p.id === item.product_id)
+                }));
+            }
+
+            return items;
         } catch (err) {
             console.error('Erro ao listar favoritos:', err);
             return [];

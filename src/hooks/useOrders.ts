@@ -44,7 +44,7 @@ export function useOrders(storeId: string, notificationSoundUrl?: string) {
     const updateStatusMutation = useMutation({
         mutationFn: async ({ orderId, newStatus, currentOrder }: { orderId: string, newStatus: Order['status'], currentOrder?: Order }) => {
             if (newStatus === 'paid' && currentOrder) {
-                return api.orders.confirmPayment(currentOrder);
+                return api.orders.confirmPayment(currentOrder, storeId);
             } else {
                 return api.orders.updateStatus(orderId, newStatus, storeId);
             }

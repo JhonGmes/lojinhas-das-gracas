@@ -44,9 +44,10 @@ export const reviewService = {
             throw err;
         }
     },
-    create: async (review: Omit<Review, 'id' | 'created_at' | 'helpful_count'>): Promise<void> => {
+    create: async (review: Omit<Review, 'id' | 'created_at' | 'helpful_count'>, storeId: string): Promise<void> => {
         await addDoc(collection(db, 'reviews'), {
             ...review,
+            store_id: storeId,
             created_at: serverTimestamp(),
             helpful_count: 0
         });

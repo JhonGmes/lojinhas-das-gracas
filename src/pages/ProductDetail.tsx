@@ -11,17 +11,21 @@ import { SEO } from '../components/SEO';
 import WishlistButton from '../components/WishlistButton';
 import ReviewStars from '../components/ReviewStars';
 import { ReviewCard, ReviewSummary } from '../components/ReviewComponents';
+import { useStore } from '../context/StoreContext';
+
 
 export function ProductDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { currentStoreId } = useStore();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewing, setIsReviewing] = useState(false);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '', name: '', email: '' });
+
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -82,7 +86,8 @@ export function ProductDetail() {
                 rating: newReview.rating,
                 comment: newReview.comment,
                 is_verified_purchase: false
-            });
+            }, currentStoreId);
+
             toast.success('Avaliação enviada com sucesso! 🙏');
             setIsReviewing(false);
             setNewReview({ rating: 5, comment: '', name: '', email: '' });
@@ -152,7 +157,8 @@ export function ProductDetail() {
                 customer_name: notifyForm.name,
                 customer_email: notifyForm.email || undefined,
                 customer_whatsapp: notifyForm.whatsapp || undefined
-            });
+            }, currentStoreId);
+
             toast.success('Avisaremos você assim que voltar ao estoque! 🙏✨', { duration: 5000 });
             setShowNotifyModal(false);
             setNotifyForm({ name: '', email: '', whatsapp: '' });
