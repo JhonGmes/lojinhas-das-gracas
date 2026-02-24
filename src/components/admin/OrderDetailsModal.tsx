@@ -62,9 +62,9 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-8 sm:pt-12 animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
             <div
-                className="fixed inset-0 bg-stone-900/40 backdrop-blur-[2px] transition-opacity"
+                className="fixed inset-0 bg-stone-900/60 backdrop-blur-[2px] transition-opacity"
                 onClick={onClose}
             />
 

@@ -323,8 +323,17 @@ export const api = {
 
         confirmPayment: async (order: Order): Promise<void> => {
             try {
-                // 1. Atualiza status do pedido para 'paid'
-                await updateDoc(doc(db, 'orders', order.id), { status: 'paid' });
+                // 1. Verifica status atual no banco para evitar reduções duplicadas (race condition)
+                const docRef = doc(db, 'orders', order.id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data()?.status === 'paid') {
+                    console.warn(`⚠️ Pedido ${order.id} já está marcado como pago. Pulando decremento.`);
+                    return;
+                }
+
+                // 2. Atualiza status do pedido para 'paid'
+                await updateDoc(docRef, { status: 'paid' });
 
                 // 2. Baixa o estoque de cada item
                 for (const item of order.items) {

@@ -24,6 +24,7 @@ export function OrderSuccess() {
     const [showReceipt, setShowReceipt] = useState(false);
     const hasShownToast = useRef(false);
     const hasSentEmail = useRef(false);
+    const isConfirming = useRef(false);
 
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 2000;
@@ -118,14 +119,19 @@ export function OrderSuccess() {
                         let currentStatus = found.status;
 
                         // Detecção via Redirect
-                        if (transactionNsu && currentStatus === 'pending') {
-                            await api.orders.confirmPayment(found);
-                            currentStatus = 'paid';
-                            found.status = 'paid';
+                        if (transactionNsu && currentStatus === 'pending' && !isConfirming.current) {
+                            try {
+                                isConfirming.current = true;
+                                await api.orders.confirmPayment(found);
+                                currentStatus = 'paid';
+                                found.status = 'paid';
+                            } finally {
+                                isConfirming.current = false;
+                            }
                         }
 
                         // Polling InfinitePay
-                        if (currentStatus === 'pending' && settings.infinitepay_handle) {
+                        if (currentStatus === 'pending' && settings.infinitepay_handle && !isConfirming.current) {
                             try {
                                 const checkResponse = await fetch(`/api/proxy?target=${encodeURIComponent('https://api.infinitepay.io/invoices/public/checkout/payment_check')}`, {
                                     method: 'POST',
@@ -139,9 +145,14 @@ export function OrderSuccess() {
                                 if (checkResponse.ok) {
                                     const checkData = await checkResponse.json();
                                     if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
-                                        await api.orders.confirmPayment(found);
-                                        currentStatus = 'paid';
-                                        found.status = 'paid';
+                                        try {
+                                            isConfirming.current = true;
+                                            await api.orders.confirmPayment(found);
+                                            currentStatus = 'paid';
+                                            found.status = 'paid';
+                                        } finally {
+                                            isConfirming.current = false;
+                                        }
 
                                         if (checkData.customer || checkData.payer) {
                                             const customer = checkData.customer || checkData.payer;
