@@ -68,12 +68,25 @@ export const orderService = {
 
         updateStatus: async (id: string, status: Order['status'], storeId: string): Promise<void> => {
             try {
-                // Verificação de segurança: O pedido pertence a esta loja?
                 const docRef = doc(db, 'orders', id);
                 const docSnap = await getDoc(docRef);
 
-                if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
-                    throw new Error('Permissão negada ou pedido não encontrado nesta loja.');
+                if (!docSnap.exists()) {
+                    // Try LocalStorage if not in Firestore
+                    const orders = getLocalOrders();
+                    const index = orders.findIndex(o => o.id === id);
+                    if (index !== -1) {
+                        orders[index].status = status;
+                        orders[index].updatedAt = new Date().toISOString();
+                        localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                        console.log('✅ Status atualizado localmente (Pedido não encontrado no Firestore)');
+                        return;
+                    }
+                    throw new Error('Pedido não encontrado.');
+                }
+
+                if (docSnap.data()?.store_id !== storeId) {
+                    throw new Error('Permissão negada ou pedido de outra loja.');
                 }
 
                 await updateDoc(docRef, {
@@ -81,7 +94,17 @@ export const orderService = {
                     updated_at: serverTimestamp()
                 });
             } catch (err: any) {
-                console.error('Erro ao atualizar status do pedido:', err.message);
+                console.error('❌ Erro ao atualizar status do pedido:', err.message);
+
+                // Fallback final para LocalStorage em caso de qualquer erro (ex: falta de índice ou timeout)
+                const orders = getLocalOrders();
+                const index = orders.findIndex(o => o.id === id);
+                if (index !== -1) {
+                    orders[index].status = status;
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                    console.warn('⚠️ Status atualizado apenas localmente devido a erro no servidor.');
+                    return;
+                }
                 throw err;
             }
         },
@@ -107,30 +130,44 @@ export const orderService = {
         },
 
         getById: async (id: string): Promise<Order | null> => {
-            const docRef = doc(db, 'orders', id);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                return { id: docSnap.id, ...docSnap.data() } as Order;
+            try {
+                const docRef = doc(db, 'orders', id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return { id: docSnap.id, ...docSnap.data() } as Order;
+                }
+            } catch (err) {
+                console.warn('⚠️ Buscando pedido localmente');
             }
-            return null;
+            const localOrder = getLocalOrders().find(o => o.id === id);
+            return localOrder || null;
         },
 
         updateOrderWithCustomerData: async (id: string, data: any): Promise<void> => {
-            const docRef = doc(db, 'orders', id);
-            await updateDoc(docRef, {
-                customer_data: data,
-                updated_at: new Date().toISOString()
-            });
+            try {
+                const docRef = doc(db, 'orders', id);
+                await updateDoc(docRef, {
+                    customer_data: data,
+                    updated_at: new Date().toISOString()
+                });
+            } catch (err) {
+                const orders = getLocalOrders();
+                const index = orders.findIndex(o => o.id === id);
+                if (index !== -1) {
+                    orders[index].customerData = data;
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                }
+            }
         },
 
-        confirmPayment: async (order: Order, storeId?: string): Promise<void> => {
+        confirmPayment: async (orderIdOrOrder: string | Order, storeId?: string): Promise<void> => {
+            const id = typeof orderIdOrOrder === 'string' ? orderIdOrOrder : orderIdOrOrder.id;
             try {
-                const docRef = doc(db, 'orders', order.id);
+                const docRef = doc(db, 'orders', id);
 
-                // Security check if storeId is provided
                 if (storeId) {
                     const docSnap = await getDoc(docRef);
-                    if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+                    if (docSnap.exists() && docSnap.data()?.store_id !== storeId) {
                         throw new Error('Permissão negada.');
                     }
                 }
@@ -140,7 +177,15 @@ export const orderService = {
                     updated_at: serverTimestamp()
                 });
             } catch (err: any) {
-                console.error('Erro ao confirmar pagamento:', err.message);
+                console.error('❌ Erro ao confirmar pagamento:', err.message);
+                const orders = getLocalOrders();
+                const index = orders.findIndex(o => o.id === id);
+                if (index !== -1) {
+                    orders[index].status = 'paid';
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                    console.warn('⚠️ Pagamento confirmado apenas localmente.');
+                    return;
+                }
                 throw err;
             }
         },
@@ -150,14 +195,24 @@ export const orderService = {
                 const docRef = doc(db, 'orders', id);
                 const docSnap = await getDoc(docRef);
 
-                if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
-                    throw new Error('Permissão negada ou pedido não encontrado nesta loja.');
+                if (docSnap.exists()) {
+                    if (docSnap.data()?.store_id !== storeId) {
+                        throw new Error('Permissão negada.');
+                    }
+                    await deleteDoc(docRef);
                 }
 
-                await deleteDoc(docRef);
+                // Always clean local
+                const orders = getLocalOrders();
+                const filtered = orders.filter(o => o.id !== id);
+                if (filtered.length !== orders.length) {
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(filtered));
+                }
             } catch (err: any) {
-                console.error('Erro ao deletar pedido:', err.message);
-                throw err;
+                console.error('❌ Erro ao deletar pedido:', err.message);
+                const orders = getLocalOrders();
+                const filtered = orders.filter(o => o.id !== id);
+                localStorage.setItem(LS_ORDERS, JSON.stringify(filtered));
             }
         }
     },
