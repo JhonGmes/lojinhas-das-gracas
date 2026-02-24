@@ -23,12 +23,12 @@ export function Cart() {
     const handleApplyCoupon = async () => {
         if (!couponCode) return;
         setCouponLoading(true);
-        const result = await applyCoupon(couponCode);
-        if (result.success) {
-            toast.success(result.message);
+        const ok = await applyCoupon(couponCode);
+        if (ok) {
+            toast.success('Cupom aplicado com sucesso!');
             setCouponCode('');
         } else {
-            toast.error(result.message);
+            toast.error('Cupom inválido ou expirado.');
         }
         setCouponLoading(false);
     };
@@ -164,7 +164,7 @@ export function Cart() {
                                         <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 p-2 rounded-sm">
                                             <div className="flex items-center gap-2">
                                                 <Tag size={12} className="text-emerald-600" />
-                                                <span className="text-[10px] font-black text-emerald-700 uppercase">{appliedCoupon.code}</span>
+                                                <span className="text-[10px] font-black text-emerald-700 uppercase">{appliedCoupon}</span>
                                             </div>
                                             <button
                                                 type="button"

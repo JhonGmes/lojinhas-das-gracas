@@ -12,17 +12,17 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Cell
 } from 'recharts';
-import type { TooltipProps } from 'recharts';
 
 type ChartMode = 'revenue' | 'orders';
 
-const CustomTooltip = ({ active, payload, label, mode }: TooltipProps<number, string> & { mode: ChartMode }) => {
+const CustomTooltip = ({ active, payload, label, mode }: any) => {
     if (active && payload && payload.length) {
+        const value = payload[0].value as number;
         return (
             <div className="bg-stone-800 border border-stone-700 p-2 shadow-2xl rounded-sm">
                 <p className="text-[10px] font-black text-brand-gold uppercase tracking-widest mb-1">{label}</p>
                 <p className="text-xs font-bold text-white">
-                    {mode === 'revenue' ? formatCurrency((payload[0].value as number) || 0) : `${payload[0].value} Pedidos`}
+                    {mode === 'revenue' ? formatCurrency(value || 0) : `${value} Pedidos`}
                 </p>
             </div>
         );

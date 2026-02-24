@@ -23,7 +23,7 @@ export function Identification() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login, signUp, resetPassword, user } = useAuth();
+    const { login, signup, resetPassword, user } = useAuth();
     const { currentStoreId } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,11 +47,11 @@ export function Identification() {
         setLoading(true);
         setError('');
         setSuccess(''); // Clear success message on new attempt
-        const ok = await login(loginEmail, loginPass);
-        if (ok) {
+        const res = await login(loginEmail, loginPass);
+        if (res.success) {
             navigate(redirectPath);
         } else {
-            setError('E-mail ou senha incorretos.');
+            setError(res.message || 'E-mail ou senha incorretos.');
             setLoading(false);
         }
     };
@@ -75,19 +75,13 @@ export function Identification() {
             address: fullAddress
         });
 
-        const res = await signUp({
+        const res = await signup({
             email: registerEmail,
             pass: registerPass,
             name: registerName,
             whatsapp: registerPhone,
             address: fullAddress,
-            storeId: currentStoreId,
-            customer_address_street: registerStreet,
-            customer_address_number: registerNumber,
-            customer_address_neighborhood: registerNeighborhood,
-            customer_address_city: registerCity,
-            customer_address_state: registerState,
-            customer_address_complement: registerComplement
+            storeId: currentStoreId
         });
 
         console.log('✅ [DEBUG] Resultado do signUp:', res);

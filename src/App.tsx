@@ -29,7 +29,7 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ de
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const Identification = lazy(() => import('./pages/Identification').then(m => ({ default: m.Identification })));
-const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
 const SuperAdmin = lazy(() => import('./pages/admin/SuperAdmin').then(m => ({ default: m.SuperAdmin })));

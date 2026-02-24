@@ -30,11 +30,11 @@ export function Login() {
         setError('');
 
         try {
-            const ok = await login(email, pass);
-            if (ok) {
+            const res = await login(email, pass);
+            if (res.success) {
                 navigate('/admin');
             } else {
-                setError('Credenciais inválidas.');
+                setError(res.message || 'Credenciais inválidas.');
             }
         } catch (err) {
             setError('Erro ao autenticar.');

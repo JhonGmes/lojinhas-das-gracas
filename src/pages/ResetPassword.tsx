@@ -1,153 +1,143 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Lock, Loader2, ArrowRight } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../features/auth/context/AuthContext';
+import { KeyRound, CheckCircle, ArrowLeft, Loader2 } from 'lucide-react';
 
-export function ResetPassword() {
+export default function ResetPassword() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [isSessionActive, setIsSessionActive] = useState(false);
-
-    const { updatePassword } = useAuth();
+    const { updatePassword, loading: authLoading } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
 
-    useEffect(() => {
-        // Firebase handles the password reset flow via a link. 
-        // For now, we assume the user is applying the change from the email.
-        const checkAuth = () => {
-            // simplified for firebase flow
-            if (auth.currentUser) {
-                setIsSessionActive(true);
-            } else {
-                // For true reset flow, we'd check for oobCode in query params.
-                // For now, just allowing access if redirected from reset email
-                setIsSessionActive(true);
-            }
-        };
-        checkAuth();
-    }, [location]);
-
-    const handleUpdatePassword = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password !== confirmPassword) {
-            setError('As senhas não coincidem.');
-            return;
-        }
+
         if (password.length < 6) {
             setError('A senha deve ter pelo menos 6 caracteres.');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError('As senhas não coincidem.');
             return;
         }
 
         setLoading(true);
         setError('');
 
-        const res = await updatePassword(password);
-        if (res.success) {
-            setSuccess('Senha atualizada com sucesso! Redirecionando para o login...');
-            setTimeout(() => {
-                navigate('/login');
-            }, 3000);
-        } else {
-            setError(res.message || 'Erro ao atualizar a senha. Tente novamente.');
+        try {
+            const res = await updatePassword(password);
+            if (res.success) {
+                setSuccess('Sua senha foi atualizada com sucesso!');
+                setTimeout(() => navigate('/login'), 3000);
+            } else {
+                setError(res.message || 'Erro ao atualizar a senha. Tente novamente.');
+            }
+        } catch (err: any) {
+            setError('Ocorreu um erro inesperado. Tente novamente em breve.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+                <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-xl overflow-hidden border border-stone-200 dark:border-stone-800">
-                <div className="p-8 space-y-8">
-                    <div className="text-center space-y-2">
-                        <h2 className="text-3xl font-display text-stone-800 dark:text-stone-100">Atualizar Senha</h2>
-                        <p className="text-sm text-stone-500 font-medium">Digite sua nova senha abaixo para acessar sua conta.</p>
+        <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4 py-12">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl shadow-stone-200/50 p-8 border border-stone-100">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-gold/10 rounded-full mb-4">
+                        <KeyRound className="w-8 h-8 text-brand-gold" />
                     </div>
+                    <h1 className="text-2xl font-black text-stone-900 mb-2 font-serif">Nova Senha</h1>
+                    <p className="text-stone-500">Escolha uma senha forte para sua conta</p>
+                </div>
 
-                    {!isSessionActive && !error && (
-                        <div className="flex flex-col items-center justify-center py-8 gap-4 text-stone-500">
-                            <Loader2 className="animate-spin text-brand-gold" size={32} />
-                            <p className="text-xs font-medium uppercase tracking-widest">Validando link seguro...</p>
-                        </div>
-                    )}
-
-                    {!isSessionActive && error && (
-                        <div className="space-y-6">
-                            <div className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 text-center">
+                {success ? (
+                    <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-xl text-center">
+                        <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+                        <h2 className="text-lg font-bold text-emerald-900 mb-2">{success}</h2>
+                        <p className="text-emerald-700 text-sm mb-4">Você será redirecionado em instantes...</p>
+                        <Link
+                            to="/login"
+                            className="text-emerald-600 font-bold text-sm hover:underline"
+                        >
+                            Ir para o login agora
+                        </Link>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-50 border border-red-100 p-4 rounded-xl text-red-700 text-sm font-medium">
                                 {error}
                             </div>
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="w-full bg-[#2A3F54] hover:bg-[#34495E] text-white font-bold py-3 rounded-lg shadow-lg shadow-stone-200/50 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide"
-                            >
-                                Voltar para o Login <ArrowRight size={16} />
-                            </button>
-                        </div>
-                    )}
+                        )}
 
-                    {isSessionActive && success && (
-                        <div className="space-y-6">
-                            <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg text-sm font-medium text-emerald-600 dark:text-emerald-400 text-center">
-                                {success}
-                            </div>
-                        </div>
-                    )}
-
-                    {isSessionActive && !success && (
-                        <form onSubmit={handleUpdatePassword} className="space-y-6 animate-fade-in">
-                            <div className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Nova Senha</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-brand-gold transition-colors" size={16} />
-                                        <input
-                                            required
-                                            type="password"
-                                            value={password}
-                                            onChange={e => setPassword(e.target.value)}
-                                            className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
-                                            placeholder="Mínimo 6 caracteres"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Confirmar Nova Senha</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-brand-gold transition-colors" size={16} />
-                                        <input
-                                            required
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={e => setConfirmPassword(e.target.value)}
-                                            className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
-                                            placeholder="Mínimo 6 caracteres"
-                                        />
-                                    </div>
-                                </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-black text-stone-900 uppercase tracking-widest mb-2">
+                                    Nova Senha
+                                </label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all outline-none"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <p className="mt-1.5 text-[10px] text-stone-400">
+                                    Mínimo de 6 caracteres
+                                </p>
                             </div>
 
-                            {error && (
-                                <div className="p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                    {error}
-                                </div>
+                            <div>
+                                <label className="block text-xs font-black text-stone-900 uppercase tracking-widest mb-2">
+                                    Confirmar Senha
+                                </label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all outline-none"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-brand-gold text-white font-black py-4 rounded-xl shadow-lg shadow-brand-gold/20 hover:bg-brand-gold-dark transform hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        >
+                            {loading ? (
+                                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                            ) : (
+                                'ATUALIZAR SENHA'
                             )}
+                        </button>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-brand-gold hover:bg-brand-amber text-brand-wood font-bold py-3 rounded-lg shadow-lg shadow-stone-200/50 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide disabled:opacity-50"
+                        <div className="text-center">
+                            <Link
+                                to="/login"
+                                className="inline-flex items-center text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium"
                             >
-                                {loading ? <Loader2 className="animate-spin" size={18} /> : (
-                                    <>Salvar Nova Senha <ArrowRight size={16} /></>
-                                )}
-                            </button>
-                        </form>
-                    )}
-                </div>
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Voltar para o login
+                            </Link>
+                        </div>
+                    </form>
+                )}
             </div>
         </div>
     );

@@ -103,6 +103,23 @@ export const orderService = {
             }
         },
 
+        getById: async (id: string): Promise<Order | null> => {
+            const docRef = doc(db, 'orders', id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                return { id: docSnap.id, ...docSnap.data() } as Order;
+            }
+            return null;
+        },
+
+        updateOrderWithCustomerData: async (id: string, data: any): Promise<void> => {
+            const docRef = doc(db, 'orders', id);
+            await updateDoc(docRef, {
+                customer_data: data,
+                updated_at: new Date().toISOString()
+            });
+        },
+
         confirmPayment: async (order: Order): Promise<void> => {
             try {
                 const docRef = doc(db, 'orders', order.id);

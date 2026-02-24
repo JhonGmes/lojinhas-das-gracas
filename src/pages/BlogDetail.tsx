@@ -12,7 +12,7 @@ import { X as CloseIcon, Loader2, Sparkles } from 'lucide-react';
 export function BlogDetail() {
     const { id } = useParams();
     const { posts, loading } = useBlog();
-    const { settings, hasFeature } = useStore();
+    const { settings, hasFeature, currentStoreId } = useStore();
 
     if (!hasFeature('blog')) {
         return <Navigate to="/" replace />;
@@ -33,7 +33,7 @@ export function BlogDetail() {
 
         setIsSubscribing(true);
         try {
-            await api.newsletter.subscribe(newsletterEmail);
+            await api.newsletter.subscribe(newsletterEmail, currentStoreId);
             toast.success('Que alegria! Você agora receberá nossas Palavras de Fé. 🙏');
             setNewsletterEmail('');
         } catch (error) {
