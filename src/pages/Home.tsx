@@ -255,8 +255,8 @@ export function Home() {
                                             <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
                                             <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white dark:from-stone-900 to-transparent z-10 pointer-events-none" />
 
-                                            <div className="flex w-full overflow-x-auto scrollbar-hide gap-6 md:gap-8 px-4 justify-center py-2">
-                                                {categories.map((category, idx) => {
+                                            <div className="flex w-max animate-marquee-slow hover:[animation-play-state:paused] gap-6 md:gap-8 px-4 py-2">
+                                                {[...categories, ...categories].map((category, idx) => {
                                                     // Find a product image to represent the category, or use a placeholder
                                                     const representiveProduct = products.find(p => p.category === category && p.image);
                                                     const bgImage = representiveProduct?.image || "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=400";
