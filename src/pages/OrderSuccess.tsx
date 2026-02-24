@@ -31,25 +31,13 @@ export function OrderSuccess() {
 
     const pixKey = settings.pix_key || "seu-pix-aqui@email.com";
 
-    // Efeito de Confete Vibrante (Suavizado para performance)
+    // Efeito de Confete Vibrante (Suavizado para performance máxima - Burst único)
     const triggerConfetti = () => {
-        const duration = 2.5 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 20, spread: 360, ticks: 40, zIndex: 1000 };
+        const defaults = { startVelocity: 45, spread: 360, ticks: 100, zIndex: 1000, particleCount: 150 };
 
-        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-        const interval: any = setInterval(function () {
-            const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 20 * (timeLeft / duration);
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-        }, 400);
+        // Disparo único em dois pontos laterais
+        confetti({ ...defaults, origin: { x: 0.2, y: 0.5 } });
+        confetti({ ...defaults, origin: { x: 0.8, y: 0.5 } });
     };
 
     const pixPayload = useMemo(() => {
@@ -451,7 +439,15 @@ export function OrderSuccess() {
                         </div>
 
                         <a
-                            href={`https://wa.me/${settings.whatsapp_number}?text=Olá! Acabei de fazer o pedido #${orderId} e aqui está o comprovante.`}
+                            href={`https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(
+                                `Olá! 👋 Acabei de fazer um pedido no site.\n\n` +
+                                `📦 *PEDIDO #${orderId}*\n` +
+                                `--------------------------\n` +
+                                `${order?.items?.map((item: any) => `• ${item.quantity}x ${item.name}`).join('\n')}\n` +
+                                `--------------------------\n` +
+                                `Total: ${formatCurrency(order?.total || 0)}\n\n` +
+                                `Aqui está o meu comprovante:`
+                            )}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full bg-[#25D366] text-white py-5 rounded-sm font-black text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-3 shadow-lg hover:bg-brand-wood hover:scale-[1.02] transition-all"
