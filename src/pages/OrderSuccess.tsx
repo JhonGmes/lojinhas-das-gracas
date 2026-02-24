@@ -100,16 +100,29 @@ export function OrderSuccess() {
                 try {
                     const urlParams = new URLSearchParams(window.location.search);
                     const transactionNsu = urlParams.get('transaction_nsu');
+                    const normalizedOrderId = orderId?.toLowerCase();
 
-                    const orders = await api.orders.list(currentStoreId);
+                    // 1. Tenta buscar pelo ID exato primeiro (mais rápido e confiável)
+                    let found = await api.orders.getById(orderId);
 
-                    // Busca flexível: ID exato, orderNumber ou o ID truncado do Firestore
-                    const found = orders.find((o: any) =>
-                        o.id === orderId ||
-                        o.id?.slice(0, 8) === orderId ||
-                        o.orderNumber?.toString() === orderId ||
-                        o.orderNumber?.toString().padStart(4, '0') === orderId
-                    );
+                    // Se não encontrou e o ID original tinha maiúsculas, tenta minusculo
+                    if (!found && orderId !== normalizedOrderId) {
+                        found = await api.orders.getById(normalizedOrderId);
+                    }
+
+                    // 2. Fallback para lista se não encontrar pelo ID exato (ex: ID truncado na URL)
+                    if (!found) {
+                        const orders = await api.orders.list(currentStoreId);
+                        found = orders.find((o: any) => {
+                            const docId = o.id?.toLowerCase();
+                            const docOrderNum = o.orderNumber?.toString();
+
+                            return docId === normalizedOrderId ||
+                                docId?.slice(0, 8) === normalizedOrderId ||
+                                docOrderNum === normalizedOrderId ||
+                                docOrderNum?.padStart(4, '0') === normalizedOrderId;
+                        }) || null;
+                    }
 
                     if (found) {
                         setOrder(found);
@@ -148,11 +161,18 @@ export function OrderSuccess() {
                                                 transactionNsu: checkData.transaction_nsu || transactionNsu,
                                                 infinitepayData: checkData
                                             };
-                                            if (customer.email) customerData.email = customer.email;
-                                            if (customer.phone || customer.phone_number) {
+
+                                            // CRÍTICO: Não sobrescrever e-mail se já temos um do cadastro/checkout
+                                            // Isso resolve o problema de e-mails indo para contas erradas vinculadas ao cartão
+                                            if (customer.email && !found.customerEmail) {
+                                                customerData.email = customer.email;
+                                            }
+
+                                            if ((customer.phone || customer.phone_number) && !found.customerPhone) {
                                                 customerData.phone = customer.phone || customer.phone_number;
                                             }
-                                            if (customer.address) {
+
+                                            if (customer.address && (!found.customerAddress || !found.customerAddress.street)) {
                                                 customerData.address = {
                                                     street: customer.address.street || customer.address.line1,
                                                     number: customer.address.number,
@@ -163,12 +183,13 @@ export function OrderSuccess() {
                                                     zipcode: customer.address.zipcode || customer.address.postal_code
                                                 };
                                             }
+
                                             await api.orders.updateOrderWithCustomerData(found.id, customerData);
                                             setOrder((prev: any) => ({
                                                 ...prev,
-                                                customerEmail: customerData.email,
-                                                customerPhone: customerData.phone,
-                                                customerAddress: customerData.address,
+                                                customerEmail: customerData.email || prev.customerEmail,
+                                                customerPhone: customerData.phone || prev.customerPhone,
+                                                customerAddress: customerData.address || prev.customerAddress,
                                                 transactionNsu: customerData.transactionNsu,
                                                 infinitepayData: customerData.infinitepayData
                                             }));
@@ -194,9 +215,11 @@ export function OrderSuccess() {
                                     });
                                 }
 
-                                if (found.customerEmail && !hasSentEmail.current) {
+                                // Usa o e-mail do pedido (prioridade para o do cadastro original)
+                                const recipientEmail = found.customerEmail || (order && order.customerEmail);
+                                if (recipientEmail && !hasSentEmail.current) {
                                     hasSentEmail.current = true;
-                                    EmailService.sendOrderConfirmation(found.id, found.customerEmail);
+                                    EmailService.sendOrderConfirmation(found.id, recipientEmail);
                                 }
                             }
                         }

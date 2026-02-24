@@ -83,7 +83,14 @@ export interface User {
     email: string;
     name?: string;
     whatsapp?: string;
-    address?: string;
+    address?: string; // Mantido para compatibilidade legado, mas preferimos os campos abaixo
+    customer_address_street?: string;
+    customer_address_number?: string;
+    customer_address_complement?: string;
+    customer_address_neighborhood?: string;
+    customer_address_city?: string;
+    customer_address_state?: string;
+    customer_address_zipcode?: string;
     role: 'admin' | 'customer';
     store_id?: string;
 }

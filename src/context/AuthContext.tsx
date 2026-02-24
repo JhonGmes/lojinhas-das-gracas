@@ -14,7 +14,21 @@ import type { User } from '../types'
 interface AuthContextType {
     user: User | null
     login: (email: string, pass: string) => Promise<boolean>
-    signUp: (data: { email: string; pass: string; name: string; whatsapp: string; address: string; storeId?: string }) => Promise<{ success: boolean; message?: string }>
+    signUp: (data: {
+        email: string;
+        pass: string;
+        name: string;
+        whatsapp: string;
+        address: string;
+        storeId?: string;
+        customer_address_street?: string;
+        customer_address_number?: string;
+        customer_address_complement?: string;
+        customer_address_neighborhood?: string;
+        customer_address_city?: string;
+        customer_address_state?: string;
+        customer_address_zipcode?: string;
+    }) => Promise<{ success: boolean; message?: string }>
     resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
     updatePassword: (password: string) => Promise<{ success: boolean; message?: string }>
     logout: () => Promise<void>
@@ -56,6 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             name: userData.name,
                             whatsapp: userData.whatsapp,
                             address: userData.address,
+                            customer_address_street: userData.customer_address_street,
+                            customer_address_number: userData.customer_address_number,
+                            customer_address_complement: userData.customer_address_complement,
+                            customer_address_neighborhood: userData.customer_address_neighborhood,
+                            customer_address_city: userData.customer_address_city,
+                            customer_address_state: userData.customer_address_state,
+                            customer_address_zipcode: userData.customer_address_zipcode,
                             role: userData.role || 'customer',
                             store_id: userData.store_id
                         });
@@ -84,6 +105,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     name: userData.name,
                     whatsapp: userData.whatsapp,
                     address: userData.address,
+                    customer_address_street: userData.customer_address_street,
+                    customer_address_number: userData.customer_address_number,
+                    customer_address_complement: userData.customer_address_complement,
+                    customer_address_neighborhood: userData.customer_address_neighborhood,
+                    customer_address_city: userData.customer_address_city,
+                    customer_address_state: userData.customer_address_state,
+                    customer_address_zipcode: userData.customer_address_zipcode,
                     role: userData.role || 'customer',
                     store_id: userData.store_id
                 });
@@ -96,7 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    async function signUp({ email, pass, name, whatsapp, address, storeId = 'lojinhadas-gracas' }: { email: string; pass: string; name: string; whatsapp: string; address: string, storeId?: string }) {
+    async function signUp({
+        email, pass, name, whatsapp, address, storeId = 'lojinhadas-gracas',
+        customer_address_street, customer_address_number, customer_address_complement,
+        customer_address_neighborhood, customer_address_city, customer_address_state, customer_address_zipcode
+    }: any) {
         try {
             const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, pass);
 
@@ -106,6 +138,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 name,
                 whatsapp,
                 address,
+                customer_address_street,
+                customer_address_number,
+                customer_address_complement,
+                customer_address_neighborhood,
+                customer_address_city,
+                customer_address_state,
+                customer_address_zipcode,
                 role: 'customer',
                 store_id: storeId,
                 createdAt: new Date().toISOString()

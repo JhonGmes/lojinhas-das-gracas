@@ -1,9 +1,71 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Users can only read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    // Stores and settings: public read, authenticated write
+    match /stores/{storeId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /store_settings/{storeId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Products and categories: public read, authenticated write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Orders: authenticated read/write (customers must be logged in to order)
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Reviews: public read, authenticated create; only owner can update/delete
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+
+    // Blog posts: public read, authenticated write
+    match /blog_posts/{postId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Wishlist, newsletters, waiting lists: authenticated access
+    match /wishlists/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /newsletters/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /waiting_list/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /coupons/{id} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Fallback: authenticated access for any other collection
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

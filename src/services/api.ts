@@ -341,6 +341,44 @@ export const api = {
             }
         },
 
+        getById: async (orderId: string): Promise<Order | null> => {
+            try {
+                const docRef = doc(db, 'orders', orderId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    return {
+                        id: docSnap.id,
+                        customerName: data.customer_name,
+                        total: data.total,
+                        status: data.status,
+                        items: data.items,
+                        paymentMethod: data.payment_method,
+                        createdAt: data.created_at?.toDate?.()?.toISOString() || new Date().toISOString(),
+                        orderNumber: data.order_number,
+                        customerEmail: data.customer_email,
+                        customerPhone: data.customer_phone,
+                        customerAddress: {
+                            street: data.customer_address_street,
+                            number: data.customer_address_number,
+                            complement: data.customer_address_complement,
+                            neighborhood: data.customer_address_neighborhood,
+                            city: data.customer_address_city,
+                            state: data.customer_address_state,
+                            zipcode: data.customer_address_zipcode
+                        },
+                        transactionNsu: data.transaction_nsu,
+                        infinitepayData: data.infinitepay_data
+                    } as Order;
+                }
+                return null;
+            } catch (err: any) {
+                console.error('❌ Erro ao buscar pedido por ID:', err.message);
+                return null;
+            }
+        },
+
         list: async (storeId: string): Promise<Order[]> => {
             try {
                 const q = query(

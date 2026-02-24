@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from '../services/api';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface StoreSettings {
@@ -61,35 +61,72 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     const [loading, setLoading] = useState(true);
 
+    const DEFAULT_SETTINGS = {
+        id: DEFAULT_STORE_ID,
+        store_id: DEFAULT_STORE_ID,
+        store_name: 'Lojinha das Graças',
+        whatsapp_number: '5598984095956',
+        primary_color: '#D4AF37',
+        hero_title: 'PAZ E DEVOÇÃO',
+        hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
+        hero_button_text: 'VER OFERTAS',
+        hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
+        hero_banners: [],
+        pix_key: '5598984095956',
+        instagram_url: 'https://instagram.com/lojinhadasgracas',
+        infinitepay_handle: 'lojinhadasgracas',
+        about_text: 'Levando a paz de Cristo até você.',
+        privacy_policy: 'Seus dados estão protegidos conosco.',
+        manager_name: 'Jhon Gomes',
+        monthly_revenue_goal: 5000
+    };
+
+    // Auto-initializes the main store and its settings in Firestore if they don't exist.
+    // This is the root fix for the empty orders/admin panel issue.
+    const initializeStoreIfNeeded = async () => {
+        if (currentStoreId !== DEFAULT_STORE_ID) return;
+        try {
+            // 1. Create store document
+            const storeRef = doc(db, 'stores', DEFAULT_STORE_ID);
+            const storeSnap = await getDoc(storeRef);
+            if (!storeSnap.exists()) {
+                await setDoc(storeRef, {
+                    name: 'Lojinha das Graças',
+                    slug: 'lojinhas-das-gracas',
+                    status: 'active',
+                    created_at: new Date().toISOString()
+                });
+                console.log('✅ Store document auto-created in Firestore');
+            }
+
+            // 2. Create store_settings document
+            const settingsRef = doc(db, 'store_settings', DEFAULT_STORE_ID);
+            const settingsSnap = await getDoc(settingsRef);
+            if (!settingsSnap.exists()) {
+                await setDoc(settingsRef, { ...DEFAULT_SETTINGS, created_at: new Date().toISOString() });
+                console.log('✅ Store settings auto-created in Firestore');
+            }
+        } catch (e) {
+            // Silently fail if user is not authenticated; will retry when auth state changes
+            console.warn('⚠️ Could not auto-initialize store (not authenticated yet):', e);
+        }
+    };
+
     const loadSettings = async () => {
         setLoading(true);
         try {
+            // Try to auto-initialize first if this is the default store
+            await initializeStoreIfNeeded();
+
             const data = await api.settings.getByStoreId(currentStoreId);
             if (data) {
                 setSettings(data);
             } else {
-                // Hardcoded fallback for the main store to ensure site accessibility even with Supabase problems
+                // Fallback to default settings while store initializes
                 if (currentStoreId === DEFAULT_STORE_ID) {
-                    setSettings({
-                        id: DEFAULT_STORE_ID,
-                        store_name: 'Lojinha das Graças',
-                        whatsapp_number: '5598984095956',
-                        primary_color: '#D4AF37',
-                        hero_title: 'PAZ E DEVOÇÃO',
-                        hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
-                        hero_button_text: 'VER OFERTAS',
-                        hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
-                        hero_banners: [],
-                        pix_key: '5598984095956',
-                        instagram_url: 'https://instagram.com/lojinhadasgracas',
-                        infinitepay_handle: 'lojinhadasgracas',
-                        about_text: 'Levando a paz de Cristo até você.',
-                        privacy_policy: 'Seus dados estão protegidos conosco.',
-                        manager_name: 'Jhon Gomes'
-                    });
+                    setSettings(DEFAULT_SETTINGS);
                     return;
                 }
-
                 setSettings({
                     id: '',
                     store_name: 'Nova Loja',
@@ -108,24 +145,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 } as any);
             }
         } catch (error) {
-            console.warn("Using fallback settings due to Supabase error:", error);
+            console.warn('Using fallback settings:', error);
             if (currentStoreId === DEFAULT_STORE_ID) {
-                setSettings({
-                    id: DEFAULT_STORE_ID,
-                    store_name: 'Lojinha das Graças',
-                    whatsapp_number: '5598984095956',
-                    primary_color: '#D4AF37',
-                    hero_title: 'PAZ E DEVOÇÃO',
-                    hero_subtitle: 'Artigos religiosos selecionados com amor para fortalecer sua fé.',
-                    hero_button_text: 'VER OFERTAS',
-                    hero_image_url: 'https://images.unsplash.com/photo-1543783207-c0831a0b367c?auto=format&fit=crop&q=80&w=2000',
-                    hero_banners: [],
-                    pix_key: '5598984095956',
-                    instagram_url: 'https://instagram.com/lojinhadasgracas',
-                    infinitepay_handle: 'lojinhadasgracas',
-                    about_text: 'Levando a paz de Cristo até você.',
-                    privacy_policy: 'Seus dados estão protegidos conosco.'
-                });
+                setSettings(DEFAULT_SETTINGS);
             }
         } finally {
             setLoading(false);

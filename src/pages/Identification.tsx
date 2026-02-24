@@ -81,7 +81,13 @@ export function Identification() {
             name: registerName,
             whatsapp: registerPhone,
             address: fullAddress,
-            storeId: currentStoreId
+            storeId: currentStoreId,
+            customer_address_street: registerStreet,
+            customer_address_number: registerNumber,
+            customer_address_neighborhood: registerNeighborhood,
+            customer_address_city: registerCity,
+            customer_address_state: registerState,
+            customer_address_complement: registerComplement
         });
 
         console.log('✅ [DEBUG] Resultado do signUp:', res);
