@@ -131,30 +131,31 @@ export function AdminLayout() {
             {/* Sidebar Moderno */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Brand Header - Compacted & Elegant */}
-                <div className="h-16 flex items-center px-5 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
+                <div className="h-12 flex items-center px-4 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-2xl -translate-y-8 translate-x-8 pointer-events-none" />
 
-                    <div className="w-8 h-8 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-3 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
+                    <div className="w-7 h-7 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-2.5 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
                         {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
                     </div>
-                    <span className="font-display text-sm md:text-base font-black text-white uppercase tracking-tighter truncate drop-shadow-sm flex-1 leading-tight py-1">
+                    <span className="font-script text-xl text-white truncate drop-shadow-sm flex-1 leading-none py-1" style={{ fontFamily: "'Cookie', cursive" }}>
                         {settings.store_name}
                     </span>
                     <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                        <X size={20} />
+                        <X size={18} />
                     </button>
                 </div>
 
+
                 {/* User Profile Section with Upload - Compacted & Editable */}
-                <div className="px-5 py-3 border-b border-white/5 bg-[#253849] shrink-0">
-                    <div className="flex items-center gap-3">
+                <div className="px-4 py-2 border-b border-white/5 bg-[#253849] shrink-0">
+                    <div className="flex items-center gap-2.5">
                         <div className="relative group/avatar cursor-pointer shrink-0">
-                            <div className="w-9 h-9 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
-                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={18} className="text-stone-400" />}
+                            <div className="w-8 h-8 rounded-full bg-stone-700 border-2 border-stone-600 group-hover/avatar:border-brand-gold transition-colors flex items-center justify-center overflow-hidden shadow-md">
+                                {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={16} className="text-stone-400" />}
                             </div>
                             {/* Camera Overlay */}
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center rounded-full transition-opacity duration-300 backdrop-blur-[1px]">
-                                <Camera size={12} className="text-white" />
+                                <Camera size={10} className="text-white" />
                             </div>
                             <input
                                 type="file"
@@ -165,7 +166,8 @@ export function AdminLayout() {
                             />
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-[8px] text-stone-400 font-bold uppercase tracking-widest mb-0.5">Gerente</span>
+                            <span className="text-[7px] text-stone-400 font-bold uppercase tracking-widest leading-none">Gerente</span>
+
 
                             {isEditingName ? (
                                 <input
@@ -241,35 +243,35 @@ export function AdminLayout() {
                 </nav>
 
                 {/* Footer / System - Extra Compact */}
-                <div className="px-4 py-2 bg-[#1f2f3f] border-t border-white/5 shrink-0">
-                    <div className="flex items-center justify-between gap-3">
+                <div className="px-3 py-2 bg-[#1f2f3f] border-t border-white/5 shrink-0">
+                    <div className="flex items-center justify-between gap-2">
                         <Link
                             to="/admin/settings"
-                            className={`p-2 rounded-lg transition-all group ${location.pathname === '/admin/settings' ? 'bg-brand-gold text-brand-wood shadow-lg' : 'bg-white/5 text-stone-400 hover:text-white'
+                            className={`p-1.5 rounded-lg transition-all group ${location.pathname === '/admin/settings' ? 'bg-brand-gold text-brand-wood shadow-lg' : 'bg-white/5 text-stone-400 hover:text-white'
                                 }`}
                             title="Configurações"
                         >
-                            <SettingsIcon size={16} className="group-hover:rotate-90 transition-transform duration-700" />
+                            <SettingsIcon size={14} className="group-hover:rotate-90 transition-transform duration-700" />
                         </Link>
 
-                        <Link to="/" className="text-[9px] font-black text-stone-500 hover:text-brand-gold uppercase tracking-[0.2em] transition-colors flex items-center gap-1">
+                        <Link to="/" className="text-[8px] font-black text-stone-500 hover:text-brand-gold uppercase tracking-tighter transition-colors flex items-center gap-1">
                             <ArrowLeft size={10} /> Ver Loja
                         </Link>
 
                         <button
                             onClick={logout}
-                            className="p-2 bg-white/5 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all group"
+                            className="p-1.5 bg-white/5 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all group"
                             title="Sair"
                         >
-                            <LogOut size={16} />
+                            <LogOut size={14} />
                         </button>
                     </div>
 
                     {/* Managed Store Indicator - Ultra Compact */}
-                    <div className="mt-1 px-3 py-1.5 bg-brand-gold/5 rounded-lg border border-brand-gold/10 flex items-center justify-between">
+                    <div className="mt-2 px-2 py-1 bg-brand-gold/5 rounded-lg border border-brand-gold/10 flex items-center justify-between">
                         <div className="overflow-hidden">
                             <p className="text-[7px] font-black text-brand-gold/60 uppercase tracking-widest leading-none">Status</p>
-                            <p className="text-[8px] font-bold text-stone-300 truncate leading-tight mt-0.5">Sistema Ativo</p>
+                            <p className="text-[8px] font-bold text-stone-300 truncate leading-tight mt-0.5">Online</p>
                         </div>
                         {user.role === 'admin' && (
                             <Link to="/admin/super" className="text-stone-500 hover:text-brand-gold transition-colors">
@@ -278,6 +280,7 @@ export function AdminLayout() {
                         )}
                     </div>
                 </div>
+
             </aside>
 
 
