@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle2, Copy, MessageCircle, ArrowRight, FileText, Mail, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Copy, MessageCircle, ArrowRight, Mail, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, generatePixPayload } from '../lib/utils';
 import { useStore } from '../context/StoreContext';
@@ -369,11 +369,26 @@ export function OrderSuccess() {
 
                 <div className="p-10 space-y-10">
                     <div className="flex flex-col gap-3">
+                        <div className="bg-stone-50 dark:bg-stone-800/30 p-6 rounded-sm border border-stone-100 dark:border-stone-800/50">
+                            <h2 className="text-xs font-black uppercase tracking-widest text-stone-700 dark:text-stone-200 mb-4 border-b border-stone-200 dark:border-stone-700 pb-3">Resumo da Compra</h2>
+                            <div className="space-y-3 mb-4">
+                                {order.items?.map((item: any) => (
+                                    <div key={item.id} className="flex justify-between items-center text-[10px]">
+                                        <span className="text-stone-500 font-bold uppercase tracking-tight">{item.quantity}x {item.name}</span>
+                                        <span className="font-black text-stone-800 dark:text-stone-200">{formatCurrency((item.promotionalPrice || item.price) * item.quantity)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="border-t border-stone-200 dark:border-stone-700 pt-4 flex justify-between items-center text-base">
+                                <span className="font-bold uppercase tracking-widest text-[9px] text-stone-400">Total</span>
+                                <span className="font-black text-brand-gold font-display text-xl">{formatCurrency(order.total || 0)}</span>
+                            </div>
+                        </div>
+
                         <button
                             onClick={() => setShowReceipt(true)}
-                            className="flex items-center justify-center gap-2 w-full border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:border-brand-gold hover:text-brand-gold transition-all group"
+                            className="hidden"
                         >
-                            <FileText size={18} className="group-hover:scale-110 transition-transform" />
                             Ver Comprovante Detalhado
                         </button>
 

@@ -234,12 +234,12 @@ export const api = {
                 }
 
                 const payload = {
-                    customer_name: order.customerName,
-                    total: order.total,
-                    status: order.status,
-                    items: order.items,
+                    customer_name: order.customerName || 'Cliente',
+                    total: order.total || 0,
+                    status: order.status || 'pending',
+                    items: order.items || [],
                     notes: order.notes || '',
-                    store_id: storeId,
+                    store_id: storeId || 'lojinhadas-gracas',
                     customer_email: order.customerEmail || '',
                     customer_phone: order.customerPhone || '',
                     customer_address_street: order.customerAddress?.street || '',
@@ -249,7 +249,7 @@ export const api = {
                     customer_address_city: order.customerAddress?.city || '',
                     customer_address_state: order.customerAddress?.state || '',
                     customer_address_zipcode: order.customerAddress?.zipcode || '',
-                    payment_method: order.paymentMethod,
+                    payment_method: order.paymentMethod || 'pix',
                     created_at: serverTimestamp(),
                     order_number: nextOrderNumber
                 };
@@ -264,12 +264,46 @@ export const api = {
                     createdAt: new Date().toISOString()
                 };
             } catch (err: any) {
-                console.error('⚠️ Pedido salvo localmente devido a erro no Firebase:', err.message);
-                const orders = getLocalOrders();
-                const newOrder = { ...order, orderNumber: Date.now() };
-                orders.push(newOrder);
-                localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
-                return newOrder;
+                console.error('⚠️ Erro ao criar pedido no Firestore:', err.message);
+                const fallbackOrderNumber = Date.now();
+
+                // Fallback de emergência (salva no Firestore de qualquer jeito sem order_number customizado que exigiria indexação)
+                try {
+                    const fallbackPayload = {
+                        customer_name: order.customerName || 'Cliente',
+                        total: order.total || 0,
+                        status: order.status || 'pending',
+                        items: order.items || [],
+                        notes: order.notes || '',
+                        store_id: storeId || 'lojinhadas-gracas',
+                        customer_email: order.customerEmail || '',
+                        customer_phone: order.customerPhone || '',
+                        customer_address_street: order.customerAddress?.street || '',
+                        customer_address_number: order.customerAddress?.number || '',
+                        customer_address_complement: order.customerAddress?.complement || '',
+                        customer_address_neighborhood: order.customerAddress?.neighborhood || '',
+                        customer_address_city: order.customerAddress?.city || '',
+                        customer_address_state: order.customerAddress?.state || '',
+                        customer_address_zipcode: order.customerAddress?.zipcode || '',
+                        payment_method: order.paymentMethod || 'pix',
+                        created_at: serverTimestamp(),
+                        order_number: fallbackOrderNumber
+                    };
+                    await setDoc(doc(db, 'orders', order.id), fallbackPayload);
+                    return {
+                        ...order,
+                        id: order.id,
+                        orderNumber: fallbackOrderNumber,
+                        createdAt: new Date().toISOString()
+                    };
+                } catch (fatalErr: any) {
+                    console.error('⚠️ FATAL: Pedido salvo localmente.', fatalErr.message);
+                    const orders = getLocalOrders();
+                    const newOrder = { ...order, orderNumber: fallbackOrderNumber };
+                    orders.push(newOrder);
+                    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+                    return newOrder;
+                }
             }
         },
 

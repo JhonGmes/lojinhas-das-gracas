@@ -14,6 +14,7 @@ export function Checkout() {
     const { user } = useAuth();
     const { currentStoreId, settings: storeSettings } = useStore();
     const [loading, setLoading] = useState(false);
+    const [authWait, setAuthWait] = useState(true);
     const [paymentMethod, setPaymentMethod] = useState<'credit' | 'pix'>('credit');
     const [paymentError, setPaymentError] = useState<{ title: string; message: string } | null>(null);
 
@@ -23,10 +24,16 @@ export function Checkout() {
     )}`;
 
     useEffect(() => {
-        if (!user) {
-            toast.error("Faça login para continuar");
-            navigate('/identificacao?redirect=/checkout');
-        }
+        // Wait a small tick to ensure auth state is loaded from local storage / firebase
+        const timeout = setTimeout(() => {
+            if (!user) {
+                toast.error("Para prosseguir com a compra é necessário estar logado.");
+                navigate('/identificacao?redirect=/checkout');
+            } else {
+                setAuthWait(false);
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
     }, [user, navigate]);
 
     const handlePay = async (e: React.FormEvent) => {
@@ -132,6 +139,15 @@ export function Checkout() {
             setLoading(false);
         }
     };
+
+    if (authWait) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center animate-pulse">
+                <Loader2 className="animate-spin text-brand-gold mb-4" size={48} />
+                <p className="font-display uppercase tracking-widest text-stone-600 dark:text-stone-300 font-bold">Verificando segurança...</p>
+            </div>
+        );
+    }
 
     if (items.length === 0) {
         return (

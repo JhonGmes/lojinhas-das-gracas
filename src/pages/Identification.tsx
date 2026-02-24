@@ -131,9 +131,10 @@ export function Identification() {
     const translateError = (msg: string) => {
         const m = msg.toLowerCase();
         if (m.includes('rate limit')) return 'Por segurança, aguarde um momento antes de tentar novamente.';
-        if (m.includes('already registered')) return 'Você já possui cadastro com este e-mail. Tente fazer login ao lado.';
-        if (m.includes('invalid login') || m.includes('creds')) return 'E-mail ou senha incorretos.';
-        if (m.includes('user not found')) return 'E-mail não encontrado no nosso sistema.';
+        if (m.includes('already registered') || m.includes('email-already-in-use')) return 'Você já possui cadastro com este e-mail. Tente fazer login ao lado.';
+        if (m.includes('invalid login') || m.includes('creds') || m.includes('invalid-credential')) return 'E-mail ou senha incorretos.';
+        if (m.includes('user not found') || m.includes('user-not-found')) return 'E-mail não encontrado no nosso sistema.';
+        if (m.includes('weak-password')) return 'A senha informada é muito fraca. Digite uma senha mais forte.';
         return msg;
     };
 
