@@ -33,14 +33,9 @@ const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.C
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
 const SuperAdmin = lazy(() => import('./pages/admin/SuperAdmin').then(m => ({ default: m.SuperAdmin })));
 
-const LoadingFallback = () => (
-    <div className="min-h-screen flex items-center justify-center bg-brand-cotton">
-        <div className="flex flex-col items-center gap-4">
-            <Sparkles className="animate-spin text-brand-gold" size={48} />
-            <span className="font-display uppercase tracking-widest text-sm text-stone-400">Paz e Bem...</span>
-        </div>
-    </div>
-);
+import { LoadingScreen } from './components/ui/LoadingScreen';
+
+const LoadingFallback = () => <LoadingScreen />;
 
 function ChatBot() {
     const [open, setOpen] = useState(false);

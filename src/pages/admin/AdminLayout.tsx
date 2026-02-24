@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
@@ -8,20 +8,32 @@ import {
     Settings as SettingsIcon, FolderTree, BookOpen,
     User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star, Shield
 } from 'lucide-react';
-import { Dashboard } from './Dashboard';
-import { Inventory } from './Inventory';
-import { Orders } from './Orders';
-import { AddProduct } from './AddProduct';
-import { EditProduct } from './EditProduct';
-import { Settings } from './Settings';
-import { Categories } from './Categories';
-import { BlogAdmin } from './BlogAdmin';
-import { Customers } from './Customers';
-import { Coupons } from './Coupons';
-import { Waitlist } from './Waitlist';
-import { Reviews } from './Reviews';
 
+// Lazy loaded admin pages
+const Dashboard = lazy(() => import('./Dashboard').then(m => ({ default: m.Dashboard })));
+const Inventory = lazy(() => import('./Inventory').then(m => ({ default: m.Inventory })));
+const Orders = lazy(() => import('./Orders').then(m => ({ default: m.Orders })));
+const AddProduct = lazy(() => import('./AddProduct').then(m => ({ default: m.AddProduct })));
+const EditProduct = lazy(() => import('./EditProduct').then(m => ({ default: m.EditProduct })));
+const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
+const Categories = lazy(() => import('./Categories').then(m => ({ default: m.Categories })));
+const BlogAdmin = lazy(() => import('./BlogAdmin').then(m => ({ default: m.BlogAdmin })));
+const Customers = lazy(() => import('./Customers').then(m => ({ default: m.Customers })));
+const Coupons = lazy(() => import('./Coupons').then(m => ({ default: m.Coupons })));
+const Waitlist = lazy(() => import('./Waitlist').then(m => ({ default: m.Waitlist })));
+const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
 
+const AdminLoading = () => (
+    <div className="h-96 flex flex-col items-center justify-center gap-4">
+        <div className="relative">
+            <div className="w-10 h-10 border-2 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" />
+            <div className="absolute inset-0 bg-brand-gold/10 blur-xl rounded-full" />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Carregando painel...</span>
+    </div>
+);
+
+import { useEffect, useState } from 'react';
 export function AdminLayout() {
     const { user, logout } = useAuth();
     const { settings, currentStoreId } = useStore();
@@ -286,20 +298,22 @@ export function AdminLayout() {
                 </div>
 
                 <div className="p-4 md:p-8 pb-20 max-w-[1600px] mx-auto">
-                    <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/categories" element={<Categories />} />
-                        <Route path="/orders" element={<Orders />} />
-                        <Route path="/customers" element={<Customers />} />
-                        <Route path="/coupons" element={<Coupons />} />
-                        <Route path="/blog" element={<BlogAdmin />} />
-                        <Route path="/add-product" element={<AddProduct />} />
-                        <Route path="/edit-product/:id" element={<EditProduct />} />
-                        <Route path="/waitlist" element={<Waitlist />} />
-                        <Route path="/reviews" element={<Reviews />} />
-                        <Route path="/settings" element={<Settings />} />
-                    </Routes>
+                    <Suspense fallback={<AdminLoading />}>
+                        <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/categories" element={<Categories />} />
+                            <Route path="/orders" element={<Orders />} />
+                            <Route path="/customers" element={<Customers />} />
+                            <Route path="/coupons" element={<Coupons />} />
+                            <Route path="/blog" element={<BlogAdmin />} />
+                            <Route path="/add-product" element={<AddProduct />} />
+                            <Route path="/edit-product/:id" element={<EditProduct />} />
+                            <Route path="/waitlist" element={<Waitlist />} />
+                            <Route path="/reviews" element={<Reviews />} />
+                            <Route path="/settings" element={<Settings />} />
+                        </Routes>
+                    </Suspense>
 
                 </div>
             </main>
