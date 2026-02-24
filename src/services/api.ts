@@ -632,6 +632,14 @@ export const api = {
                 console.error('❌ [API] Erro ao listar usuários:', err);
                 return [];
             }
+        },
+        update: async (userId: string, data: any): Promise<void> => {
+            try {
+                await updateDoc(doc(db, 'users', userId), data);
+            } catch (err) {
+                console.error('❌ [API] Erro ao atualizar usuário:', err);
+                throw err;
+            }
         }
     },
     reviews: {

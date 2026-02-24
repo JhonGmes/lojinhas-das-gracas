@@ -452,7 +452,7 @@ export function OrderSuccess() {
                         <a
                             href={`https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(
                                 `Olá! 👋 Acabei de fazer um pedido no site.\n\n` +
-                                `📦 *PEDIDO #${orderId}*\n` +
+                                `📦 *PEDIDO ${order?.orderNumber ? `#${String(order.orderNumber).padStart(4, '0')}` : `#${orderId}`}*\n` +
                                 `--------------------------\n` +
                                 `${order?.items?.map((item: any) => `• ${item.quantity}x ${item.name}`).join('\n')}\n` +
                                 `--------------------------\n` +
@@ -469,10 +469,13 @@ export function OrderSuccess() {
                     </div>
 
                     <div className="pt-10 border-t border-stone-100 dark:border-stone-800 text-center">
-                        <Link to="/" className="text-xs font-black uppercase tracking-[0.3em] text-stone-400 hover:text-brand-gold transition-colors flex items-center justify-center gap-2 group">
+                        <button
+                            onClick={() => window.location.href = '/'}
+                            className="w-full text-xs font-black uppercase tracking-[0.3em] text-stone-400 hover:text-brand-gold transition-colors flex items-center justify-center gap-2 group py-4"
+                        >
                             <ArrowRight size={16} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
                             Voltar para a Loja
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>

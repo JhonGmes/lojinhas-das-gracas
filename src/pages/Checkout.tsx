@@ -23,6 +23,18 @@ export function Checkout() {
         `Olá! Tive um problema ao finalizar minha compra no site. Gostaria de continuar meu pedido de R$ ${formatCurrency(total)}.`
     )}`;
 
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        whatsapp: user?.whatsapp || '',
+        street: user?.customer_address_street || '',
+        number: user?.customer_address_number || '',
+        complement: user?.customer_address_complement || '',
+        neighborhood: user?.customer_address_neighborhood || '',
+        city: user?.customer_address_city || '',
+        state: user?.customer_address_state || '',
+        zipcode: user?.customer_address_zipcode || '',
+    });
+
     useEffect(() => {
         // Wait a small tick to ensure auth state is loaded from local storage / firebase
         const timeout = setTimeout(() => {
@@ -36,28 +48,54 @@ export function Checkout() {
         return () => clearTimeout(timeout);
     }, [user, navigate]);
 
+    const needsData = !user?.whatsapp || !user?.customer_address_street;
+
     const handlePay = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || items.length === 0) return;
+
+        // Validar dados se necessário
+        if (needsData) {
+            if (!formData.whatsapp || !formData.street || !formData.city) {
+                toast.error("Por favor, preencha todos os dados de entrega.");
+                return;
+            }
+        }
+
         setLoading(true);
         setPaymentError(null);
 
         try {
-            // 1. Create the Order FIRST (status pending)
+            // 1. Atualizar dados do usuário se necessário
+            if (needsData) {
+                await api.usuarios.update(user.id, {
+                    name: formData.name,
+                    whatsapp: formData.whatsapp,
+                    customer_address_street: formData.street,
+                    customer_address_number: formData.number,
+                    customer_address_complement: formData.complement,
+                    customer_address_neighborhood: formData.neighborhood,
+                    customer_address_city: formData.city,
+                    customer_address_state: formData.state,
+                    customer_address_zipcode: formData.zipcode,
+                });
+            }
+
+            // 2. Create the Order FIRST (status pending)
             const orderId = crypto.randomUUID().slice(0, 8);
             const orderData = {
                 id: orderId,
-                customerName: user.name || 'Cliente',
+                customerName: formData.name || user.name || 'Cliente',
                 customerEmail: user.email,
-                customerPhone: user.whatsapp || '',
+                customerPhone: formData.whatsapp || user.whatsapp || '',
                 customerAddress: {
-                    street: user.customer_address_street || user.address || '',
-                    number: user.customer_address_number || '',
-                    complement: user.customer_address_complement || '',
-                    neighborhood: user.customer_address_neighborhood || '',
-                    city: user.customer_address_city || '',
-                    state: user.customer_address_state || '',
-                    zipcode: user.customer_address_zipcode || '',
+                    street: formData.street || user.customer_address_street || user.address || '',
+                    number: formData.number || user.customer_address_number || '',
+                    complement: formData.complement || user.customer_address_complement || '',
+                    neighborhood: formData.neighborhood || user.customer_address_neighborhood || '',
+                    city: formData.city || user.customer_address_city || '',
+                    state: formData.state || user.customer_address_state || '',
+                    zipcode: formData.zipcode || user.customer_address_zipcode || '',
                 },
                 items: items,
                 total: total,
@@ -70,7 +108,7 @@ export function Checkout() {
             const createdOrder = await api.orders.create(orderData, currentStoreId);
             if (!createdOrder) throw new Error('ORDER_CREATION_FAILED');
 
-            // 2. Prepare Payload for InfinitePay (now with specific redirect_url)
+            // 3. Prepare Payload for InfinitePay (now with specific redirect_url)
             const infiniteItems = items.map(item => ({
                 description: item.name,
                 price: Math.round((item.promotionalPrice || item.price) * 100), // cents
@@ -84,9 +122,9 @@ export function Checkout() {
                 // REDIRECT URL NOW INCLUDES ORDER ID
                 redirect_url: `${window.location.origin}/pedido-confirmado/${orderId}?status=success`,
                 customer: {
-                    name: user.name || 'Cliente',
+                    name: formData.name || user.name || 'Cliente',
                     email: user.email,
-                    phone_number: `+${(user.whatsapp || '5598984095956').replace(/\D/g, '')}`
+                    phone_number: `+${(formData.whatsapp || user.whatsapp || '5598984095956').replace(/\D/g, '')}`
                 }
             };
 
@@ -114,7 +152,7 @@ export function Checkout() {
 
                 if (!checkoutUrl) throw new Error('EMPTY_URL');
 
-                // 3. SUCCESS! Redirect to payment
+                // 4. SUCCESS! Redirect to payment
                 window.location.href = checkoutUrl;
 
             } catch (proxyError: any) {
@@ -209,32 +247,122 @@ export function Checkout() {
                 <div className="lg:col-span-7 space-y-8">
                     <div className="flex items-center gap-3 border-b border-stone-100 dark:border-stone-800 pb-4">
                         <CreditCard className="text-brand-gold" size={24} />
-                        <h1 className="text-xl font-display font-medium uppercase tracking-tight">Pagamento</h1>
+                        <h1 className="text-xl font-display font-medium uppercase tracking-tight">Finalizar Compra</h1>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <button
-                            type="button"
-                            onClick={() => setPaymentMethod('credit')}
-                            className={`flex flex-col items-center justify-center p-4 border rounded-sm transition-all ${paymentMethod === 'credit'
-                                ? 'border-brand-gold bg-brand-gold/10 text-brand-wood'
-                                : 'border-stone-200 dark:border-stone-800 text-stone-400 hover:border-brand-gold/50'
-                                }`}
-                        >
-                            <CreditCard size={24} className="mb-2" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Crédito</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPaymentMethod('pix')}
-                            className={`flex flex-col items-center justify-center p-4 border rounded-sm transition-all ${paymentMethod === 'pix'
-                                ? 'border-brand-gold bg-brand-gold/10 text-brand-wood'
-                                : 'border-stone-200 dark:border-stone-800 text-stone-400 hover:border-brand-gold/50'
-                                }`}
-                        >
-                            <Banknote size={24} className="mb-2" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Pix</span>
-                        </button>
+                    {needsData && (
+                        <div className="space-y-6 bg-stone-50 dark:bg-stone-800/40 p-6 rounded-sm border border-stone-100 dark:border-stone-800 animate-fade-in-up">
+                            <div className="flex items-center gap-2 mb-2">
+                                <ShieldCheck className="text-green-500" size={18} />
+                                <h2 className="text-[11px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-300">Dados para Entrega</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">WhatsApp</label>
+                                    <input
+                                        type="text"
+                                        value={formData.whatsapp}
+                                        onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                                        placeholder="(00) 00000-0000"
+                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">CEP</label>
+                                    <input
+                                        type="text"
+                                        value={formData.zipcode}
+                                        onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
+                                        placeholder="00000-000"
+                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                    />
+                                </div>
+                                <div className="md:col-span-2 space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">Rua / Logradouro</label>
+                                    <input
+                                        type="text"
+                                        value={formData.street}
+                                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                                        placeholder="Nome da rua"
+                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 md:col-span-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">Número</label>
+                                        <input
+                                            type="text"
+                                            value={formData.number}
+                                            onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+                                            placeholder="123"
+                                            className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">Complemento</label>
+                                        <input
+                                            type="text"
+                                            value={formData.complement}
+                                            onChange={(e) => setFormData({ ...formData, complement: e.target.value })}
+                                            placeholder="Apt, Bloco..."
+                                            className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">Bairro</label>
+                                    <input
+                                        type="text"
+                                        value={formData.neighborhood}
+                                        onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
+                                        placeholder="Seu bairro"
+                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-stone-400">Cidade</label>
+                                    <input
+                                        type="text"
+                                        value={formData.city}
+                                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                        placeholder="Sua cidade"
+                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-sm px-3 py-2 text-xs focus:border-brand-gold outline-none transition-colors"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <ShieldCheck className="text-brand-gold" size={18} />
+                            <h2 className="text-[11px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-300">Método de Pagamento</h2>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod('credit')}
+                                className={`flex flex-col items-center justify-center p-4 border rounded-sm transition-all ${paymentMethod === 'credit'
+                                    ? 'border-brand-gold bg-brand-gold/10 text-brand-wood'
+                                    : 'border-stone-200 dark:border-stone-800 text-stone-400 hover:border-brand-gold/50'
+                                    }`}
+                            >
+                                <CreditCard size={24} className="mb-2" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Crédito</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod('pix')}
+                                className={`flex flex-col items-center justify-center p-4 border rounded-sm transition-all ${paymentMethod === 'pix'
+                                    ? 'border-brand-gold bg-brand-gold/10 text-brand-wood'
+                                    : 'border-stone-200 dark:border-stone-800 text-stone-400 hover:border-brand-gold/50'
+                                    }`}
+                            >
+                                <Banknote size={24} className="mb-2" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Pix</span>
+                            </button>
+                        </div>
                     </div>
 
                     <form onSubmit={handlePay} className="space-y-4">
