@@ -172,7 +172,9 @@ export const api = {
             try {
                 const q = query(collection(db, 'categories'), where('store_id', '==', storeId));
                 const querySnapshot = await getDocs(q);
-                return querySnapshot.docs.map(doc => doc.data().name as string).sort((a, b) => a.localeCompare(b));
+                const categoryNames = querySnapshot.docs.map(doc => doc.data().name as string);
+                // Deduplicate and sort
+                return Array.from(new Set(categoryNames)).sort((a, b) => a.localeCompare(b));
             } catch (err: any) {
                 console.error('Erro ao carregar categorias:', err.message);
                 return [];
