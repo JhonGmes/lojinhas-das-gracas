@@ -68,7 +68,7 @@ export function OrderDetailsModal({ order, onClose, onStatusUpdate }: OrderDetai
                 onClick={onClose}
             />
 
-            <div className="bg-white dark:bg-stone-900 w-full max-w-2xl rounded-lg shadow-2xl border border-stone-200 dark:border-stone-800 flex flex-col max-h-[92vh] relative z-10 overflow-hidden animate-scale-in">
+            <div className="bg-white dark:bg-stone-900 w-full max-w-4xl rounded-lg shadow-2xl border border-stone-200 dark:border-stone-800 flex flex-col max-h-[92vh] relative z-10 overflow-hidden animate-scale-in">
 
                 {/* Header Clean */}
                 <div className="px-6 py-4 bg-white dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
