@@ -8,7 +8,6 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
-    orderBy,
     serverTimestamp,
     limit
 } from 'firebase/firestore'
@@ -48,15 +47,18 @@ export const orderService = {
             try {
                 const q = query(
                     collection(db, 'orders'),
-                    where('store_id', '==', storeId),
-                    orderBy('created_at', 'desc')
+                    where('store_id', '==', storeId)
                 );
                 const querySnapshot = await getDocs(q);
                 return querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                     createdAt: doc.data().created_at?.toDate?.()?.toISOString() || doc.data().created_at
-                } as Order));
+                } as Order)).sort((a, b) => {
+                    const dateA = new Date(a.createdAt || 0).getTime();
+                    const dateB = new Date(b.createdAt || 0).getTime();
+                    return dateB - dateA;
+                });
             } catch (err: any) {
                 if (err.message?.includes('index')) {
                     console.error('❌ ERRO DE ÍNDICE NO FIREBASE: Você precisa criar um índice composto para "orders" no Console do Firebase (store_id ASC, created_at DESC).');

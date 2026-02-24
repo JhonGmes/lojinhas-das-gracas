@@ -9,7 +9,6 @@ import {
     limit,
     collection,
     addDoc,
-    orderBy,
     updateDoc,
     deleteDoc
 } from 'firebase/firestore'
@@ -71,9 +70,14 @@ export const storeService = {
         },
         list: async (storeId: string): Promise<any[]> => {
             try {
-                const q = query(collection(db, 'waiting_list'), where('store_id', '==', storeId), orderBy('created_at', 'desc'));
+                const q = query(collection(db, 'waiting_list'), where('store_id', '==', storeId));
                 const querySnapshot = await getDocs(q);
-                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a: any, b: any) => {
+                        const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
+                        const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
+                        return dateB.getTime() - dateA.getTime();
+                    });
             } catch (err: any) {
                 if (err.message?.includes('index')) {
                     console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Waitlist): Você precisa criar um índice composto para "waiting_list" no Console do Firebase (store_id ASC, created_at DESC).');

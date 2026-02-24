@@ -8,8 +8,7 @@ import {
     updateDoc,
     deleteDoc,
     serverTimestamp,
-    increment,
-    orderBy
+    increment
 } from 'firebase/firestore'
 import { db } from '../../../lib/firebase'
 import type { Review } from '../../../types'
@@ -19,11 +18,15 @@ export const reviewService = {
         try {
             const q = query(
                 collection(db, 'reviews'),
-                where('product_id', '==', productId),
-                orderBy('created_at', 'desc')
+                where('product_id', '==', productId)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any;
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a: any, b: any) => {
+                    const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
+                    const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
+                    return dateB.getTime() - dateA.getTime();
+                }) as any;
         } catch (err: any) {
             if (err.message?.includes('index')) {
                 console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Reviews): Você precisa criar um índice composto. Clique no link no erro abaixo.');
@@ -37,11 +40,15 @@ export const reviewService = {
         try {
             const q = query(
                 collection(db, 'reviews'),
-                where('store_id', '==', storeId),
-                orderBy('created_at', 'desc')
+                where('store_id', '==', storeId)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                .sort((a: any, b: any) => {
+                    const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
+                    const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
+                    return dateB.getTime() - dateA.getTime();
+                });
         } catch (err: any) {
             if (err.message?.includes('index')) {
                 console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Reviews): Você precisa criar um índice composto. Clique no link no erro abaixo.');
