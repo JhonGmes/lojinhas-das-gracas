@@ -1,73 +1,22 @@
-import { useEffect, useState } from 'react';
-import { api } from '../../services/api';
+import { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import type { Order } from '../../types';
 import { formatCurrency, exportToCSV } from '../../lib/utils';
 import { RefreshCw, CheckCircle2, XCircle, Clock, Package, ShoppingBag, Download } from 'lucide-react';
 import { OrderDetailsModal } from '../../components/admin/OrderDetailsModal';
-import { toast } from 'react-hot-toast';
+import { useOrders } from '../../hooks/useOrders';
 
 export function Orders() {
-    const [orders, setOrders] = useState<Order[]>([]);
     const { currentStoreId, settings } = useStore();
-    const [loading, setLoading] = useState(true);
+    const { orders, isLoading, updateStatus, deleteOrder } = useOrders(currentStoreId, settings.notification_sound_url);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-    const playNotificationSound = () => {
-        // Voz da Gracinha (Customizável nas Configurações)
-        const audio = new Audio(settings.notification_sound_url || 'https://assets.mixkit.co/active_storage/sfx/2042/2042-preview.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('Audio play failed:', e));
-    };
     const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'delivered' | 'cancelled'>('all');
 
-    const loadOrders = async (silent = false) => {
-        if (!silent) setLoading(true);
-        try {
-            const data = await api.orders.list(currentStoreId);
-
-            // Detectar novos pedidos
-            if (orders.length > 0 && data.length > orders.length) {
-                const newCount = data.length - orders.length;
-                playNotificationSound();
-                toast.success(`${newCount} ${newCount === 1 ? 'novo pedido' : 'novos pedidos'}!`, {
-                    icon: '🔔',
-                    duration: 5000,
-                    style: {
-                        background: '#D4AF37',
-                        color: '#2d2a28',
-                        fontSize: '12px',
-                        fontWeight: '900'
-                    }
-                });
-            }
-
-            setOrders(data);
-        } finally {
-            if (!silent) setLoading(false);
-        }
-    };
-
     const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
-        try {
-            const order = orders.find(o => o.id === orderId);
-            if (newStatus === 'paid' && order) {
-                await api.orders.confirmPayment(order);
-            } else {
-                await api.orders.updateStatus(orderId, newStatus);
-            }
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-            toast.success('Status atualizado!', { icon: '✓' });
-        } catch (error) {
-            toast.error('Erro ao atualizar status');
-        }
+        const order = orders.find(o => o.id === orderId);
+        await updateStatus({ orderId, newStatus, currentOrder: order });
     };
 
-    useEffect(() => {
-        loadOrders();
-        const interval = setInterval(() => loadOrders(true), 30000);
-        return () => clearInterval(interval);
-    }, [currentStoreId]);
 
     const getStatusConfig = (status: Order['status']) => {
         switch (status) {
@@ -91,7 +40,7 @@ export function Orders() {
         delivered: orders.filter(o => o.status === 'delivered').length
     };
 
-    if (loading && orders.length === 0) return (
+    if (isLoading) return (
         <div className="h-96 flex items-center justify-center">
             <RefreshCw className="animate-spin text-brand-gold" size={24} />
         </div>
@@ -99,13 +48,7 @@ export function Orders() {
 
     const handleDeleteOrder = async (orderId: string) => {
         if (!confirm('Tem certeza que deseja excluir este pedido? Esta ação é irreversível.')) return;
-        try {
-            await api.orders.delete(orderId);
-            setOrders(prev => prev.filter(o => o.id !== orderId));
-            toast.success('Pedido excluído.');
-        } catch (error) {
-            toast.error('Erro ao excluir pedido.');
-        }
+        await deleteOrder(orderId);
     };
 
     const getFormattedOrderNumber = (order: Order) => {

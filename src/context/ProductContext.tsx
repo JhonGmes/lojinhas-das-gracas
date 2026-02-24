@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import type { Product } from '../types';
-import { api } from '../services/api';
 import { useStore } from './StoreContext';
+import { useProducts as useProductsHook } from '../hooks/useProducts';
 
 interface ProductContextType {
     products: Product[];
@@ -21,72 +21,54 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
     const { currentStoreId } = useStore();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        products,
+        categories,
+        isLoading,
+        refresh,
+        updateProduct: mutateUpdate,
+        createProduct: mutateCreate,
+        deleteProduct: mutateDelete,
+        addCategory: mutateAddCat,
+        deleteCategory: mutateDelCat
+    } = useProductsHook(currentStoreId);
 
-    const refreshProducts = async () => {
-        try {
-            const data = await api.products.list(currentStoreId);
-            setProducts(data);
-        } catch (error) {
-            console.error("Failed to fetch products", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const refreshCategories = async () => {
-        try {
-            const data = await api.categories.list(currentStoreId);
-            setCategories(data);
-        } catch (error) {
-            console.error("Failed to fetch categories", error);
-        }
-    };
-
-    useEffect(() => {
-        if (currentStoreId) {
-            refreshProducts();
-            refreshCategories();
-        }
-    }, [currentStoreId]);
+    const refreshProducts = async () => { refresh(); };
+    const refreshCategories = async () => { refresh(); };
 
     const updateProduct = async (product: Product) => {
-        await api.products.update(product);
-        await refreshProducts();
+        await mutateUpdate(product);
     };
 
     const updateStock = async (id: string, newStock: number) => {
-        await api.products.updateStock(id, newStock);
-        await refreshProducts();
+        // Encontrar o produto atual e atualizar apenas o estoque
+        const product = products.find(p => p.id === id);
+        if (product) {
+            await mutateUpdate({ ...product, stock: newStock });
+        }
     }
 
     const createProduct = async (product: Omit<Product, 'id'>) => {
-        await api.products.create(product, currentStoreId);
-        await refreshProducts();
+        await mutateCreate(product);
     }
 
     const deleteProduct = async (id: string) => {
-        await api.products.delete(id);
-        await refreshProducts();
+        await mutateDelete(id);
     }
 
     const addCategory = async (name: string) => {
-        await api.categories.create(name, currentStoreId);
-        await refreshCategories();
+        await mutateAddCat(name);
     }
 
     const deleteCategory = async (name: string) => {
-        await api.categories.delete(name);
-        await refreshCategories();
+        await mutateDelCat(name);
     }
 
     return (
         <ProductContext.Provider value={{
             products,
             categories,
-            loading,
+            loading: isLoading,
             refreshProducts,
             refreshCategories,
             updateProduct,

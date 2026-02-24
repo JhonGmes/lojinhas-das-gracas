@@ -13,16 +13,6 @@ export const Wishlist: React.FC = () => {
 
     const handleAddToCart = (product: any) => {
         addToCart(product, 1);
-        toast.success(`Adicionado ao carrinho! 🛒`, {
-            style: {
-                background: '#2d2a28',
-                color: '#fff',
-                fontSize: '11px',
-                fontWeight: '900',
-                borderRadius: '2px',
-                border: '1px solid #d4af37'
-            }
-        });
     };
 
     const handleShare = () => {

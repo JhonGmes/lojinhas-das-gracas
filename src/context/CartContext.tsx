@@ -54,21 +54,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
             return [...prev, { ...product, quantity }];
         });
-        toast.success(`${product.name} adicionado ao carrinho!`, {
+        toast.success(`Adicionado ao carrinho! 🛒`, {
             style: {
-                fontSize: '10px',
-                fontWeight: '900',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                borderRadius: '2px',
                 background: '#2d2a28',
                 color: '#fff',
+                fontSize: '11px',
+                fontWeight: '900',
+                borderRadius: '2px',
                 border: '1px solid #d4af37'
-            },
-            iconTheme: {
-                primary: '#d4af37',
-                secondary: '#fff',
-            },
+            }
         });
     };
 

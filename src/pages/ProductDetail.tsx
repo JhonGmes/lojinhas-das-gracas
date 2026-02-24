@@ -62,7 +62,6 @@ export function ProductDetail() {
         if (product) {
             if (product.stock > 0) {
                 addToCart(product, 1);
-                toast.success('Adicionado ao carrinho! 🛒');
             } else {
                 setShowNotifyModal(true);
             }
