@@ -31,11 +31,11 @@ export function OrderSuccess() {
 
     const pixKey = settings.pix_key || "seu-pix-aqui@email.com";
 
-    // Efeito de Confete Vibrante
+    // Efeito de Confete Vibrante (Suavizado para performance)
     const triggerConfetti = () => {
-        const duration = 5 * 1000;
+        const duration = 2.5 * 1000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+        const defaults = { startVelocity: 20, spread: 360, ticks: 40, zIndex: 1000 };
 
         const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -46,10 +46,10 @@ export function OrderSuccess() {
                 return clearInterval(interval);
             }
 
-            const particleCount = 50 * (timeLeft / duration);
+            const particleCount = 20 * (timeLeft / duration);
             confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
             confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-        }, 250);
+        }, 400);
     };
 
     const pixPayload = useMemo(() => {
