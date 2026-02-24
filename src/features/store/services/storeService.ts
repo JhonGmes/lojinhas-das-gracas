@@ -74,8 +74,12 @@ export const storeService = {
                 const q = query(collection(db, 'waiting_list'), where('store_id', '==', storeId), orderBy('created_at', 'desc'));
                 const querySnapshot = await getDocs(q);
                 return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            } catch {
-                return [];
+            } catch (err: any) {
+                if (err.message?.includes('index')) {
+                    console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Waitlist): Você precisa criar um índice composto para "waiting_list" no Console do Firebase (store_id ASC, created_at DESC).');
+                }
+                console.warn('⚠️ Buscando lista de espera localmente:', err.message);
+                return JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
             }
         },
         update: async (id: string, data: any): Promise<void> => {
