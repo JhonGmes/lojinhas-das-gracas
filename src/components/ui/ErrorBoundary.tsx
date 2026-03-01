@@ -53,7 +53,13 @@ export class ErrorBoundary extends Component<Props, State> {
                         {/* Actions */}
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={() => this.setState({ hasError: false, error: null })}
+                                onClick={() => {
+                                    if (this.state.error?.message?.includes('fetch') || this.state.error?.message?.includes('import')) {
+                                        window.location.reload();
+                                    } else {
+                                        this.setState({ hasError: false, error: null });
+                                    }
+                                }}
                                 className="flex items-center justify-center gap-2 w-full bg-brand-gold text-brand-wood py-3 rounded-sm font-black text-[11px] uppercase tracking-widest hover:bg-brand-wood hover:text-white transition-all"
                             >
                                 <RefreshCw size={14} />
