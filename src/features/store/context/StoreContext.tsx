@@ -170,6 +170,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (storeSlug) {
                 if (storeSlug === 'lojinhadas-gracas' || storeSlug === 'lojinhas-das-gracas') {
                     setCurrentStoreId(DEFAULT_STORE_ID);
+                    setIsMainDomain(false);
                     return;
                 }
                 try {
@@ -184,13 +185,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // 2. Detecção via Hostname (Subdomínio)
-            if (
-                host.includes('lojinhadas-gracas') ||
-                host.includes('lojinhas-das-gracas') ||
-                host === 'lojinhas-das-gracas.vercel.app'
-            ) {
+            // 2. Detecção via Hostname (Domínio Principal ou Subdomínio)
+            const isMainVercel = host === 'lojinhas-das-gracas.vercel.app' ||
+                host === 'lojinhadas-gracas.vercel.app';
+
+            if (isMainVercel || host.includes('lojinhas-das-gracas') || host.includes('lojinhadas-gracas')) {
+                // Se for o domínio principal e NÃO houver parâmetro ?shop, é a Landing Page
+                if (isMainVercel && !storeSlug) {
+                    setIsMainDomain(true);
+                    setCurrentStoreId(DEFAULT_STORE_ID);
+                    return;
+                }
+
+                // Caso contrário, é o acesso à loja padrão
                 setCurrentStoreId(DEFAULT_STORE_ID);
+                setIsMainDomain(false);
                 return;
             }
 
