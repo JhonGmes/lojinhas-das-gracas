@@ -419,9 +419,9 @@ export function Settings() {
                     </div>
 
                     {formData.logo_url && (
-                        <div className="p-4 bg-stone-50 dark:bg-stone-900 rounded-xl flex flex-col items-center gap-2">
+                        <div className="p-4 rounded-xl flex flex-col items-center gap-2">
                             <div className="text-[10px] font-bold text-stone-400 uppercase tracking-widest self-start">Prévia:</div>
-                            <img src={formData.logo_url} className="h-16 object-contain" alt="Preview" />
+                            <img src={formData.logo_url} className="h-24 object-contain drop-shadow-md" alt="Preview" />
                             <button
                                 onClick={() => setFormData({ ...formData, logo_url: '' })}
                                 className="text-[10px] text-red-500 hover:underline uppercase font-bold"

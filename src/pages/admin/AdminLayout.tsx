@@ -162,13 +162,22 @@ export function AdminLayout() {
             {/* Sidebar Moderno */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-[#2A3F54] text-stone-300 flex flex-col shadow-2xl font-sans shrink-0 transition-all duration-300 border-r border-white/5 overflow-hidden md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 {/* Brand Header - Compacted & Elegant */}
-                <div className="h-12 flex items-center px-4 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0">
+                <div className="h-16 flex items-center px-4 bg-[#1f2f3f] shadow-sm relative overflow-hidden group shrink-0 border-b border-white/5">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-2xl -translate-y-8 translate-x-8 pointer-events-none" />
 
-                    <div className="w-7 h-7 bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold mr-2.5 shadow-lg shadow-brand-gold/20 shrink-0 transform group-hover:scale-105 transition-transform duration-500">
-                        {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
+                    <div className="w-10 h-10 flex items-center justify-center mr-2.5 shrink-0 transition-transform duration-500 hover:scale-105">
+                        {settings.logo_url ? (
+                            <img
+                                src={settings.logo_url}
+                                className="max-w-full max-h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-brand-gold to-amber-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-brand-gold/20">
+                                {storeInitials}
+                            </div>
+                        )}
                     </div>
-                    <span className="font-script text-xl text-white truncate drop-shadow-sm flex-1 leading-none py-1" style={{ fontFamily: "'Cookie', cursive" }}>
+                    <span className="font-script text-2xl text-white truncate drop-shadow-sm flex-1 leading-none py-1" style={{ fontFamily: "'Cookie', cursive" }}>
                         {settings.store_name}
                     </span>
                     <button className="md:hidden ml-auto text-stone-400 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
@@ -325,12 +334,23 @@ export function AdminLayout() {
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto relative bg-[#F7F7F7] dark:bg-stone-900 scrollbar-hide">
                 {/* Mobile Header */}
-                <div className="md:hidden bg-[#2A3F54] text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-30">
+                <div className="md:hidden bg-[#2A3F54] text-white p-4 flex items-center justify-between shadow-md sticky top-0 z-30 h-16">
                     <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 bg-brand-gold rounded-lg flex items-center justify-center text-white font-bold text-[10px]">
-                            {settings.logo_url ? <img src={settings.logo_url} className="w-full h-full object-cover rounded-lg" /> : storeInitials}
+                        <div className="w-10 h-10 flex items-center justify-center">
+                            {settings.logo_url ? (
+                                <img
+                                    src={settings.logo_url}
+                                    className="max-w-full max-h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
+                                />
+                            ) : (
+                                <div className="w-8 h-8 bg-brand-gold rounded-lg flex items-center justify-center text-white font-bold text-[10px]">
+                                    {storeInitials}
+                                </div>
+                            )}
                         </div>
-                        <span className="font-display font-medium uppercase tracking-widest text-[10px]">{settings.store_name}</span>
+                        <span className="font-script text-2xl text-white truncate py-1" style={{ fontFamily: "'Cookie', cursive" }}>
+                            {settings.store_name}
+                        </span>
                     </div>
                     <button className="p-2 text-stone-300 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(true)}>
                         <Menu size={24} />

@@ -26,10 +26,16 @@ export async function compressImage(file: File, maxWidth = 1000, quality = 0.7):
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return reject(new Error('Canvas context not available'));
 
+                // Limpa o canvas para garantir transparência (importante para PNG)
+                ctx.clearRect(0, 0, width, height);
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Converte para JPEG com compressão
-                const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                // Detecta se deve manter a transparência
+                const isTransparent = file.type === 'image/png' || file.type === 'image/webp';
+                const outputType = isTransparent ? 'image/webp' : 'image/jpeg';
+
+                // Converte com a qualidade definida
+                const compressedBase64 = canvas.toDataURL(outputType, quality);
                 resolve(compressedBase64);
             };
             img.onerror = () => reject(new Error('Erro ao carregar imagem para compressão'));

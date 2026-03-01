@@ -118,9 +118,8 @@ function AppRoutes() {
                 <Suspense fallback={<LoadingFallback />}>
                     <Routes>
                         {/* Public Routes */}
-                        <Route path="/" element={
-                            isMainDomain ? <SaaSLandingPage /> : <Layout><Home /></Layout>
-                        } />
+                        <Route path="/" element={<Layout><Home /></Layout>} />
+                        <Route path="/plataforma" element={<SaaSLandingPage />} />
                         <Route path="/comecar" element={<RegisterStore />} />
                         <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
                         <Route path="/cart" element={<Layout><Cart /></Layout>} />

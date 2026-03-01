@@ -36,7 +36,6 @@ interface StoreContextType {
     setStore: (id: string) => void;
     updateSettings: (newSettings: Partial<StoreSettings>) => Promise<void>;
     hasFeature: (feature: 'blog' | 'coupons' | 'wishlist' | 'metrics_pro') => boolean;
-    isMainDomain: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -67,7 +66,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [isMainDomain, setIsMainDomain] = useState(false);
 
     const DEFAULT_SETTINGS = {
         id: DEFAULT_STORE_ID,
@@ -170,7 +168,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (storeSlug) {
                 if (storeSlug === 'lojinhadas-gracas' || storeSlug === 'lojinhas-das-gracas') {
                     setCurrentStoreId(DEFAULT_STORE_ID);
-                    setIsMainDomain(false);
                     return;
                 }
                 try {
@@ -192,14 +189,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (isMainVercel || host.includes('lojinhas-das-gracas') || host.includes('lojinhadas-gracas')) {
                 // Se for o domínio principal e NÃO houver parâmetro ?shop, é a Landing Page
                 if (isMainVercel && !storeSlug) {
-                    setIsMainDomain(true);
                     setCurrentStoreId(DEFAULT_STORE_ID);
                     return;
                 }
 
                 // Caso contrário, é o acesso à loja padrão
                 setCurrentStoreId(DEFAULT_STORE_ID);
-                setIsMainDomain(false);
                 return;
             }
 
@@ -231,23 +226,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 console.warn("Custom domain check failed:", e);
             }
 
-            // 4. Fallback: Se nenhuma loja for encontrada, redirecionar ou usar padrão
-            if (host !== 'localhost' && !host.includes('127.0.0.1')) {
-                // Se não cair nos critérios acima e for o domínio raiz
-                const isRoot = host === 'lojinhas-das-gracas.vercel.app' || host.split('.').length === 2;
-                setIsMainDomain(isRoot);
-
-                if (!isRoot) {
-                    console.warn('Loja não encontrada para o host:', host);
-                }
-            } else {
-                // Em localhost, podemos simular via query param ou assumir main domain se não houver shop param
-                if (!storeSlug) {
-                    setIsMainDomain(true);
-                } else {
-                    setIsMainDomain(false);
-                }
-            }
+            // 4. Fallback: Se nenhuma loja for encontrada, usar padrão
+            setCurrentStoreId(DEFAULT_STORE_ID);
         };
         detectStore();
     }, []);
@@ -291,7 +271,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore, updateSettings, hasFeature, isMainDomain }}>
+        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore, updateSettings, hasFeature }}>
             {children}
         </StoreContext.Provider>
     );

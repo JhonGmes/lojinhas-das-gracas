@@ -73,7 +73,13 @@ export function Login() {
 
                 <div className="relative z-10 flex flex-col items-center gap-6">
                     {storeSettings?.logo_url ? (
-                        <img src={storeSettings.logo_url} className="w-48 h-48 object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500" alt="Logo" />
+                        <div className="w-56 h-32 flex items-center justify-center p-4">
+                            <img
+                                src={storeSettings.logo_url}
+                                className="max-w-full max-h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-500"
+                                alt="Logo"
+                            />
+                        </div>
                     ) : (
                         <Store size={80} className="text-brand-gold drop-shadow-lg" />
                     )}
