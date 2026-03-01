@@ -4,8 +4,7 @@ import { useStore } from '../../features/store/context/StoreContext';
 import { formatCurrency } from '../../lib/utils';
 import {
     TrendingUp, ShoppingBag, Users, DollarSign,
-    Calendar, ArrowUpRight, ArrowDownRight,
-    Search, Filter, ChevronRight, PieChart, BarChart3, LineChart
+    ArrowUpRight, PieChart, BarChart3, LineChart, Sparkles
 } from 'lucide-react';
 
 export function Metrics() {
@@ -67,8 +66,8 @@ export function Metrics() {
                             key={t}
                             onClick={() => setTimeframe(t)}
                             className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${timeframe === t
-                                    ? 'bg-brand-gold text-white shadow-sm'
-                                    : 'bg-white dark:bg-stone-800 text-stone-400 hover:text-stone-600 border border-stone-100 dark:border-stone-700'
+                                ? 'bg-brand-gold text-white shadow-sm'
+                                : 'bg-white dark:bg-stone-800 text-stone-400 hover:text-stone-600 border border-stone-100 dark:border-stone-700'
                                 }`}
                         >
                             {t === '7d' ? '7 Dias' : t === '30d' ? '30 Dias' : '90 Dias'}
