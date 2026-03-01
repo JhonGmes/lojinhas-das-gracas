@@ -23,6 +23,7 @@ const Coupons = lazy(() => import('./Coupons').then(m => ({ default: m.Coupons }
 const Waitlist = lazy(() => import('./Waitlist').then(m => ({ default: m.Waitlist })));
 const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
 const BillingDashboard = lazy(() => import('./BillingDashboard').then(m => ({ default: m.BillingDashboard })));
+const Metrics = lazy(() => import('./Metrics').then(m => ({ default: m.Metrics })));
 
 const AdminLoading = () => (
     <div className="h-96 flex flex-col items-center justify-center gap-4">
@@ -351,6 +352,7 @@ export function AdminLayout() {
                             <Route path="/edit-product/:id" element={<EditProduct />} />
                             <Route path="/waitlist" element={<Waitlist />} />
                             <Route path="/reviews" element={<Reviews />} />
+                            <Route path="/metrics" element={<PlanGuard feature="metrics_pro"><Metrics /></PlanGuard>} />
                             <Route path="/settings" element={<Settings />} />
                         </Routes>
                     </Suspense>
