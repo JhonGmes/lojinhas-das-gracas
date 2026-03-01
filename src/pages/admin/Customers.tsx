@@ -45,7 +45,7 @@ export function Customers() {
                     if (!map[email]) {
                         map[email] = {
                             email: order.customerEmail || email,
-                            name: order.customerName,
+                            name: order.customerName || 'Cliente sem nome',
                             phone: order.customerPhone || 'N/A',
                             orderCount: 0,
                             totalSpent: 0,
@@ -85,8 +85,8 @@ export function Customers() {
     }, []);
 
     const filteredCustomers = customers.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const stats = {
