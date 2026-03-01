@@ -299,6 +299,42 @@ export function Settings() {
                     <p className="text-[9px] text-stone-400 italic">O plano Pro desbloqueia Blog, Cupons, Wishlist e Métricas Avançadas.</p>
                 </div>
 
+                {/* Domínio & Acesso */}
+                <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Globe className="text-blue-500" size={20} />
+                        <h2 className="font-bold text-stone-700 dark:text-stone-200">Domínio & Acesso</h2>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+                            Domínio Personalizado
+                            {formData.plan !== 'pro' && (
+                                <span className="text-[8px] bg-stone-100 dark:bg-white/5 text-stone-400 px-1.5 py-0.5 rounded-full font-black uppercase flex items-center gap-1">
+                                    <Sparkles size={8} /> Pro
+                                </span>
+                            )}
+                        </label>
+                        <div className="relative group">
+                            <input
+                                type="text"
+                                value={formData.custom_domain || ''}
+                                disabled={formData.plan !== 'pro'}
+                                onChange={e => setFormData({ ...formData, custom_domain: e.target.value.toLowerCase().replace(/https?:\/\//, '') })}
+                                className={`w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-gold transition-colors ${formData.plan !== 'pro' ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                                placeholder="exemplo.com.br"
+                            />
+                            {formData.plan !== 'pro' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-transparent group-hover:bg-stone-900/5 transition-colors cursor-not-allowed rounded-xl" onClick={() => toast("Upgrade para o plano Pro para usar domínios personalizados!")}>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-[9px] text-stone-400 italic leading-tight">
+                            Aponte seu domínio (CNAME) para lojinhas-das-gracas.vercel.app para ativar.
+                        </p>
+                    </div>
+                </div>
+
 
                 {/* Páginas Institucionais */}
                 <div className="bg-white dark:bg-stone-800 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-700 space-y-4">

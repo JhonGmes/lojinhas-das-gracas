@@ -15,7 +15,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
-    signup: (data: { email: string; pass: string; name: string; whatsapp?: string; address?: string; storeId?: string }) => Promise<{ success: boolean; message?: string }>;
+    signup: (data: { email: string; pass: string; name: string; whatsapp?: string; address?: string; storeId?: string; role?: string }) => Promise<{ success: boolean; message?: string }>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>;
     updatePassword: (pass: string) => Promise<{ success: boolean; message?: string }>;
@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 id: firebaseUser.uid,
                 email: data.email,
                 name: data.name,
-                role: 'customer',
+                role: data.role || 'customer',
                 store_id: data.storeId || 'lojinhadas-gracas',
                 whatsapp: data.whatsapp,
                 address: data.address

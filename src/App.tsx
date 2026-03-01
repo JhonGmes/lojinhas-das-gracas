@@ -3,7 +3,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
-import { StoreProvider } from './context/StoreContext';
+import { StoreProvider, useStore } from './features/store/context/StoreContext';
+import { BillingProvider } from './features/billing/context/BillingContext';
 import { BlogProvider } from './context/BlogContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { HelmetProvider } from 'react-helmet-async';
@@ -33,6 +34,8 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess').then(m => ({ default: m.OrderSuccess })));
 const SuperAdmin = lazy(() => import('./pages/admin/SuperAdmin').then(m => ({ default: m.SuperAdmin })));
+const RegisterStore = lazy(() => import('./pages/RegisterStore'));
+const SaaSLandingPage = lazy(() => import('./pages/SaaSLandingPage'));
 
 import { LoadingScreen } from './components/ui/LoadingScreen';
 
@@ -105,58 +108,70 @@ function ChatBot() {
     )
 }
 
+function AppRoutes() {
+    const { isMainDomain } = useStore();
+    return (
+        <BrowserRouter>
+            <ScrollToTop />
+            <Toaster position="top-right" />
+            <ErrorBoundary whatsappNumber="5598984095956">
+                <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={
+                            isMainDomain ? <SaaSLandingPage /> : <Layout><Home /></Layout>
+                        } />
+                        <Route path="/comecar" element={<RegisterStore />} />
+                        <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
+                        <Route path="/cart" element={<Layout><Cart /></Layout>} />
+                        <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
+                        <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
+                        <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
+                        <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
+                        <Route path="/pedido-confirmado/:id" element={<Layout><OrderSuccess /></Layout>} />
+                        <Route path="/404-loja" element={<StoreNotFound />} />
+                        <Route path="*" element={<Layout><Home /></Layout>} />
+
+                        {/* Blog Routes */}
+                        <Route path="/blog" element={<Layout><BlogList /></Layout>} />
+                        <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
+
+                        {/* Auth Routes */}
+                        <Route path="/login" element={<Layout><Identification /></Layout>} />
+                        <Route path="/admin-login" element={<Login />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+
+                        {/* Secure Routes */}
+                        <Route path="/admin/super" element={<SuperAdmin />} />
+                        <Route path="/admin/*" element={<AdminLayout />} />
+
+                        {/* Catch All */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Suspense>
+            </ErrorBoundary>
+            <ChatBot />
+        </BrowserRouter>
+    );
+}
+
 function App() {
     return (
         <HelmetProvider>
             <ThemeProvider>
                 <AuthProvider>
                     <StoreProvider>
-                        <BlogProvider>
-                            <ProductProvider>
-                                <WishlistProvider>
-                                    <CartProvider>
-                                        <BrowserRouter>
-                                            <ScrollToTop />
-                                            <Toaster position="top-right" />
-                                            <ErrorBoundary whatsappNumber="5598984095956">
-                                                <Suspense fallback={<LoadingFallback />}>
-                                                    <Routes>
-                                                        {/* Public Routes */}
-                                                        <Route path="/" element={<Layout><Home /></Layout>} />
-                                                        <Route path="/product/:id" element={<Layout><ProductDetail /></Layout>} />
-                                                        <Route path="/cart" element={<Layout><Cart /></Layout>} />
-                                                        <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
-                                                        <Route path="/checkout" element={<Layout><Checkout /></Layout>} />
-                                                        <Route path="/quem-somos" element={<Layout><AboutUs /></Layout>} />
-                                                        <Route path="/privacidade" element={<Layout><PrivacyPolicy /></Layout>} />
-                                                        <Route path="/pedido-confirmado/:id" element={<Layout><OrderSuccess /></Layout>} />
-                                                        <Route path="/404-loja" element={<StoreNotFound />} />
-                                                        <Route path="*" element={<Layout><Home /></Layout>} />
-
-                                                        {/* Blog Routes */}
-                                                        <Route path="/blog" element={<Layout><BlogList /></Layout>} />
-                                                        <Route path="/blog/:id" element={<Layout><BlogDetail /></Layout>} />
-
-                                                        {/* Auth Routes */}
-                                                        <Route path="/login" element={<Layout><Identification /></Layout>} />
-                                                        <Route path="/admin-login" element={<Login />} />
-                                                        <Route path="/reset-password" element={<ResetPassword />} />
-
-                                                        {/* Secure Routes */}
-                                                        <Route path="/admin/super" element={<SuperAdmin />} />
-                                                        <Route path="/admin/*" element={<AdminLayout />} />
-
-                                                        {/* Catch All */}
-                                                        <Route path="*" element={<Navigate to="/" replace />} />
-                                                    </Routes>
-                                                </Suspense>
-                                            </ErrorBoundary>
-                                            <ChatBot />
-                                        </BrowserRouter>
-                                    </CartProvider>
-                                </WishlistProvider>
-                            </ProductProvider>
-                        </BlogProvider>
+                        <BillingProvider>
+                            <BlogProvider>
+                                <ProductProvider>
+                                    <WishlistProvider>
+                                        <CartProvider>
+                                            <AppRoutes />
+                                        </CartProvider>
+                                    </WishlistProvider>
+                                </ProductProvider>
+                            </BlogProvider>
+                        </BillingProvider>
                     </StoreProvider>
                 </AuthProvider>
             </ThemeProvider>

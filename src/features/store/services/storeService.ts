@@ -36,6 +36,12 @@ export const storeService = {
             try {
                 const payload = { ...settings, updated_at: serverTimestamp() };
                 const id = settings.id || settings.store_id || 'lojinhadas-gracas';
+
+                // Verificação de segurança: Garantir que o ID corresponde ao store_id
+                if (settings.store_id && id !== settings.store_id) {
+                    throw new Error('Inconsistência de IDs na atualização de configurações.');
+                }
+
                 await setDoc(doc(db, 'store_settings', id), payload, { merge: true });
             } catch (err: any) {
                 console.error('❌ Erro crítico ao salvar configurações no Firebase:', err.message);
@@ -72,12 +78,18 @@ export const storeService = {
             try {
                 const q = query(collection(db, 'waiting_list'), where('store_id', '==', storeId));
                 const querySnapshot = await getDocs(q);
-                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                    .sort((a: any, b: any) => {
-                        const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
-                        const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
-                        return dateB.getTime() - dateA.getTime();
-                    });
+                return querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at || new Date(0).toISOString()
+                    };
+                }).sort((a: any, b: any) => {
+                    const dateA = new Date(a.created_at).getTime();
+                    const dateB = new Date(b.created_at).getTime();
+                    return dateB - dateA;
+                });
             } catch (err: any) {
                 if (err.message?.includes('index')) {
                     console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Waitlist): Você precisa criar um índice composto para "waiting_list" no Console do Firebase (store_id ASC, created_at DESC).');
@@ -88,7 +100,14 @@ export const storeService = {
         },
         update: async (id: string, data: any): Promise<void> => {
             try {
-                await updateDoc(doc(db, 'waiting_list', id), data);
+                const docRef = doc(db, 'waiting_list', id);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists() || docSnap.data()?.store_id !== data.store_id) {
+                    throw new Error('Permissão negada (lista de espera).');
+                }
+
+                await updateDoc(docRef, data);
             } catch {
                 const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
                 const idx = waitlist.findIndex((w: any) => w.id === id);
@@ -98,9 +117,16 @@ export const storeService = {
                 }
             }
         },
-        delete: async (id: string): Promise<void> => {
+        delete: async (id: string, storeId: string): Promise<void> => {
             try {
-                await deleteDoc(doc(db, 'waiting_list', id));
+                const docRef = doc(db, 'waiting_list', id);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+                    throw new Error('Permissão negada (lista de espera).');
+                }
+
+                await deleteDoc(docRef);
             } catch {
                 const waitlist = JSON.parse(localStorage.getItem('ljg_waitlist') || '[]');
                 const filtered = waitlist.filter((w: any) => w.id !== id);
@@ -108,4 +134,4 @@ export const storeService = {
             }
         }
     }
-}
+};

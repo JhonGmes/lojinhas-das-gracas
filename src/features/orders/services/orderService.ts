@@ -131,23 +131,35 @@ export const orderService = {
             }
         },
 
-        getById: async (id: string): Promise<Order | null> => {
+        getById: async (id: string, storeId?: string): Promise<Order | null> => {
             try {
                 const docRef = doc(db, 'orders', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    return { id: docSnap.id, ...docSnap.data() } as Order;
+                    const data = docSnap.data();
+                    if (storeId && data.store_id !== storeId) {
+                        console.error('❌ Tentativa de acesso a pedido de outra loja bloqueada');
+                        return null;
+                    }
+                    return { id: docSnap.id, ...data } as Order;
                 }
             } catch (err) {
                 console.warn('⚠️ Buscando pedido localmente');
             }
             const localOrder = getLocalOrders().find(o => o.id === id);
+            if (storeId && localOrder && localOrder.store_id !== storeId) return null;
             return localOrder || null;
         },
 
-        updateOrderWithCustomerData: async (id: string, data: any): Promise<void> => {
+        updateOrderWithCustomerData: async (id: string, data: any, storeId: string): Promise<void> => {
             try {
                 const docRef = doc(db, 'orders', id);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+                    throw new Error('Permissão negada.');
+                }
+
                 await updateDoc(docRef, {
                     customer_data: data,
                     updated_at: new Date().toISOString()
@@ -155,7 +167,7 @@ export const orderService = {
             } catch (err) {
                 const orders = getLocalOrders();
                 const index = orders.findIndex(o => o.id === id);
-                if (index !== -1) {
+                if (index !== -1 && orders[index].store_id === storeId) {
                     orders[index].customerData = data;
                     localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
                 }

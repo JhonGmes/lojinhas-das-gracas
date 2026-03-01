@@ -64,7 +64,7 @@ export function Reviews() {
     const handleDelete = async (id: string) => {
         if (!confirm('Tem certeza que deseja excluir esta avaliação? Esta ação é irreversível.')) return;
         try {
-            await api.reviews.delete(id);
+            await api.reviews.delete(id, currentStoreId);
             toast.success('Avaliação excluída.');
             setReviews(prev => prev.filter(r => r.id !== id));
         } catch (error) {
@@ -76,7 +76,7 @@ export function Reviews() {
         if (!replyText.trim()) return;
         setIsSubmitting(true);
         try {
-            await api.reviews.respond(id, replyText);
+            await api.reviews.respond(id, replyText, currentStoreId);
             toast.success('Resposta enviada!');
             setReplyingTo(null);
             setReplyText('');

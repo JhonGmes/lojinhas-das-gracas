@@ -5,7 +5,7 @@ import { collection, query, getDocs, addDoc, orderBy, serverTimestamp } from 'fi
 import { db } from '../../lib/firebase';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Plus, Building2, ExternalLink } from 'lucide-react';
+import { Shield, Plus, Building2, ExternalLink, CreditCard, TrendingUp, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Store {
@@ -13,7 +13,8 @@ interface Store {
     slug: string;
     name: string;
     status: string;
-    created_at: string;
+    created_at: any;
+    plan?: 'basic' | 'pro';
 }
 
 export function SuperAdmin() {
@@ -28,15 +29,32 @@ export function SuperAdmin() {
         try {
             const q = query(collection(db, 'stores'), orderBy('created_at', 'desc'));
             const snap = await getDocs(q);
-            setStores(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Store)));
+            const storesList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Store));
+
+            // Fetch subscriptions for all stores to show plans
+            const subSnap = await getDocs(collection(db, 'subscriptions'));
+            const subsMap = new Map();
+            subSnap.docs.forEach(doc => {
+                const data = doc.data();
+                subsMap.set(data.store_id, data.plan);
+            });
+
+            const enrichedStores = storesList.map(s => ({
+                ...s,
+                plan: subsMap.get(s.id) || 'basic'
+            }));
+
+            setStores(enrichedStores);
         } catch (error) {
             toast.error('Erro ao carregar lojas');
         }
     };
 
     useEffect(() => {
-        // Trava de Segurança: Apenas Administradores acessam o Super Admin
-        if (!user || user.role !== 'admin') {
+        // Trava de Segurança: Apenas o Administrador Geral (Plataforma) acessa o Super Admin
+        const isMasterAdmin = user?.email === 'jhongprojetos@gmail.com';
+
+        if (!user || user.role !== 'admin' || !isMasterAdmin) {
             toast.error('Acesso restrito ao Administrador Geral do Sistema.');
             navigate('/');
             return;
@@ -99,6 +117,26 @@ export function SuperAdmin() {
                 </button>
             </header>
 
+            {/* Network Metrics Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                {[
+                    { label: 'Total de Lojas', value: stores.length, icon: Building2, color: 'text-stone-600' },
+                    { label: 'Assinaturas Pro', value: stores.filter(s => s.plan === 'pro').length, icon: Star, color: 'text-amber-500' },
+                    { label: 'MRR Estimado', value: `R$ ${stores.filter(s => s.plan === 'pro').length * 49}`, icon: CreditCard, color: 'text-emerald-500' },
+                    { label: 'Taxa de Conversão', value: `${stores.length ? Math.round((stores.filter(s => s.plan === 'pro').length / stores.length) * 100) : 0}%`, icon: TrendingUp, color: 'text-blue-500' },
+                ].map((stat, i) => (
+                    <div key={i} className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm flex items-center gap-4">
+                        <div className={`p-3 rounded-xl bg-stone-50 dark:bg-stone-800 ${stat.color}`}>
+                            <stat.icon size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">{stat.label}</p>
+                            <p className="text-xl font-black text-stone-800 dark:text-stone-100">{stat.value}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {stores.map(store => (
                     <div
@@ -106,12 +144,17 @@ export function SuperAdmin() {
                         className={`bg-white dark:bg-stone-900 p-6 rounded-2xl border ${currentStoreId === store.id ? 'border-red-500 ring-4 ring-red-500/10' : 'border-stone-100 dark:border-stone-800'} shadow-soft transition-all`}
                     >
                         <div className="flex items-center justify-between mb-6">
+                            <div className="flex gap-2">
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${store.plan === 'pro' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-stone-100 text-stone-500 border border-stone-200'}`}>
+                                    {store.plan === 'pro' ? 'PRO' : 'BASIC'}
+                                </span>
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${store.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {store.status}
+                                </span>
+                            </div>
                             <div className="w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-lg flex items-center justify-center text-stone-400">
                                 <Building2 size={20} />
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${store.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {store.status}
-                            </span>
                         </div>
 
                         <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-1">{store.name}</h3>

@@ -24,15 +24,17 @@ export const blogService = {
             return querySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
-                    id: doc.id,
                     ...data,
+                    id: doc.id,
                     isFeatured: data.is_featured,
-                    isPublished: data.is_published
-                } as BlogPost;
+                    isPublished: data.is_published,
+                    date: data.date?.toDate?.()?.toISOString() || data.date || data.created_at?.toDate?.()?.toISOString() || data.created_at || new Date(0).toISOString(),
+                    created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at || new Date(0).toISOString()
+                } as any as BlogPost;
             }).sort((a, b) => {
-                const dateA = a.created_at?.toDate?.() || new Date(a.date || 0);
-                const dateB = b.created_at?.toDate?.() || new Date(b.date || 0);
-                return dateB.getTime() - dateA.getTime();
+                const dateA = new Date(a.date || a.created_at).getTime();
+                const dateB = new Date(b.date || b.created_at).getTime();
+                return dateB - dateA;
             });
         } catch (err: any) {
             console.warn('⚠️ Firebase blog offline ou erro de índice:', err.message);

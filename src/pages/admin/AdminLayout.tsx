@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import {
     LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft,
     Settings as SettingsIcon, FolderTree, BookOpen,
-    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star, Shield
+    User, ChevronRight, Menu, Camera, Users, Ticket, Clock, X, Star, Shield, CreditCard, Lock, Sparkles
 } from 'lucide-react';
 
 // Lazy loaded admin pages
@@ -22,6 +22,7 @@ const Customers = lazy(() => import('./Customers').then(m => ({ default: m.Custo
 const Coupons = lazy(() => import('./Coupons').then(m => ({ default: m.Coupons })));
 const Waitlist = lazy(() => import('./Waitlist').then(m => ({ default: m.Waitlist })));
 const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
+const BillingDashboard = lazy(() => import('./BillingDashboard').then(m => ({ default: m.BillingDashboard })));
 
 const AdminLoading = () => (
     <div className="h-96 flex flex-col items-center justify-center gap-4">
@@ -34,9 +35,10 @@ const AdminLoading = () => (
 );
 
 import { useEffect, useState } from 'react';
+import { PlanGuard } from '../../components/admin/PlanGuard';
 export function AdminLayout() {
     const { user, logout } = useAuth();
-    const { settings, currentStoreId, updateSettings } = useStore();
+    const { settings, currentStoreId, updateSettings, hasFeature } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -84,8 +86,18 @@ export function AdminLayout() {
     useEffect(() => {
         if (!user || user.role !== 'admin') {
             navigate('/admin-login');
+            return;
         }
-    }, [user, navigate, location]);
+
+        // SaaS Security: Prevent lojistas from accessing other stores
+        // Master admin (platform owner) has access to all stores
+        const isMasterAdmin = user.email === 'jhongprojetos@gmail.com';
+
+        if (!isMasterAdmin && currentStoreId && user.store_id !== currentStoreId) {
+            console.error('Security Violation: Unauthorized store access attempt');
+            navigate('/');
+        }
+    }, [user, navigate, location, currentStoreId]);
 
     useEffect(() => {
         setIsMobileMenuOpen(false);
@@ -109,9 +121,27 @@ export function AdminLayout() {
             items: [
                 { path: '/admin/inventory', label: 'Catálogo de Produtos', icon: Package },
                 { path: '/admin/categories', label: 'Categorias', icon: FolderTree },
-                { path: '/admin/coupons', label: 'Cupons de Desconto', icon: Ticket },
+                {
+                    path: '/admin/coupons',
+                    label: 'Cupons de Desconto',
+                    icon: Ticket,
+                    isLocked: !hasFeature('coupons')
+                },
                 { path: '/admin/reviews', label: 'Avaliações de Clientes', icon: Star },
-                { path: '/admin/blog', label: 'Blog de Fé', icon: BookOpen },
+                {
+                    path: '/admin/blog',
+                    label: 'Blog de Fé',
+                    icon: BookOpen,
+                    isLocked: !hasFeature('blog')
+                },
+            ]
+        },
+
+        {
+            title: 'SaaS & Crescimento',
+            items: [
+                { path: '/admin/billing', label: 'Assinatura & Cobrança', icon: CreditCard },
+                { path: '/admin/metrics', label: 'Métricas Avançadas', icon: Sparkles, isLocked: !hasFeature('metrics_pro') },
             ]
         }
     ];
@@ -225,6 +255,13 @@ export function AdminLayout() {
                                             <item.icon size={16} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                                             <span className={`text-xs tracking-wide ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
 
+                                            {/* Plan Lock Indicator */}
+                                            {item.isLocked && (
+                                                <div className="ml-auto flex items-center gap-1 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter text-stone-400">
+                                                    <Lock size={8} /> Pro
+                                                </div>
+                                            )}
+
                                             {/* Badge for Orders */}
                                             {item.path === '/admin/orders' && pendingOrdersCount > 0 && (
                                                 <span className="ml-auto bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
@@ -307,8 +344,9 @@ export function AdminLayout() {
                             <Route path="/categories" element={<Categories />} />
                             <Route path="/orders" element={<Orders />} />
                             <Route path="/customers" element={<Customers />} />
-                            <Route path="/coupons" element={<Coupons />} />
-                            <Route path="/blog" element={<BlogAdmin />} />
+                            <Route path="/coupons" element={<PlanGuard feature="coupons"><Coupons /></PlanGuard>} />
+                            <Route path="/blog" element={<PlanGuard feature="blog"><BlogAdmin /></PlanGuard>} />
+                            <Route path="/billing" element={<BillingDashboard />} />
                             <Route path="/add-product" element={<AddProduct />} />
                             <Route path="/edit-product/:id" element={<EditProduct />} />
                             <Route path="/waitlist" element={<Waitlist />} />

@@ -147,7 +147,7 @@ export function OrderSuccess() {
                                     if (checkData && (checkData.paid || (checkData.success && checkData.paid))) {
                                         try {
                                             isConfirming.current = true;
-                                            await api.orders.confirmPayment(found);
+                                            await api.orders.confirmPayment(found, currentStoreId);
                                             currentStatus = 'paid';
                                             found.status = 'paid';
                                         } finally {
@@ -183,7 +183,7 @@ export function OrderSuccess() {
                                                 };
                                             }
 
-                                            await api.orders.updateOrderWithCustomerData(found.id, customerData);
+                                            await api.orders.updateOrderWithCustomerData(found.id, customerData, currentStoreId);
                                             setOrder((prev: any) => ({
                                                 ...prev,
                                                 customerEmail: customerData.email || prev.customerEmail,

@@ -1,6 +1,7 @@
 import {
     collection,
     doc,
+    getDoc,
     getDocs,
     query,
     where,
@@ -21,12 +22,18 @@ export const reviewService = {
                 where('product_id', '==', productId)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                .sort((a: any, b: any) => {
-                    const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
-                    const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
-                    return dateB.getTime() - dateA.getTime();
-                }) as any;
+            return querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at || new Date(0).toISOString()
+                };
+            }).sort((a: any, b: any) => {
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                return dateB - dateA;
+            }) as any;
         } catch (err: any) {
             if (err.message?.includes('index')) {
                 console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Reviews): Você precisa criar um índice composto. Clique no link no erro abaixo.');
@@ -43,12 +50,18 @@ export const reviewService = {
                 where('store_id', '==', storeId)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                .sort((a: any, b: any) => {
-                    const dateA = a.created_at?.toDate?.() || new Date(a.created_at || 0);
-                    const dateB = b.created_at?.toDate?.() || new Date(b.created_at || 0);
-                    return dateB.getTime() - dateA.getTime();
-                });
+            return querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at || new Date(0).toISOString()
+                };
+            }).sort((a: any, b: any) => {
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                return dateB - dateA;
+            });
         } catch (err: any) {
             if (err.message?.includes('index')) {
                 console.error('❌ ERRO DE ÍNDICE NO FIREBASE (Reviews): Você precisa criar um índice composto. Clique no link no erro abaixo.');
@@ -72,14 +85,25 @@ export const reviewService = {
             localStorage.setItem('ljg_reviews', JSON.stringify(reviews));
         }
     },
-    respond: async (reviewId: string, response: string): Promise<void> => {
-        await updateDoc(doc(db, 'reviews', reviewId), {
+    respond: async (reviewId: string, response: string, storeId: string): Promise<void> => {
+        const docRef = doc(db, 'reviews', reviewId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+            throw new Error('Permissão negada.');
+        }
+
+        await updateDoc(docRef, {
             admin_response: response,
             admin_response_date: new Date().toISOString()
         });
     },
-    delete: async (reviewId: string): Promise<void> => {
-        await deleteDoc(doc(db, 'reviews', reviewId));
+    delete: async (reviewId: string, storeId: string): Promise<void> => {
+        const docRef = doc(db, 'reviews', reviewId);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists() || docSnap.data()?.store_id !== storeId) {
+            throw new Error('Permissão negada.');
+        }
+        await deleteDoc(docRef);
     },
     markHelpful: async (reviewId: string): Promise<void> => {
         await updateDoc(doc(db, 'reviews', reviewId), { helpful_count: increment(1) });

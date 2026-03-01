@@ -226,8 +226,12 @@ export const productService = {
         create: async (name: string, storeId: string): Promise<void> => {
             await addDoc(collection(db, 'categories'), { name, store_id: storeId });
         },
-        delete: async (name: string): Promise<void> => {
-            const q = query(collection(db, 'categories'), where('name', '==', name));
+        delete: async (name: string, storeId: string): Promise<void> => {
+            const q = query(
+                collection(db, 'categories'),
+                where('name', '==', name),
+                where('store_id', '==', storeId)
+            );
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach(async (d) => {
                 await deleteDoc(doc(db, 'categories', d.id));

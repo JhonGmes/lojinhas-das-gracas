@@ -9,15 +9,29 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.store_id == storeId;
     }
 
+    // Helper: Check if user is a Super Admin
+    function isSuperAdmin() {
+       return request.auth != null && 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+    }
+
     // Users can only read/write their own profile
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Store settings: public read, admin write (must match storeId)
     match /store_settings/{storeId} {
       allow read: if true;
-      allow write: if isStoreAdmin(storeId);
+      allow write: if isStoreAdmin(storeId) || isSuperAdmin();
+    }
+
+    // Stores collection: mainly for onboarding and super-admin
+    match /stores/{storeId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isStoreAdmin(storeId) || isSuperAdmin();
     }
 
     // Products: public read, admin write (must match storeId)
@@ -39,8 +53,7 @@ service cloud.firestore {
       allow create: if true;
       allow read: if isStoreAdmin(resource.data.store_id) || 
                   (request.auth != null && request.auth.token.email == resource.data.customerEmail);
-      allow update: if isStoreAdmin(resource.data.store_id);
-      allow delete: if isStoreAdmin(resource.data.store_id);
+      allow update, delete: if isStoreAdmin(resource.data.store_id);
     }
 
     // Blog posts: public read, admin write
@@ -50,16 +63,23 @@ service cloud.firestore {
       allow update, delete: if isStoreAdmin(resource.data.store_id);
     }
 
-    // Wishlist: isolated by store and (session or user)
-    match /wishlists/{id} {
-      allow read, write: if true; // We rely on application logic + store_id filtering for now, 
-                                  // but ideally we should restrict to its own session_id if possible.
-    }
-
     // Coupons: public read (for validation), admin write
     match /coupons/{id} {
       allow read: if true;
       allow write: if isStoreAdmin(request.resource.data.store_id || resource.data.store_id);
+    }
+
+    // Subscriptions: Admin read/create, SuperAdmin manage
+    match /subscriptions/{subId} {
+      allow read: if isStoreAdmin(resource.data.store_id) || isSuperAdmin();
+      allow create: if isStoreAdmin(request.resource.data.store_id);
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // Support Tickets (future)
+    match /tickets/{ticketId} {
+      allow read, create: if isStoreAdmin(request.resource.data.store_id || resource.data.store_id);
+      allow update: if isSuperAdmin();
     }
 
     // Reviews: public read, authenticated create

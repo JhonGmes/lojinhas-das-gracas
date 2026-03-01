@@ -60,7 +60,7 @@ export function useProducts(storeId: string) {
 
     // Categoria: Deletar
     const deleteCategoryMutation = useMutation({
-        mutationFn: (name: string) => api.categories.delete(name),
+        mutationFn: (name: string) => api.categories.delete(name, storeId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['categories', storeId] });
             toast.success('Categoria removida');

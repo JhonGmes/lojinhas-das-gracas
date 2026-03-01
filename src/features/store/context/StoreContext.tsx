@@ -26,6 +26,7 @@ export interface StoreSettings {
     manager_name?: string;
     plan?: 'basic' | 'pro';
     status?: 'active' | 'inactive';
+    custom_domain?: string;
 }
 
 interface StoreContextType {
@@ -35,6 +36,7 @@ interface StoreContextType {
     setStore: (id: string) => void;
     updateSettings: (newSettings: Partial<StoreSettings>) => Promise<void>;
     hasFeature: (feature: 'blog' | 'coupons' | 'wishlist' | 'metrics_pro') => boolean;
+    isMainDomain: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -65,6 +67,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [isMainDomain, setIsMainDomain] = useState(false);
 
     const DEFAULT_SETTINGS = {
         id: DEFAULT_STORE_ID,
@@ -85,7 +88,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         manager_name: 'Jhon Gomes',
         monthly_revenue_goal: 5000,
         plan: 'pro' as const,
-        status: 'active' as const
+        status: 'active' as const,
+        custom_domain: ''
     };
 
     const initializeStoreIfNeeded = async () => {
@@ -142,7 +146,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                     about_text: '',
                     privacy_policy: '',
                     plan: 'basic' as const,
-                    status: 'active' as const
+                    status: 'active' as const,
+                    custom_domain: ''
                 } as StoreSettings);
             }
         } catch (error) {
@@ -205,11 +210,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // 3. Fallback: Se nenhuma loja for encontrada, redirecionar ou usar padrão (conforme escolha do usuário: "Redirecionar")
+            // 3. Detecção via Domínio Personalizado
+            try {
+                const q = query(collection(db, 'store_settings'), where('custom_domain', '==', host), limit(1));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    setCurrentStoreId(snap.docs[0].id);
+                    return;
+                }
+            } catch (e) {
+                console.warn("Custom domain check failed:", e);
+            }
+
+            // 4. Fallback: Se nenhuma loja for encontrada, redirecionar ou usar padrão
             if (host !== 'localhost' && !host.includes('127.0.0.1')) {
-                console.warn('Loja não encontrada para o host:', host);
-                // Aqui poderíamos redirecionar para a landing page global vendedora do SaaS
-                // window.location.href = 'https://lojinhas-das-gracas.vercel.app';
+                // Se não cair nos critérios acima e for o domínio raiz
+                const isRoot = host === 'lojinhas-das-gracas.vercel.app' || host.split('.').length === 2;
+                setIsMainDomain(isRoot);
+
+                if (!isRoot) {
+                    console.warn('Loja não encontrada para o host:', host);
+                }
+            } else {
+                // Em localhost, podemos simular via query param ou assumir main domain se não houver shop param
+                if (!storeSlug) {
+                    setIsMainDomain(true);
+                } else {
+                    setIsMainDomain(false);
+                }
             }
         };
         detectStore();
@@ -254,7 +282,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore, updateSettings, hasFeature }}>
+        <StoreContext.Provider value={{ settings, loading, currentStoreId, setStore, updateSettings, hasFeature, isMainDomain }}>
             {children}
         </StoreContext.Provider>
     );
