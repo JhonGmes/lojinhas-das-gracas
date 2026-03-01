@@ -3,7 +3,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
-import { StoreProvider, useStore } from './features/store/context/StoreContext';
+import { StoreProvider } from './features/store/context/StoreContext';
 import { BillingProvider } from './features/billing/context/BillingContext';
 import { BlogProvider } from './context/BlogContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -109,7 +109,6 @@ function ChatBot() {
 }
 
 function AppRoutes() {
-    const { isMainDomain } = useStore();
     return (
         <BrowserRouter>
             <ScrollToTop />
