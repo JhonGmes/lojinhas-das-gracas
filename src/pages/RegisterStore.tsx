@@ -31,17 +31,35 @@ export default function RegisterStore() {
         setLoading(true);
 
         try {
-            // 1. Create the store first to get the ID
-            const storeRef = await addDoc(collection(db, 'stores'), {
+            // 1. Generate a store ID first (reference only, no write yet)
+            const storeRef = doc(collection(db, 'stores'));
+            const storeId = storeRef.id;
+
+            // 2. Create the user as admin linked to this store ID
+            // This step authenticates the user in Firebase
+            const result = await signup({
+                email: form.email,
+                pass: form.pass,
+                name: form.name,
+                storeId: storeId,
+                role: 'admin'
+            });
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            // NOW THE USER IS AUTHENTICATED - Subsequent writes will succeed
+
+            // 3. Create the store document
+            await setDoc(storeRef, {
                 name: form.storeName,
                 slug: form.slug.toLowerCase().trim().replace(/\s+/g, '-'),
                 status: 'active',
                 created_at: serverTimestamp()
             });
 
-            const storeId = storeRef.id;
-
-            // 2. Initialize store settings
+            // 4. Initialize store settings
             await api.settings.update({
                 store_id: storeId,
                 store_name: form.storeName,
@@ -56,7 +74,7 @@ export default function RegisterStore() {
                 }
             } as any);
 
-            // 3. Create initial subscription (15 days trial)
+            // 5. Create initial subscription (15 days trial)
             const trialEnd = new Date();
             trialEnd.setDate(trialEnd.getDate() + 15);
 
@@ -70,22 +88,10 @@ export default function RegisterStore() {
                 createdAt: serverTimestamp()
             });
 
-            // 4. Create the user as admin linked to this store
-            const result = await signup({
-                email: form.email,
-                pass: form.pass,
-                name: form.name,
-                storeId: storeId,
-                role: 'admin'
-            });
-
-            if (result.success) {
-                toast.success('Parabéns! Sua loja foi criada.');
-                navigate('/admin');
-            } else {
-                throw new Error(result.message);
-            }
+            toast.success('Parabéns! Sua loja foi criada.');
+            navigate('/admin');
         } catch (error: any) {
+            console.error('Erro na criação:', error);
             toast.error(error.message || 'Erro ao criar loja');
         } finally {
             setLoading(false);
