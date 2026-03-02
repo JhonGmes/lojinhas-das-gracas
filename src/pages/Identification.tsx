@@ -233,6 +233,7 @@ export function Identification() {
                                         <input
                                             type="email"
                                             required
+                                            tabIndex={1}
                                             value={loginEmail}
                                             onChange={e => setLoginEmail(e.target.value)}
                                             className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
@@ -248,6 +249,7 @@ export function Identification() {
                                         <input
                                             type="password"
                                             required
+                                            tabIndex={2}
                                             value={loginPass}
                                             onChange={e => setLoginPass(e.target.value)}
                                             className="w-full bg-stone-50/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-xl py-3 pl-10 pr-4 outline-none focus:ring-2 ring-brand-gold/50 transition-all text-sm text-stone-800 dark:text-stone-200"
@@ -256,6 +258,7 @@ export function Identification() {
                                     </div>
                                     <button
                                         type="button"
+                                        tabIndex={4}
                                         onClick={() => {
                                             setShowResetPassword(true);
                                             setError(''); // Clear errors when navigating to reset password
@@ -270,6 +273,7 @@ export function Identification() {
 
                             <button
                                 type="submit"
+                                tabIndex={3}
                                 disabled={loading}
                                 className="w-full bg-brand-wood hover:bg-brand-brown text-white py-3 px-6 rounded-xl font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                             >
