@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
-import { collection, query, getDocs, addDoc, orderBy, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, getDocs, addDoc, orderBy, serverTimestamp, deleteDoc, doc, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
