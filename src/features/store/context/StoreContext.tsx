@@ -161,8 +161,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const detectStore = async () => {
             const host = window.location.hostname;
+            const path = window.location.pathname;
             const params = new URLSearchParams(window.location.search);
             const storeSlug = params.get('shop');
+            const savedStoreId = localStorage.getItem('managed_store_id');
+
+            // 0. Prioridade Absoluta: Painel de Admin
+            if (path.startsWith('/admin') && savedStoreId) {
+                setCurrentStoreId(savedStoreId);
+                return;
+            }
 
             // 1. Prioridade: Parâmetro de URL (facilitador de teste local)
             if (storeSlug) {

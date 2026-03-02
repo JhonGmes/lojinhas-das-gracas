@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/context/AuthContext';
+import { useStore } from '../features/store/context/StoreContext';
 import { api } from '../services/api';
 import { db } from '../lib/firebase';
 import { collection, serverTimestamp, setDoc, doc } from 'firebase/firestore';
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 
 export default function RegisterStore() {
     const { signup } = useAuth();
+    const { setStore } = useStore();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1);
@@ -87,6 +89,9 @@ export default function RegisterStore() {
                 customerEmail: form.email,
                 createdAt: serverTimestamp()
             });
+
+            // 6. Set active store in context to avoid redirect loops
+            setStore(storeId);
 
             toast.success('Parabéns! Sua loja foi criada.');
             navigate('/admin');
