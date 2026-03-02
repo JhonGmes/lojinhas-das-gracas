@@ -24,7 +24,8 @@ service cloud.firestore {
     // Store settings: public read, admin write (must match storeId)
     match /store_settings/{storeId} {
       allow read: if true;
-      allow write: if isStoreAdmin(storeId) || isSuperAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isStoreAdmin(storeId) || isSuperAdmin();
     }
 
     // Stores collection: mainly for onboarding and super-admin

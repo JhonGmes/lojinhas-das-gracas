@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/context/AuthContext';
 import { api } from '../services/api';
 import { db } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, setDoc, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, setDoc, doc } from 'firebase/firestore';
 import { Shield, Layout, ArrowRight, CheckCircle2, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 
