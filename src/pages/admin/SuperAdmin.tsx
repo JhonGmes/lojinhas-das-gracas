@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
-import { collection, query, getDocs, addDoc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, query, getDocs, addDoc, orderBy, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useStore } from '../../context/StoreContext';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Plus, Building2, ExternalLink, CreditCard, TrendingUp, Star } from 'lucide-react';
+import { Shield, Plus, Building2, ExternalLink, CreditCard, TrendingUp, Star, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Store {
@@ -91,6 +91,24 @@ export function SuperAdmin() {
         }
     };
 
+    const handleDeleteStore = async (id: string, name: string) => {
+        if (!window.confirm(`Tem certeza que deseja excluir a loja "${name}"? Esta ação é irreversível e excluirá as configurações da loja.`)) return;
+
+        try {
+            await deleteDoc(doc(db, 'stores', id));
+            await deleteDoc(doc(db, 'store_settings', id));
+            await deleteDoc(doc(db, 'subscriptions', id));
+
+            toast.success('Loja excluída com sucesso!');
+            fetchStores();
+            if (currentStoreId === id) {
+                setStore('00000000-0000-0000-0000-000000000001'); // Reset if deleting current store
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao excluir loja');
+        }
+    };
+
     const toggleStore = (id: string) => {
         setStore(id);
         toast.success('Ambiente de loja alterado!');
@@ -152,8 +170,17 @@ export function SuperAdmin() {
                                     {store.status}
                                 </span>
                             </div>
-                            <div className="w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-lg flex items-center justify-center text-stone-400">
-                                <Building2 size={20} />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleDeleteStore(store.id, store.name)}
+                                    className="w-10 h-10 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                                    title="Excluir Loja"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                                <div className="w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-lg flex items-center justify-center text-stone-400">
+                                    <Building2 size={20} />
+                                </div>
                             </div>
                         </div>
 
