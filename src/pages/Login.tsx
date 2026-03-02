@@ -126,6 +126,7 @@ export function Login() {
                                         <input
                                             required
                                             type="email"
+                                            tabIndex={1}
                                             value={email}
                                             onChange={e => setEmail(e.target.value)}
                                             className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
@@ -139,6 +140,7 @@ export function Login() {
                                         <label className="text-xs font-semibold text-stone-600 dark:text-stone-300">Senha</label>
                                         <button
                                             type="button"
+                                            tabIndex={4}
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 setShowResetPassword(true);
@@ -155,6 +157,7 @@ export function Login() {
                                         <input
                                             required
                                             type="password"
+                                            tabIndex={2}
                                             value={pass}
                                             onChange={e => setPass(e.target.value)}
                                             className="w-full pl-9 pr-3 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold transition-all"
@@ -173,6 +176,7 @@ export function Login() {
 
                             <button
                                 type="submit"
+                                tabIndex={3}
                                 disabled={loading}
                                 className="w-full bg-[#2A3F54] hover:bg-[#34495E] text-white font-bold py-3 rounded-lg shadow-lg shadow-stone-200/50 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-wide"
                             >
