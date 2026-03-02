@@ -95,11 +95,20 @@ export function SuperAdmin() {
         if (!window.confirm(`Tem certeza que deseja excluir a loja "${name}"? Esta ação é irreversível e excluirá as configurações da loja.`)) return;
 
         try {
-            await deleteDoc(doc(db, 'stores', id));
-            await deleteDoc(doc(db, 'store_settings', id));
-            await deleteDoc(doc(db, 'subscriptions', id));
+            // Delete users associated with this store
+            const usersQ = query(collection(db, 'users'), where('store_id', '==', id));
+            const usersSnap = await getDocs(usersQ);
 
-            toast.success('Loja excluída com sucesso!');
+            const deletePromises = [
+                deleteDoc(doc(db, 'stores', id)),
+                deleteDoc(doc(db, 'store_settings', id)),
+                deleteDoc(doc(db, 'subscriptions', id)),
+                ...usersSnap.docs.map(userDoc => deleteDoc(userDoc.ref))
+            ];
+
+            await Promise.all(deletePromises);
+
+            toast.success('Loja e acesso excluídos com sucesso!');
             fetchStores();
             if (currentStoreId === id) {
                 setStore('00000000-0000-0000-0000-000000000001'); // Reset if deleting current store
