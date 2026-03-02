@@ -80,6 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 whatsapp: data.whatsapp,
                 address: data.address
             };
+
+            // Remove undefined fields to prevent Firestore errors
+            Object.keys(userData).forEach(key => (userData as any)[key] === undefined && delete (userData as any)[key]);
+
             await setDoc(doc(db, 'users', firebaseUser.uid), userData);
             saveUser(userData);
             return { success: true };
