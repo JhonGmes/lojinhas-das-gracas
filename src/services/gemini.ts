@@ -12,7 +12,7 @@ export const geminiService = {
             return "✨ (Simulação IA) Este produto é uma peça de devocão única, ideal para momentos de oração profunda. Sua qualidade superior garante durabilidade, e o design inspira paz e recolhimento. Perfeito para presentear alguém especial ou para seu altar pessoal.";
         }
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const prompt = `Atue como um especialista em artigos religiosos católicos. Analise este produto: ${productName} - ${description}. Escreva um parágrafo curto e persuasivo (máximo 50 palavras) sobre 'Por que vale a pena?'. Use tom solene e acolhedor.`;
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -28,12 +28,13 @@ export const geminiService = {
             return "A Paz de Cristo! Sou o assistente virtual da Lojinhas das Graças. No momento estou operando em modo de demonstração, mas estou aqui para ajudar você a encontrar os melhores artigos para sua fé.";
         }
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const prompt = `Você é um assistente virtual da loja 'Lojinhas das Graças', especializado em artigos religiosos. Responda de forma curta e gentil: ${message}`;
             const result = await model.generateContent(prompt);
             const response = await result.response;
             return response.text();
         } catch (e) {
+            console.error("Erro no chat do Gemini:", e);
             return "A Paz de Cristo! No momento estou em um breve momento de oração (manutenção técnica). Que tal conversarmos novamente em alguns instantes?";
         }
     },
