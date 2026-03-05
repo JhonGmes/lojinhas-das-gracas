@@ -9,6 +9,16 @@ export default async function handler(req, res) {
   const target = req.query.target;
   if (!target) return res.status(400).json({ error: 'Missing target' });
 
+  // Security: Only allow targets from infinitepay.io
+  try {
+    const targetUrl = new URL(target);
+    if (!targetUrl.hostname.endsWith('infinitepay.io')) {
+      return res.status(403).json({ error: 'Forbidden: Target domain not allowed' });
+    }
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid target URL' });
+  }
+
   try {
     const isPost = req.method === 'POST';
     const options = {

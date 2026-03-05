@@ -13,7 +13,15 @@ interface CustomerSummary {
     email: string;
     name: string;
     phone: string;
+    whatsapp?: string;
     address?: string;
+    addressDetails?: {
+        street?: string;
+        number?: string;
+        city?: string;
+        state?: string;
+        zipcode?: string;
+    };
     orderCount: number;
     totalSpent: number;
     lastPurchase: string;
@@ -32,14 +40,39 @@ export function Customers() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [ordersData] = await Promise.all([
-                    api.orders.list(currentStoreId)
+                const [ordersData, usersData] = await Promise.all([
+                    api.orders.list(currentStoreId),
+                    api.usuarios.list()
                 ]);
 
                 // Process customers map
                 const map: Record<string, CustomerSummary> = {};
 
-                // Add orders data
+                // 1. Add base user data from profiles
+                usersData.forEach((user: any) => {
+                    const email = (user.email || user.customer_email || `user-${user.id}`).toLowerCase();
+                    map[email] = {
+                        email: email,
+                        name: user.name || user.customer_name || 'Cliente s/ nome',
+                        phone: user.phone || user.customer_whatsapp || 'N/A',
+                        whatsapp: user.whatsapp || user.customer_whatsapp || '',
+                        address: user.address || '',
+                        addressDetails: {
+                            street: user.customer_address_street,
+                            number: user.customer_address_number,
+                            city: user.customer_address_city,
+                            state: user.customer_address_state,
+                            zipcode: user.customer_address_zipcode
+                        },
+                        orderCount: 0,
+                        totalSpent: 0,
+                        lastPurchase: '',
+                        orders: [],
+                        tier: 'Prospecto'
+                    };
+                });
+
+                // 2. Add/Merge orders data
                 ordersData.forEach((order: any) => {
                     const email = (order.customerEmail || 'no-email@undefined.com').toLowerCase();
                     if (!map[email]) {
@@ -60,7 +93,7 @@ export function Customers() {
                     customer.totalSpent += order.total;
                     customer.orders.push(order);
 
-                    if (new Date(order.createdAt) > new Date(customer.lastPurchase)) {
+                    if (!customer.lastPurchase || new Date(order.createdAt) > new Date(customer.lastPurchase)) {
                         customer.lastPurchase = order.createdAt;
                     }
                 });
@@ -82,7 +115,7 @@ export function Customers() {
             }
         };
         fetchData();
-    }, []);
+    }, [currentStoreId]);
 
     const filteredCustomers = customers.filter(c =>
         (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,12 +135,15 @@ export function Customers() {
                 ? `A Paz, ${customer.name}! Seja bem-vindo(a) à ${settings.store_name}. Vimos que você se cadastrou em nosso portal. Se precisar de ajuda para escolher um item especial, estou à disposição! 🙏`
                 : `A Paz, ${customer.name}! Tudo bem? Vimos sua última compra conosco. Temos novidades lindas na ${settings.store_name} esperando por você! 🙏`;
 
-        let phone = customer.phone.replace(/\D/g, '');
+        // Use whatsapp field if available, otherwise phone
+        const contactSource = customer.whatsapp || customer.phone;
+        let phone = contactSource.replace(/\D/g, '');
         if (phone.length === 11 && !phone.startsWith('55')) phone = '55' + phone;
 
         const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     };
+
 
     return (
         <div className="space-y-6 animate-fade-in-up pb-10">
@@ -309,11 +345,20 @@ export function Customers() {
                                     <div className="mt-4 space-y-2">
                                         <div className="text-[10px] text-stone-500 uppercase font-bold tracking-widest">Endereço Registrado:</div>
                                         <div className="text-sm text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 p-3 rounded-md border border-stone-200 dark:border-stone-700">
-                                            {selectedCustomer.address || 'Não informado'}
+                                            {selectedCustomer.addressDetails?.street ? (
+                                                <>
+                                                    {selectedCustomer.addressDetails.street}, {selectedCustomer.addressDetails.number}<br />
+                                                    {selectedCustomer.addressDetails.city} - {selectedCustomer.addressDetails.state}<br />
+                                                    {selectedCustomer.addressDetails.zipcode}
+                                                </>
+                                            ) : (
+                                                selectedCustomer.address || 'Não informado'
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             )}
+
 
                             <div className="space-y-3">
                                 {selectedCustomer.orders.map(order => (

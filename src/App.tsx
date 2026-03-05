@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
 import { ThemeProvider } from './context/ThemeContext';
 import { ProductProvider } from './context/ProductContext';
 import { CartProvider } from './context/CartContext';
@@ -8,8 +9,11 @@ import { BillingProvider } from './features/billing/context/BillingContext';
 import { BlogProvider } from './context/BlogContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { HelmetProvider } from 'react-helmet-async';
-import { lazy, Suspense, useState } from 'react';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { useState, useEffect, Suspense, lazy, useRef } from 'react';
+
+import { useStore } from './context/StoreContext';
+import { MessageCircle, Sparkles, ExternalLink } from 'lucide-react';
+import type { ChatResponse } from './services/gemini';
 
 import { Layout } from './components/layout/Layout';
 import { geminiService } from './services/gemini';
@@ -42,28 +46,47 @@ import { LoadingScreen } from './components/ui/LoadingScreen';
 const LoadingFallback = () => <LoadingScreen />;
 
 function ChatBot() {
+    const { settings: storeSettings } = useStore();
+    const whatsappNumber = storeSettings?.whatsapp_number || '5598984095956';
+
     const [open, setOpen] = useState(false);
-    const [messages, setMessages] = useState<{ role: 'user' | 'bot', text: string }[]>([
-        { role: 'bot', text: 'A Paz de Cristo! Eu sou a Gracinh IA. Posso ajudar você a encontrar algo especial hoje?' }
+    const [messages, setMessages] = useState<{ role: 'user' | 'bot'; text: string; link?: ChatResponse['link'] }[]>([
+        { role: 'bot', text: 'A Paz de Cristo! Eu sou a Gracinh IA. Posso ajudar você a encontrar algo especial hoje? 🙏' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages, loading]);
 
     const send = async () => {
+
         if (!input.trim()) return;
         const userText = input;
         setInput('');
         setMessages(p => [...p, { role: 'user', text: userText }]);
         setLoading(true);
-        const reply = await geminiService.chat(userText);
-        setMessages(p => [...p, { role: 'bot', text: reply }]);
+        const reply = await geminiService.chat(userText, whatsappNumber);
+        setMessages(p => [...p, { role: 'bot', text: reply.text, link: reply.link }]);
         setLoading(false);
     };
+
+    const handleNavLink = (url: string) => {
+        setOpen(false);
+        setTimeout(() => {
+            window.location.href = url;
+        }, 100);
+    };
+
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
             {open && (
-                <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 w-80 mb-4 overflow-hidden pointer-events-auto animate-fade-in-up flex flex-col max-h-[500px]">
+                <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 w-80 mb-4 overflow-hidden pointer-events-auto animate-fade-in-up flex flex-col max-h-[520px]">
                     <div className="bg-brand-wood text-white p-4 font-bold flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <Sparkles size={18} className="text-brand-gold" />
@@ -71,18 +94,38 @@ function ChatBot() {
                         </div>
                         <button onClick={() => setOpen(false)} className="opacity-70 hover:opacity-100">✕</button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-stone-50 dark:bg-stone-900">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50/50 dark:bg-stone-900/50" ref={scrollRef}>
                         {messages.map((m, i) => (
-                            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${m.role === 'user'
-                                    ? 'bg-brand-gold text-white rounded-tr-none'
-                                    : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-tl-none'
+                            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm ${m.role === 'user'
+                                    ? 'bg-brand-gold text-white rounded-tr-none shadow-sm'
+                                    : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-tl-none shadow-sm text-stone-800 dark:text-stone-200'
                                     }`}>
                                     {m.text}
                                 </div>
+                                {m.link && (
+                                    <button
+                                        onClick={() => handleNavLink(m.link!.url)}
+                                        className="mt-2 flex items-center gap-2 bg-white dark:bg-stone-800 text-brand-wood dark:text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm hover:bg-brand-gold hover:text-white transition-all transform hover:scale-105 active:scale-95 border-dashed"
+                                    >
+                                        <ExternalLink size={12} className="animate-pulse" />
+                                        {m.link.label}
+                                    </button>
+                                )}
                             </div>
                         ))}
-                        {loading && <div className="text-xs text-stone-400 p-2">Digitando...</div>}
+
+                        {loading && (
+                            <div className="flex items-start">
+                                <div className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl rounded-tl-none px-4 py-2.5">
+                                    <div className="flex gap-1">
+                                        <span className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="p-3 border-t border-stone-100 dark:border-stone-700 bg-white dark:bg-stone-800 flex gap-2">
                         <input
@@ -92,7 +135,7 @@ function ChatBot() {
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && send()}
                         />
-                        <button onClick={send} className="bg-brand-gold text-white p-2 rounded-full hover:bg-brand-amber transition-colors">
+                        <button onClick={send} disabled={loading} className="bg-brand-gold text-white p-2 rounded-full hover:bg-brand-amber transition-colors disabled:opacity-50">
                             <MessageCircle size={18} />
                         </button>
                     </div>

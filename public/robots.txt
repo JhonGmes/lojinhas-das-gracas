@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin
 
-Sitemap: https://lojinhas-das-gracas.vercel.app/sitemap.xml
+Sitemap: https://lojinha-das-gracas.vercel.app/sitemap.xml

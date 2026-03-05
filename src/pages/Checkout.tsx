@@ -19,7 +19,7 @@ export function Checkout() {
     const [paymentError, setPaymentError] = useState<{ title: string; message: string } | null>(null);
 
     const whatsappNumber = storeSettings?.whatsapp_number || '5598984095956';
-    const whatsappFallback = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    const whatsappFallback = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
         `Olá! Tive um problema ao finalizar minha compra no site. Gostaria de continuar meu pedido de R$ ${formatCurrency(total)}.`
     )}`;
 
@@ -124,7 +124,7 @@ export function Checkout() {
                 customer: {
                     name: formData.name || user.name || 'Cliente',
                     email: user.email,
-                    phone_number: `+${(formData.whatsapp || user.whatsapp || '5598984095956').replace(/\D/g, '')}`
+                    phone_number: `+${(formData.whatsapp || user.whatsapp || whatsappNumber).replace(/\D/g, '')}`
                 }
             };
 
